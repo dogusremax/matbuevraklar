@@ -11,6 +11,8 @@
   --bg:#F2F4F8; --card:#FFFFFF; --accent:#21237B; --line:#C9CDD6; --lite:#E1E4EA;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html,body{-webkit-text-size-adjust:100% !important;text-size-adjust:100% !important}
+.sheet, .sheet *{-webkit-text-size-adjust:100% !important;text-size-adjust:100% !important}
 body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--val)}
 
 /* ===== APP CHROME ===== */
@@ -311,7 +313,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v47</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v48</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -322,7 +324,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v47</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v48</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
@@ -1719,7 +1721,7 @@ async function buildPageImages(){
     holder.style.cssText = "position:absolute;left:-12000px;top:0;width:794px;background:#fff;pointer-events:none;";
     const clone = $("preview").cloneNode(true);
     clone.removeAttribute("id");
-    clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;";
+    clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
 
