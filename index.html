@@ -254,7 +254,7 @@ table.ftbl td.tall{height:9mm}
 @media print{
   body.imgprint #app, body.imgprint .wrap, body.imgprint #fullPrev{display:none !important}
   body.imgprint #printPages{display:block !important}
-  body.imgprint #printPages img{width:210mm;height:297mm;display:block;page-break-after:always;break-after:page}
+  body.imgprint #printPages img{width:100%;height:auto;display:block;page-break-after:always;break-after:page}
   body.imgprint #printPages img:last-child{page-break-after:auto;break-after:auto}
 }
 
@@ -820,6 +820,7 @@ const TEMPLATES = [
       {k:"depozito", l:"Depozito Tutarı (TL)", fmt:"money"},
     ]},
     {t:"Ek-A Demirbaşlar", fields:[
+      {k:"demirbasVar", l:"Demirbaş", type:"select", opts:["Var","Yok"], def:"Var"},
       {k:"d1",l:"1."},{k:"d2",l:"2."},{k:"d3",l:"3."},{k:"d4",l:"4."},{k:"d5",l:"5."},
       {k:"d6",l:"6."},{k:"d7",l:"7."},{k:"d8",l:"8."},{k:"d9",l:"9."},
     ]},
@@ -908,7 +909,9 @@ const TEMPLATES = [
     <div class="clz"><b>22.</b> Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.</div>
     <div class="clz">Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.</div>
     ${secHead("EK-A — DEMİRBAŞ LİSTESİ")}
-    <table class="demir">${[1,2,3,4,5,6,7,8,9].map(i=>`<tr><td class="dn">${i}.</td><td>${fv("d"+i)||"&nbsp;"}</td></tr>`).join("")}</table>
+    ${fv("demirbasVar")==="Yok"
+      ? `<div class="clz" style="margin-top:2mm">Kiralanan taşınmazda taraflarca tespit edilen demirbaş bulunmamaktadır.</div>`
+      : `<table class="demir">${[1,2,3,4,5,6,7,8,9].map(i=>`<tr><td class="dn">${i}.</td><td>${fv("d"+i)||"&nbsp;"}</td></tr>`).join("")}</table>`}
     <div class="shead kefhead">Kefil / Kefalet Beyanı</div>
     <table class="kefal">
       <tr><th>Kefaletin Türü</th><th>Müşterek ve Müteselsil Kefil ve Adresi</th><th>Azami Kefalet Tutarı</th><th>Kefalet Tarihi</th><th>İmza</th></tr>
@@ -1286,6 +1289,23 @@ function openTpl(tid){
   window.scrollTo(0,0);
 }
 
+/* Demirbaş: Yok ise satırlar gizli; Var ise dolu satırlar + ilk boş satır görünür */
+function updateDemirbas(){
+  const sel = $("in_demirbasVar");
+  if (!sel || !sel.closest) return;
+  const yok = (V.demirbasVar || sel.value) === "Yok";
+  let emptyShown = false;
+  for (let i = 1; i <= 9; i++){
+    const el = $("in_d" + i);
+    if (!el || !el.closest) continue;
+    const row = el.closest(".fld");
+    if (!row) continue;
+    const filled = (V["d"+i] || "").trim();
+    if (yok){ row.style.display = "none"; continue; }
+    if (filled || !emptyShown){ row.style.display = ""; if (!filled) emptyShown = true; }
+    else row.style.display = "none";
+  }
+}
 function buildForm(){
   $("formFields").innerHTML = currentTpl.groups.map(g=>{
     const inst = g.repeat ? repCount(g.repeat.base) : 1;
@@ -1302,6 +1322,8 @@ function buildForm(){
         const common = `id="in_${key}" data-k="${key}" data-fmt="${fmtAttr}"${inputMode} placeholder="${fd.ph||""}"`;
         const input = fd.type==="textarea"
           ? `<textarea ${common}>${val}</textarea>`
+          : fd.type==="select"
+          ? `<select ${common}>${(fd.opts||[]).map(o=>`<option${(val||fd.def)===o?" selected":""}>${o}</option>`).join("")}</select>`
           : `<input type="text" ${common} value="${val}">`;
         const req = fd.req && i===1;
         return `<div class="fld"><label>${fd.l}${req?' <span class="req">*</span>':''}</label>${input}</div>`;
@@ -1313,7 +1335,7 @@ function buildForm(){
     }
     return out;
   }).join("");
-  $("formFields").querySelectorAll("input,textarea").forEach(el=>{
+  $("formFields").querySelectorAll("input,textarea,select").forEach(el=>{
     el.addEventListener("input", ()=>{
       const fmt = el.dataset.fmt || "cap";
       const before = el.value;
@@ -1353,6 +1375,7 @@ function removeRep(base){
 }
 
 function refresh(){
+  updateDemirbas();
   $("preview").innerHTML = currentTpl.render();
   bindClauses();
   kiraFlow();
@@ -1666,10 +1689,10 @@ async function buildPageImages(){
     // Belgenin temiz kopyası: sabit 794px (A4 @96dpi), sol-üst köşede,
     // uygulamanın arkasında gizli. Ekran ölçeği/kaydırması etkilemez.
     holder = document.createElement("div");
-    holder.style.cssText = "position:fixed;left:0;top:0;width:794px;background:#fff;z-index:-1000;pointer-events:none;";
+    holder.style.cssText = "position:absolute;left:-12000px;top:0;width:794px;background:#fff;pointer-events:none;";
     const clone = $("preview").cloneNode(true);
     clone.removeAttribute("id");
-    clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:46px 46px 34px;background:#fff;box-shadow:none;transform:none;";
+    clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
 
@@ -1689,6 +1712,17 @@ async function buildPageImages(){
 
     const pageHpx = Math.floor(canvas.width * 297 / 210); // A4 oranında sayfa yüksekliği (canvas px)
     const cctx = canvas.getContext("2d");
+    // dilim sonunda kalan ince şerit tamamen beyazsa yeni sayfa açma
+    const stripWhite = (y0, h0) => {
+      try{
+        const d = cctx.getImageData(0, Math.max(0,Math.floor(y0)), canvas.width, Math.max(1,Math.ceil(h0))).data;
+        let dark = 0;
+        for (let i = 0; i < d.length; i += 16){
+          if (d[i] < 235 || d[i+1] < 235 || d[i+2] < 235){ dark++; if (dark > 60) return false; }
+        }
+        return true;
+      }catch(e){ return false; }
+    };
 
     // bölümler: [0 .. sonlar .. yükseklik]; her bölüm kendi içinde sayfalanır
     const bounds = [0, ...canvasBreaks, canvas.height];
@@ -1697,7 +1731,9 @@ async function buildPageImages(){
       let y = bounds[s];
       const end = bounds[s + 1];
       while (y < end - 8){
-        let sliceH = Math.min(pageHpx, end - y);
+        const remain = end - y;
+        if (remain <= 90 && stripWhite(y, remain)) break; // boş kalıntı: sayfa açma
+        let sliceH = Math.min(pageHpx, remain);
         if (y + sliceH < end - 8){
           const safe = findWhiteRow(cctx, canvas.width, y + sliceH, Math.floor(pageHpx * 0.35));
           if (safe > y + 100) sliceH = safe - y;
