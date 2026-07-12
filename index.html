@@ -246,7 +246,7 @@ table.ftbl td.tall{height:9mm}
 #pdfSheet .ps-card{background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 26px;width:100%;max-width:480px;text-align:center;box-shadow:0 -8px 30px rgba(0,0,0,.3)}
 #pdfSheet .ps-t{font-weight:800;font-size:17px;color:#1B8A3A;margin-bottom:4px;font-family:system-ui}
 #pdfSheet .ps-n{font-size:12px;color:#666;margin-bottom:14px;font-family:system-ui;word-break:break-all}
-#pdfSheet .ps-btn{display:block;text-decoration:none;font-family:system-ui;font-weight:700;font-size:16px;padding:14px;border-radius:12px;margin-bottom:10px}
+#pdfSheet .ps-btn{display:block;width:100%;border:none;cursor:pointer;text-decoration:none;font-family:system-ui;font-weight:700;font-size:16px;padding:14px;border-radius:12px;margin-bottom:10px}
 #pdfSheet .ps-dl{background:var(--navy);color:#fff}
 #pdfSheet .ps-open{background:#EEF1F7;color:var(--navy)}
 #pdfSheet .ps-x{background:none;border:none;color:#888;font-size:14px;padding:8px;font-family:system-ui;width:100%;cursor:pointer}
@@ -323,7 +323,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v53</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v54</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -334,7 +334,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v53</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v54</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
@@ -1812,19 +1812,38 @@ function triggerDownload(blob, name){
 let pdfCache = { key:null, blob:null };
 function docKey(){ return (currentTpl?currentTpl.id:"") + "|" + JSON.stringify(V||{}); }
 
+let currentPdf = { blob:null, name:null, url:null };
 function showPdfSheet(blob, name){
   let s = document.getElementById("pdfSheet");
   if (!s){ s = document.createElement("div"); s.id = "pdfSheet"; document.body.appendChild(s); }
   const url = URL.createObjectURL(blob);
+  currentPdf = { blob, name, url };
   s.innerHTML = `
     <div class="ps-card">
       <div class="ps-t">✅ PDF hazır</div>
       <div class="ps-n">${name}</div>
-      <a class="ps-btn ps-dl" download="${name}" href="${url}">⬇️ Telefona İndir</a>
+      <button class="ps-btn ps-dl" onclick="saveToPhone()">⬇️ Telefona Kaydet</button>
       <a class="ps-btn ps-open" target="_blank" rel="noopener" href="${url}">📂 Aç → Paylaş / WhatsApp</a>
       <button class="ps-x" onclick="closePdfSheet()">Kapat</button>
     </div>`;
   s.style.display = "flex";
+}
+/* iOS/Android yerel kayıt: sistem paylaşım sayfası → "Dosyalara Kaydet".
+   Desteklenmiyorsa klasik indirme bağlantısına düşer. */
+async function saveToPhone(){
+  const { blob, name } = currentPdf;
+  if (!blob) return;
+  try{
+    const file = new File([blob], name, { type: "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file], title:name });
+      closePdfSheet();
+      return;
+    }
+  }catch(e){
+    if (e && e.name === "AbortError") return; // kullanıcı vazgeçti
+  }
+  triggerDownload(blob, name); // yedek: klasik indirme
 }
 function closePdfSheet(){
   const s = document.getElementById("pdfSheet");
