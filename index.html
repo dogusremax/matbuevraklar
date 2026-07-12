@@ -241,6 +241,16 @@ table.ftbl td.tall{height:9mm}
 .sheet.fit3 table.sigs{border-spacing:3mm 1.5mm;margin-top:2mm}
 .sheet.fit3 .paraf{margin:4px 0;font-size:7pt}
 
+/* mobil PDF paneli */
+#pdfSheet{position:fixed;inset:0;background:rgba(20,24,40,.55);z-index:300;display:none;align-items:flex-end;justify-content:center}
+#pdfSheet .ps-card{background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 26px;width:100%;max-width:480px;text-align:center;box-shadow:0 -8px 30px rgba(0,0,0,.3)}
+#pdfSheet .ps-t{font-weight:800;font-size:17px;color:#1B8A3A;margin-bottom:4px;font-family:system-ui}
+#pdfSheet .ps-n{font-size:12px;color:#666;margin-bottom:14px;font-family:system-ui;word-break:break-all}
+#pdfSheet .ps-btn{display:block;text-decoration:none;font-family:system-ui;font-weight:700;font-size:16px;padding:14px;border-radius:12px;margin-bottom:10px}
+#pdfSheet .ps-dl{background:var(--navy);color:#fff}
+#pdfSheet .ps-open{background:#EEF1F7;color:var(--navy)}
+#pdfSheet .ps-x{background:none;border:none;color:#888;font-size:14px;padding:8px;font-family:system-ui;width:100%;cursor:pointer}
+
 /* tam ekran önizleme */
 #fullPrev{position:fixed;inset:0;background:#3A4150;z-index:200;display:none;flex-direction:column}
 #fullPrev .fp-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;background:var(--navy);color:#fff;font-size:14px;font-weight:600;flex-wrap:wrap}
@@ -313,7 +323,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v52</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v53</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -324,7 +334,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v52</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v53</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
@@ -1798,19 +1808,35 @@ function triggerDownload(blob, name){
   a.remove();
   setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){} }, 60000);
 }
-/* mobil: hazır PDF önbelleği — indirme, dokunuşun İÇİNDE senkron tetiklenir (iOS/Android garantili) */
+/* mobil: hazır PDF paneli — kullanıcı GERÇEK bağlantıya dokunur, iOS/Android reddedemez */
 let pdfCache = { key:null, blob:null };
 function docKey(){ return (currentTpl?currentTpl.id:"") + "|" + JSON.stringify(V||{}); }
+
+function showPdfSheet(blob, name){
+  let s = document.getElementById("pdfSheet");
+  if (!s){ s = document.createElement("div"); s.id = "pdfSheet"; document.body.appendChild(s); }
+  const url = URL.createObjectURL(blob);
+  s.innerHTML = `
+    <div class="ps-card">
+      <div class="ps-t">✅ PDF hazır</div>
+      <div class="ps-n">${name}</div>
+      <a class="ps-btn ps-dl" download="${name}" href="${url}">⬇️ Telefona İndir</a>
+      <a class="ps-btn ps-open" target="_blank" rel="noopener" href="${url}">📂 Aç → Paylaş / WhatsApp</a>
+      <button class="ps-x" onclick="closePdfSheet()">Kapat</button>
+    </div>`;
+  s.style.display = "flex";
+}
+function closePdfSheet(){
+  const s = document.getElementById("pdfSheet");
+  if (s) s.style.display = "none";
+}
 
 async function savePdf(btn){
   if (!confirmMissing()) return;
   const name = pdfFileName();
   if (isMobileDevice()){
-    // PDF zaten hazırsa: bu dokunuş içinde ANINDA indir (iOS izni taze)
     if (pdfCache.blob && pdfCache.key === docKey()){
-      triggerDownload(pdfCache.blob, name);
-      btn.textContent = "📄 PDF Kaydet";
-      btn.disabled = false;
+      showPdfSheet(pdfCache.blob, name);   // hazır: panel anında açılır
       return;
     }
     const old = "📄 PDF Kaydet";
@@ -1818,13 +1844,11 @@ async function savePdf(btn){
     try{
       const blob = await buildPdfBlob();
       pdfCache = { key: docKey(), blob };
-      btn.disabled = false;
-      triggerDownload(blob, name);                 // Android burada indirir
-      btn.textContent = "📥 İNDİR — dokun";        // iOS beklettiyse: bir dokunuş, anında iner
-      setTimeout(()=>{ if (btn.textContent === "📥 İNDİR — dokun") btn.textContent = old; }, 20000);
+      showPdfSheet(blob, name);
     }catch(e){
-      btn.disabled = false; btn.textContent = old;
       alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\n\nDetay: " + e.message);
+    }finally{
+      btn.disabled = false; btn.textContent = old;
     }
     return;
   }
