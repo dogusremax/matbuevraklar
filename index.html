@@ -313,7 +313,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v51</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v52</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -324,7 +324,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v51</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v52</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
@@ -1782,28 +1782,58 @@ async function buildPageImages(){
   }
 }
 
+async function buildPdfBlob(){
+  const images = await buildPageImages();
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+  images.forEach((img, i)=>{ if (i > 0) pdf.addPage(); pdf.addImage(img, "JPEG", 0, 0, 210, 297); });
+  return pdf.output("blob");
+}
+function triggerDownload(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){} }, 60000);
+}
+/* mobil: hazır PDF önbelleği — indirme, dokunuşun İÇİNDE senkron tetiklenir (iOS/Android garantili) */
+let pdfCache = { key:null, blob:null };
+function docKey(){ return (currentTpl?currentTpl.id:"") + "|" + JSON.stringify(V||{}); }
+
 async function savePdf(btn){
   if (!confirmMissing()) return;
+  const name = pdfFileName();
+  if (isMobileDevice()){
+    // PDF zaten hazırsa: bu dokunuş içinde ANINDA indir (iOS izni taze)
+    if (pdfCache.blob && pdfCache.key === docKey()){
+      triggerDownload(pdfCache.blob, name);
+      btn.textContent = "📄 PDF Kaydet";
+      btn.disabled = false;
+      return;
+    }
+    const old = "📄 PDF Kaydet";
+    btn.disabled = true; btn.textContent = "⏳ Hazırlanıyor…";
+    try{
+      const blob = await buildPdfBlob();
+      pdfCache = { key: docKey(), blob };
+      btn.disabled = false;
+      triggerDownload(blob, name);                 // Android burada indirir
+      btn.textContent = "📥 İNDİR — dokun";        // iOS beklettiyse: bir dokunuş, anında iner
+      setTimeout(()=>{ if (btn.textContent === "📥 İNDİR — dokun") btn.textContent = old; }, 20000);
+    }catch(e){
+      btn.disabled = false; btn.textContent = old;
+      alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\n\nDetay: " + e.message);
+    }
+    return;
+  }
+  // Masaüstü: olduğu gibi (dosya doğrudan iner)
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = "⏳ PDF hazırlanıyor…";
   try{
-    const images = await buildPageImages();
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    images.forEach((img, i)=>{ if (i > 0) pdf.addPage(); pdf.addImage(img, "JPEG", 0, 0, 210, 297); });
-    if (isMobileDevice()){
-      // Doğrudan indirme: telefon "İndir" der, dosya İndirilenler'e kaydedilir
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = pdfFileName();
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){} }, 60000);
-    } else {
-      pdf.save(pdfFileName());
-    }
+    const blob = await buildPdfBlob();
+    triggerDownload(blob, name);
   }catch(e){
     alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\nAlternatif: 🖨️ Yazdır deneyin.\n\nDetay: " + e.message);
   }finally{
