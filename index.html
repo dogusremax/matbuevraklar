@@ -310,7 +310,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi</p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v46</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -1612,8 +1612,34 @@ function confirmMissing(){
   return !m.length || confirm("Zorunlu alanlar boş:\n\n• " + m.join("\n• ") + "\n\nYine de devam edilsin mi? (Boş alanlar belgede noktalı boşluk olarak kalır)");
 }
 
+function isMobileDevice(){
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); // iPadOS
+}
 async function printDoc(){
   if (!confirmMissing()) return;
+  if (isMobileDevice()){
+    // Telefonda: belgeyi bilgisayarla birebir aynı A4 PDF olarak aç;
+    // açılan PDF'ten Paylaş → Yazdır ile anında basılır.
+    let w = null;
+    try{
+      w = window.open("", "_blank");
+      if (w) w.document.write('<title>Yazdırma</title><p style="font-family:sans-serif;padding:24px;color:#21237B">Belge hazırlanıyor…</p>');
+    }catch(e){}
+    try{
+      const images = await buildPageImages();
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit:"mm", format:"a4", orientation:"portrait" });
+      images.forEach((img,i)=>{ if (i>0) pdf.addPage(); pdf.addImage(img, "JPEG", 0, 0, 210, 297); });
+      const url = pdf.output("bloburl");
+      if (w) w.location.href = url;
+      else pdf.save(pdfFileName()); // pencere engellendiyse dosya olarak indir
+    }catch(e){
+      if (w) try{ w.close(); }catch(_){}
+      window.print(); // son çare
+    }
+    return;
+  }
   try{
     const images = await buildPageImages();
     let pp = document.getElementById("printPages");
