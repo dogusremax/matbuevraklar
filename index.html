@@ -313,7 +313,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v49</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v50</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -324,7 +324,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v49</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v50</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
@@ -1786,14 +1786,29 @@ async function savePdf(btn){
   if (!confirmMissing()) return;
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = "⏳ PDF hazırlanıyor…";
+  // Telefonda indirme yutulur: PDF'i sekmede açmak için pencereyi BAŞTAN aç (engellenmesin)
+  let w = null;
+  if (isMobileDevice()){
+    try{
+      w = window.open("", "_blank");
+      if (w) w.document.write('<title>PDF</title><p style="font-family:sans-serif;padding:24px;color:#21237B">PDF hazırlanıyor…<br><small>Açıldığında Paylaş menüsünden Dosyalara kaydedebilir veya WhatsApp ile gönderebilirsiniz.</small></p>');
+    }catch(e){}
+  }
   try{
     const images = await buildPageImages();
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     images.forEach((img, i)=>{ if (i > 0) pdf.addPage(); pdf.addImage(img, "JPEG", 0, 0, 210, 297); });
-    pdf.save(pdfFileName());
+    if (isMobileDevice()){
+      const url = pdf.output("bloburl");
+      if (w) w.location.href = url;
+      else pdf.save(pdfFileName());
+    } else {
+      pdf.save(pdfFileName());
+    }
   }catch(e){
-    alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\nAlternatif: 🖨️ Yazdır → hedef olarak 'PDF olarak kaydet' seçin.\n\nDetay: " + e.message);
+    if (w) try{ w.close(); }catch(_){}
+    alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\nAlternatif: 🖨️ Yazdır deneyin.\n\nDetay: " + e.message);
   }finally{
     btn.disabled = false; btn.textContent = old;
   }
