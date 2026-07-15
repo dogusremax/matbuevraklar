@@ -323,7 +323,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v54</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v55</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -334,7 +334,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v54</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v55</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
@@ -358,6 +358,7 @@ table.ftbl td.tall{height:9mm}
             <button class="btn btn-p" style="background:#5A4FB5" onclick="openPreview()">👁️ Önizleme</button>
             <button class="btn btn-p" onclick="printDoc()">🖨️ Yazdır</button>
             <button class="btn btn-p" style="background:#0E7A3D" onclick="savePdf(this)">📄 PDF Kaydet</button>
+            <button class="btn btn-p" style="background:#1A56C4" onclick="saveDrive(this)">💾 Drive'a Kaydet</button>
           </div>
           <div class="note">Alanları doldurdukça sağdaki belge canlı olarak güncellenir. <b>Belgedeki herhangi bir maddeye dokunarak metnini bu evraka özel düzenleyebilirsiniz.</b> Boş bırakılan alanlar belgede noktalı boşluk olarak kalır. Taslak otomatik kaydedilir.</div>
           <div id="formFields"></div>
@@ -375,6 +376,7 @@ table.ftbl td.tall{height:9mm}
     <div class="fp-actions">
       <button onclick="printDoc()">🖨️ Yazdır</button>
       <button onclick="savePdf(this)">📄 PDF Kaydet</button>
+      <button onclick="saveDrive(this)">💾 Drive'a Kaydet</button>
       <button class="fp-close" onclick="closePreview()">✕ Kapat</button>
     </div>
   </div>
@@ -1874,6 +1876,111 @@ async function saveToPhone(){
 function closePdfSheet(){
   const s = document.getElementById("pdfSheet");
   if (s) s.style.display = "none";
+}
+
+/* =================== DRIVE'A KAYDET =================== */
+const DRIVE_ENDPOINT = 'https://script.google.com/macros/s/AKfycby3N2cq5LI99_UgjzlxIjZr7looJz88Rft-BJ9E5ZgP9-ZmUEmoXARoIm717JAmTGuD/exec';
+
+/* isim penceresi — prompt() mobil PWA'da yutulabildiği için kendi modalimiz */
+function askName(suggested){
+  return new Promise(resolve=>{
+    let m = document.getElementById("nameModal");
+    if (!m){ m = document.createElement("div"); m.id = "nameModal"; document.body.appendChild(m); }
+    m.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(15,20,40,.55);display:flex;align-items:center;justify-content:center;padding:18px;";
+    m.innerHTML = `
+      <div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.3)">
+        <div style="font-weight:700;font-size:17px;color:#12275C;margin-bottom:4px">Kayıt adı</div>
+        <div style="font-size:13px;color:#5B6470;margin-bottom:12px">Drive'da aramak için bir ad verin (örn. müşteri adı).</div>
+        <input id="nmInp" type="text" autocomplete="off"
+          style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #C9D2E3;border-radius:10px;font-size:16px;outline:none"
+          placeholder="Örn. Ahmet Yılmaz Bağdat Cad.">
+        <div id="nmErr" style="color:#C8102E;font-size:12px;margin-top:6px;display:none">Lütfen bir ad girin.</div>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button id="nmCancel" style="flex:1;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer">Vazgeç</button>
+          <button id="nmOk" style="flex:1;padding:12px;border:0;background:#1A56C4;color:#fff;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">Kaydet</button>
+        </div>
+      </div>`;
+    const inp = document.getElementById("nmInp");
+    inp.value = suggested || "";
+    setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(_){} }, 60);
+    const done = (val)=>{ m.style.display="none"; m.innerHTML=""; resolve(val); };
+    document.getElementById("nmCancel").onclick = ()=> done(null);
+    document.getElementById("nmOk").onclick = ()=>{
+      const v = (inp.value||"").trim();
+      if (!v){ document.getElementById("nmErr").style.display="block"; inp.focus(); return; }
+      done(v);
+    };
+    inp.onkeydown = (e)=>{ if (e.key === "Enter") document.getElementById("nmOk").click(); };
+  });
+}
+
+function blobToBase64(blob){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(String(r.result).split(",")[1]);
+    r.onerror = ()=> rej(new Error("Dosya okunamadı"));
+    r.readAsDataURL(blob);
+  });
+}
+
+function showDriveSheet(html){
+  let s = document.getElementById("drvSheet");
+  if (!s){ s = document.createElement("div"); s.id = "drvSheet"; document.body.appendChild(s); }
+  s.style.cssText = "position:fixed;inset:0;z-index:99998;background:rgba(15,20,40,.55);display:flex;align-items:center;justify-content:center;padding:18px;";
+  s.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:22px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.3)">${html}</div>`;
+  s.style.display = "flex";
+}
+function closeDriveSheet(){ const s=document.getElementById("drvSheet"); if(s){ s.style.display="none"; s.innerHTML=""; } }
+
+async function saveDrive(btn){
+  if (!confirmMissing()) return;
+  const suggested = (V[currentTpl.nameKey] || "").trim();
+  const kayitAdi = await askName(suggested);
+  if (!kayitAdi) return;
+
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = "⏳ Kaydediliyor…";
+  try{
+    const blob = await buildPdfBlob();
+    const b64 = await blobToBase64(blob);
+    const d = new Date();
+    const tarih = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const danisman = me.admin ? "Umut Tokkuş" : me.name;
+    const safe = kayitAdi.replace(/[\\/:*?"<>|]/g, "-");
+    const dosyaAdi = `${safe} _ ${currentTpl.title} _ ${tarih} _ ${danisman}.pdf`;
+
+    const p = new URLSearchParams();
+    p.append("action", "saveEvrak");
+    p.append("danisman", danisman);
+    p.append("evrak", currentTpl.title);
+    p.append("kayitAdi", kayitAdi);
+    p.append("dosyaAdi", dosyaAdi);
+    p.append("mime", "application/pdf");
+    p.append("veri", b64);
+
+    const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
+    const txt = await r.text();
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){}
+
+    if (j && j.ok){
+      showDriveSheet(`
+        <div style="font-size:34px;line-height:1">✅</div>
+        <div style="font-weight:700;font-size:18px;color:#12275C;margin:8px 0 4px">Drive'a kaydedildi</div>
+        <div style="font-size:13px;color:#5B6470;word-break:break-word;margin-bottom:14px">${dosyaAdi}</div>
+        ${j.link?`<a href="${j.link}" target="_blank" rel="noopener" style="display:block;padding:12px;background:#1A56C4;color:#fff;border-radius:10px;text-decoration:none;font-weight:700;margin-bottom:8px">📂 Drive'da Aç</a>`:""}
+        <button onclick="closeDriveSheet()" style="width:100%;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer">Kapat</button>`);
+    } else {
+      throw new Error((j && j.error) ? j.error : "Sunucu yanıtı beklenmedik: " + txt.slice(0,120));
+    }
+  }catch(e){
+    showDriveSheet(`
+      <div style="font-size:34px;line-height:1">⚠️</div>
+      <div style="font-weight:700;font-size:18px;color:#C8102E;margin:8px 0 4px">Kaydedilemedi</div>
+      <div style="font-size:13px;color:#5B6470;word-break:break-word;margin-bottom:14px">${(e&&e.message)||e}</div>
+      <button onclick="closeDriveSheet()" style="width:100%;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer">Kapat</button>`);
+  }finally{
+    btn.disabled = false; btn.textContent = old;
+  }
 }
 
 async function savePdf(btn){
