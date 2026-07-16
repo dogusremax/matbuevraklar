@@ -182,12 +182,18 @@ table.ftbl .fv4{background:#fff;width:33%}
 .pgsec{display:block}
 .pgflex{display:flex;flex-direction:column;min-height:1047px}
 .pgflex .pgbottom{margin-top:auto;margin-bottom:18mm}
-.pg1 .pgfill{flex:1}
+.pg1 .pgfill{flex:1;display:flex;flex-direction:column;min-height:0}
 .pg1 .tgrow{margin-top:3mm}
 /* kira sayfaları: referans Word belgesindeki gibi dolu sayfa tipografisi */
-.pg1 .tcenter{font-size:14pt;margin:10mm 0 4mm}
-.pg1 table.ftbl td{font-size:9.2pt;padding:3.5px 10px}
-.pg1 .shead{font-size:11pt;margin:3mm 0 2mm}
+.pg1 .tcenter{font-size:15pt;margin:9mm 0 4mm}
+.pg1 table.ftbl td{font-size:9.8pt;padding:3px 10px;vertical-align:middle}
+.pg1 .shead{font-size:12pt;margin:3mm 0 2mm}
+/* SAYFA 1: bilgi tabloları boşluğu doldurur, imzalara ~7mm kalır */
+.pg1 .tgrow{flex:3 1 auto;min-height:0}
+.pg1 .kfgrow{flex:1 1 auto;min-height:0}
+.pg1 .tgrow > table.ftbl,
+.pg1 .kfgrow > table.ftbl{height:100%}
+.pg1 .pgbottom{margin-top:7mm}
 .pg2 .clz,.pg3 .clz,.pg4 .clz{font-size:9pt;line-height:1.48;margin-bottom:7px;}
 .pg2 .shead,.pg3 .shead,.pg4 .shead{font-size:12pt;margin-bottom:3mm}
 .pg4 table.demir td{padding:8px 10px;font-size:9.5pt}
@@ -323,7 +329,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v56</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v58</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -334,9 +340,10 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v56</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v58</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
+      <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
     </div>
   </div>
@@ -875,13 +882,13 @@ const TEMPLATES = [
       ["Kiralanan Şeyin Ne İçin Kullanılacağı", fv("amac")],
     ])}</div>
     ${secHead("Kefil Bilgileri")}
-    ${ftbl([
+    <div class="kfgrow">${ftbl([
       ["Adı Ve Soyadı", fv("kfIsim")],
       ["Türkiye Cumhuriyeti Kimlik Numarası", fv("kfTc")],
       ["Telefon", fv("kfTel")],
       ["İş Adresi", fv("kfIs")],
       ["İkamet Adresi", fv("kfAdres")],
-    ])}
+    ])}</div>
     </div>
     <div class="pgbottom">${sigK}</div>
     </div>
@@ -1979,6 +1986,74 @@ async function saveDrive(btn){
   }finally{
     btn.disabled = false; btn.textContent = old;
   }
+}
+
+/* =================== KAYITLAR PANELİ ===================
+   Danışman kendi kayıtlarını, broker herkesinkini görür. */
+let kytCache = [];
+
+function kytKutu(icerik){
+  let el = document.getElementById("kytSheet");
+  if (!el){ el = document.createElement("div"); el.id = "kytSheet"; document.body.appendChild(el); }
+  el.style.cssText = "position:fixed;inset:0;z-index:99997;background:rgba(15,20,40,.55);display:flex;align-items:flex-start;justify-content:center;padding:14px;overflow-y:auto;";
+  el.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:640px;width:100%;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.3);margin:auto">${icerik}</div>`;
+  el.style.display = "flex";
+  return el;
+}
+function closeKayitlar(){ const el=document.getElementById("kytSheet"); if(el){ el.style.display="none"; el.innerHTML=""; } }
+
+async function openKayitlar(){
+  kytKutu(`
+    <div style="font-weight:700;font-size:17px;color:#12275C;margin-bottom:10px">📁 Kayıtlar</div>
+    <div style="text-align:center;padding:30px 0;color:#5B6470;font-size:14px">⏳ Yükleniyor…</div>
+    <button onclick="closeKayitlar()" style="width:100%;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer">Kapat</button>`);
+  try{
+    const r = await fetch(DRIVE_ENDPOINT + "?action=getEvraklar", { redirect:"follow" });
+    const txt = await r.text();
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){}
+    if (!j || !j.ok) throw new Error((j && j.error) ? j.error : "Liste alınamadı");
+
+    // Danışman sadece kendi kayıtlarını görür; broker hepsini
+    kytCache = me.admin ? j.kayitlar : j.kayitlar.filter(k => k.danisman === me.name);
+    kytRender("");
+  }catch(e){
+    kytKutu(`
+      <div style="font-weight:700;font-size:17px;color:#C8102E;margin-bottom:6px">⚠️ Kayıtlar alınamadı</div>
+      <div style="font-size:13px;color:#5B6470;word-break:break-word;margin-bottom:14px">${(e&&e.message)||e}</div>
+      <button onclick="openKayitlar()" style="width:100%;padding:12px;border:0;background:#1A56C4;color:#fff;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">🔄 Tekrar Dene</button>
+      <button onclick="closeKayitlar()" style="width:100%;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer">Kapat</button>`);
+  }
+}
+
+function kytRender(q){
+  const ara = (q||"").toLocaleLowerCase("tr");
+  const list = ara
+    ? kytCache.filter(k => (k.kayitAdi+" "+k.evrak+" "+k.danisman).toLocaleLowerCase("tr").includes(ara))
+    : kytCache;
+
+  const satirlar = list.length ? list.map(k => `
+    <div style="border:1px solid #E3E8F0;border-radius:10px;padding:11px;margin-bottom:8px">
+      <div style="font-weight:700;font-size:14px;color:#12275C;word-break:break-word">${k.kayitAdi}</div>
+      <div style="font-size:12px;color:#5B6470;margin:3px 0 8px">${k.evrak}${me.admin?" · "+k.danisman:""} · ${k.tarih}</div>
+      ${k.link?`<a href="${k.link}" target="_blank" rel="noopener" style="display:inline-block;padding:7px 12px;background:#1A56C4;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700">📄 Aç</a>`:`<span style="font-size:12px;color:#9AA3B0">link yok</span>`}
+    </div>`).join("")
+    : `<div style="text-align:center;padding:26px 0;color:#9AA3B0;font-size:14px">${kytCache.length?"Aramaya uygun kayıt yok.":"Henüz kayıt yok."}</div>`;
+
+  kytKutu(`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-weight:700;font-size:17px;color:#12275C">📁 Kayıtlar</div>
+      <div style="font-size:12px;color:#5B6470">${list.length} kayıt</div>
+    </div>
+    <div style="font-size:12px;color:#5B6470;margin-bottom:10px">${me.admin?"Tüm danışmanların kayıtları":"Kendi kayıtların"}</div>
+    <input id="kytAra" type="text" placeholder="Ara: müşteri adı, evrak türü${me.admin?", danışman":""}…" value="${(q||"").replace(/"/g,"&quot;")}"
+      oninput="kytRender(this.value)"
+      style="width:100%;box-sizing:border-box;padding:11px;border:1px solid #C9D2E3;border-radius:10px;font-size:15px;outline:none;margin-bottom:12px">
+    <div style="max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch">${satirlar}</div>
+    <button onclick="closeKayitlar()" style="width:100%;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer;margin-top:10px">Kapat</button>`);
+
+  // arama kutusunda imleci koru
+  const inp = document.getElementById("kytAra");
+  if (inp && q){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
 }
 
 /* =================== TEK BUTON: KAYDET ===================
