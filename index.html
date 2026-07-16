@@ -329,7 +329,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v59</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v60</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -340,7 +340,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v59</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v60</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -929,7 +929,13 @@ const TEMPLATES = [
     ${secHead("EK-A — DEMİRBAŞ LİSTESİ")}
     ${fv("demirbasVar")==="Yok"
       ? `<div class="clz" style="margin-top:2mm">Kiralanan taşınmazda taraflarca tespit edilen demirbaş bulunmamaktadır.</div>`
-      : `<table class="demir">${[1,2,3,4,5,6,7,8,9].map(i=>`<tr><td class="dn">${i}.</td><td>${fv("d"+i)||"&nbsp;"}</td></tr>`).join("")}</table>`}
+      : (()=>{
+          const dolu = [1,2,3,4,5,6,7,8,9].filter(i=>(fv("d"+i)||"").trim());
+          if (dolu.length)
+            return `<table class="demir">${dolu.map((i,n)=>`<tr><td class="dn">${n+1}.</td><td>${fv("d"+i)}</td></tr>`).join("")}</table>`;
+          /* hiç demirbaş yazılmamışsa: elle doldurmak için boş satırlar */
+          return `<table class="demir">${[1,2,3,4,5].map(n=>`<tr><td class="dn">${n}.</td><td>&nbsp;</td></tr>`).join("")}</table>`;
+        })()}
     <div class="shead kefhead">Kefil / Kefalet Beyanı</div>
     <table class="kefal">
       <tr><th>Kefaletin Türü</th><th>Müşterek ve Müteselsil Kefil ve Adresi</th><th>Azami Kefalet Tutarı</th><th>Kefalet Tarihi</th><th>İmza</th></tr>
