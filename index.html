@@ -75,7 +75,9 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 /* önizleme alanları (değer etiketleri) */
 .pv{border-radius:2px;transition:background-color .2s,box-shadow .2s;scroll-margin:40px}
 .pv:empty{display:inline}
-.pv-hl{background:#FFE68A;box-shadow:0 0 0 3px #FFE68A,0 0 0 4px #E5A800}
+/* önizleme odak vurgusu: alanı komple kaplar, odaktan çıkana kadar kalır */
+.pv-hl{background:#FFEC9E;border-radius:2px}
+.cell-hl{background:#FFEC9E !important;outline:2px solid #E5A800;outline-offset:-2px}
 /* el yazısı (kilitli) alan */
 .hwfld{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px;border:1.5px dashed #C9A227;border-radius:8px;background:#FFF9E6;cursor:pointer;box-sizing:border-box}
 .hwfld:active{background:#FDF2CC}
@@ -344,7 +346,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v75</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v76</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -355,7 +357,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v75</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v76</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -1461,25 +1463,34 @@ function buildForm(){
       const gotoPreview = ()=> highlightPreview(el.dataset.k);
       el.addEventListener("focus", gotoPreview);
       el.addEventListener("click", gotoPreview);
+      el.addEventListener("blur", clearHighlight);
     }
   });
 }
 
-/* önizlemede verilen anahtarın olduğu yere kaydır + kısa süre vurgula (yalnızca masaüstü) */
-let _hlTimer = null;
+/* önizlemede eşleşen alanı kaydır + kalıcı vurgula (odaktan çıkana kadar) */
+function clearHighlight(){
+  const prev = $("preview");
+  if (!prev) return;
+  prev.querySelectorAll(".pv.pv-hl").forEach(e=> e.classList.remove("pv-hl"));
+  prev.querySelectorAll(".cell-hl").forEach(e=> e.classList.remove("cell-hl"));
+}
 function highlightPreview(key){
   if (!key) return;
   const prev = $("preview");
   if (!prev) return;
-  prev.querySelectorAll(".pv.pv-hl").forEach(e=> e.classList.remove("pv-hl"));
+  clearHighlight();
   const hedefler = prev.querySelectorAll(`.pv[data-pk="${(window.CSS&&CSS.escape)?CSS.escape(key):key}"]`);
   if (!hedefler.length) return;
   const ilk = hedefler[0];
-  hedefler.forEach(e=> e.classList.add("pv-hl"));
+  hedefler.forEach(e=>{
+    e.classList.add("pv-hl");
+    // içinde bulunduğu hücreyi de kapla (td/th varsa)
+    const hucre = e.closest("td,th");
+    if (hucre) hucre.classList.add("cell-hl");
+  });
   try { ilk.scrollIntoView({behavior:"smooth", block:"center", inline:"nearest"}); }
   catch(_) { ilk.scrollIntoView(); }
-  clearTimeout(_hlTimer);
-  _hlTimer = setTimeout(()=> hedefler.forEach(e=> e.classList.remove("pv-hl")), 1600);
 }
 
 /* el yazısı alanı uyarısı */
@@ -1536,6 +1547,12 @@ function refresh(){
     }
   }));
   fitPreview();
+  // yazarken önizleme yeniden çizildiğinde, odaktaki alanın vurgusunu koru
+  const aktif = document.activeElement;
+  if (aktif && aktif.dataset && aktif.dataset.k &&
+      window.matchMedia && window.matchMedia("(min-width: 900px) and (pointer: fine)").matches){
+    highlightPreview(aktif.dataset.k);
+  }
 }
 
 /* İçerik sayfayı az bir farkla taşıyorsa yazıyı kademeli sıkıştırıp
@@ -1867,6 +1884,7 @@ async function buildPageImages(){
     clone.removeAttribute("id");
     // önizleme vurgusu PDF'e sızmasın
     clone.querySelectorAll(".pv-hl").forEach(e=> e.classList.remove("pv-hl"));
+    clone.querySelectorAll(".cell-hl").forEach(e=> e.classList.remove("cell-hl"));
     clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
