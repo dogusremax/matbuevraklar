@@ -346,7 +346,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v76</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v78</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -357,7 +357,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v76</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v78</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -462,8 +462,8 @@ const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 const f = (key, w=90) => {
   const val = (V[key]||"").trim();
   return val
-    ? `<span class="blank filled">${esc(val)}</span>`
-    : `<span class="blank" style="min-width:${w}px">&nbsp;</span>`;
+    ? `<span class="blank filled pv" data-pk="${key}">${esc(val)}</span>`
+    : `<span class="blank pv" data-pk="${key}" style="min-width:${w}px">&nbsp;</span>`;
 };
 const fv = key => `<span class="pv" data-pk="${key}">${esc((V[key]||"").trim())}</span>`;
 const fvRaw = key => esc((V[key]||"").trim());
@@ -930,7 +930,7 @@ const TEMPLATES = [
       ["Kiracının Telefon Numarası", fv("kcTel")],
       ["Bir Senelik Kira Karşılığı", fvu("yillik","TL","")],
       ["Bir Aylık Kira Karşılığı", fvu("aylik","TL","")],
-      ["Kira Karşılığının Ne Şekilde Ödeneceği", fv("odeme")],
+      ["Kira Karşılığının Ne Şekilde Ödeneceği", `Her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile`],
       ["Kira Müddeti", fv("muddet")],
       ["Kiranın Başlangıcı", fv("baslangic")],
       ["Kiralananın Mevcut Durumu", fv("durum")],
