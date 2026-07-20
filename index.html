@@ -346,7 +346,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v79</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v80</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -357,7 +357,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v79</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v80</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -1901,7 +1901,9 @@ async function buildPageImages(){
     // alana göre düşürerek tüm içeriğin çizilmesini garanti et.
     const _contentH = Math.max(clone.scrollHeight, 1123);
     const SAFE_AREA = 14 * 1024 * 1024; // ~14 megapiksel (tüm tarayıcılarda güvenli)
-    let capScale = 2;
+    // Matbu evraklar düz metin/tablo — scale 1.6 baskıda net, dosya scale 2'ye göre
+    // belirgin küçük → Drive'a yükleme hızlanır.
+    let capScale = 1.6;
     if ((794 * capScale) * (_contentH * capScale) > SAFE_AREA){
       capScale = Math.max(1, Math.sqrt(SAFE_AREA / (794 * _contentH)));
     }
@@ -1952,7 +1954,7 @@ async function buildPageImages(){
         const pctx = pc.getContext("2d");
         pctx.fillStyle = "#FFFFFF"; pctx.fillRect(0, 0, pc.width, pc.height);
         pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-        images.push(pc.toDataURL("image/jpeg", 0.95));
+        images.push(pc.toDataURL("image/jpeg", 0.72));
         y += sliceH;
       }
     }
@@ -2303,6 +2305,7 @@ async function kaydet(btn){
 
   const old = btn.textContent;
   btn.disabled = true; btn.textContent = "⏳ Hazırlanıyor…";
+  showBusy("Belge hazırlanıyor…");
   try{
     // PDF'i bir kez üret (aynı belge tekrar kaydedilirse önbellekten)
     let blob;
@@ -2319,15 +2322,42 @@ async function kaydet(btn){
     currentPdf = { blob, name:dosyaAdi, url:URL.createObjectURL(blob) };
 
     btn.textContent = "⏳ Drive'a yükleniyor…";
+    updateBusy("Drive'a yükleniyor…", Math.round(blob.size/1024) + " KB gönderiliyor");
     const r = await driveUpload(blob, kayitAdi, dosyaAdi, danisman);
+    hideBusy();
     showSaveSheet(r.ok ? { ok:true, link:r.link, name:dosyaAdi }
                        : { ok:false, error:r.error, name:dosyaAdi });
   }catch(e){
+    hideBusy();
     showSaveSheet({ ok:false, error:(e && e.message) ? e.message : String(e), name:lastSave.name||"" });
   }finally{
     btn.disabled = false; btn.textContent = old;
   }
 }
+
+/* tam ekran ilerleme örtüsü */
+function showBusy(msg, alt){
+  let el = document.getElementById("busyOv");
+  if (!el){ el = document.createElement("div"); el.id = "busyOv"; document.body.appendChild(el); }
+  el.style.cssText = "position:fixed;inset:0;z-index:100000;background:rgba(15,20,40,.6);display:flex;align-items:center;justify-content:center;padding:24px;";
+  el.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:26px 30px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.3);min-width:220px">
+      <div class="busySpin" style="width:40px;height:40px;margin:0 auto 14px;border:4px solid #E3E8F0;border-top-color:#1A56C4;border-radius:50%;animation:busySpin 0.8s linear infinite"></div>
+      <div id="busyMsg" style="font-weight:700;font-size:15px;color:#12275C">${msg||"Lütfen bekleyin…"}</div>
+      <div id="busyAlt" style="font-size:12px;color:#5B6470;margin-top:4px">${alt||""}</div>
+    </div>`;
+  el.style.display = "flex";
+  if (!document.getElementById("busyKeyframes")){
+    const st = document.createElement("style"); st.id = "busyKeyframes";
+    st.textContent = "@keyframes busySpin{to{transform:rotate(360deg)}}";
+    document.head.appendChild(st);
+  }
+}
+function updateBusy(msg, alt){
+  const m = document.getElementById("busyMsg"); if (m && msg!=null) m.textContent = msg;
+  const a = document.getElementById("busyAlt"); if (a && alt!=null) a.textContent = alt;
+}
+function hideBusy(){ const el = document.getElementById("busyOv"); if (el){ el.style.display = "none"; el.innerHTML = ""; } }
 
 /* Panelden tekrar dene: PDF yeniden üretilmez, aynı dosya gönderilir */
 async function retryDrive(b){
