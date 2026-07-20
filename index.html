@@ -72,9 +72,9 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 /* ===== DOCUMENT (preview + print) — Word evraklarıyla birebir ===== */
 .sheetwrap{background:#9aa0ab;border-radius:12px;padding:18px;overflow-x:auto}
 .sheet{background:#fff;width:210mm;min-height:296mm;margin:0 auto;padding:10mm 10mm 10mm;box-shadow:0 6px 24px rgba(0,0,0,.25);color:#1a1a1a;font-family:"Times New Roman",Times,serif;transform-origin:top left}
-/* önizleme alan vurgusu (forma tıklayınca) */
+/* önizleme alanları (değer etiketleri) */
 .pv{border-radius:2px;transition:background-color .2s,box-shadow .2s;scroll-margin:40px}
-.pv:empty{display:inline-block;min-width:14px;min-height:.9em;vertical-align:middle}
+.pv:empty{display:inline}
 .pv-hl{background:#FFE68A;box-shadow:0 0 0 3px #FFE68A,0 0 0 4px #E5A800}
 /* el yazısı (kilitli) alan */
 .hwfld{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px;border:1.5px dashed #C9A227;border-radius:8px;background:#FFF9E6;cursor:pointer;box-sizing:border-box}
@@ -338,7 +338,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v66</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v68</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -349,7 +349,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v66</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v68</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -1408,27 +1408,26 @@ function buildForm(){
       localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V));
       refresh();
     });
-    // odak/tıklama → önizlemede eşleşen alanı göster
-    const gotoPreview = ()=> highlightPreview(el.dataset.k);
-    el.addEventListener("focus", gotoPreview);
-    el.addEventListener("click", gotoPreview);
+    // odak/tıklama → önizlemede eşleşen alanı göster (SADECE WEB/geniş ekran; mobilde kapalı)
+    if (window.matchMedia && window.matchMedia("(min-width: 900px) and (pointer: fine)").matches){
+      const gotoPreview = ()=> highlightPreview(el.dataset.k);
+      el.addEventListener("focus", gotoPreview);
+      el.addEventListener("click", gotoPreview);
+    }
   });
 }
 
-/* önizlemede verilen anahtarın olduğu yere kaydır + kısa süre vurgula */
+/* önizlemede verilen anahtarın olduğu yere kaydır + kısa süre vurgula (yalnızca masaüstü) */
 let _hlTimer = null;
 function highlightPreview(key){
   if (!key) return;
   const prev = $("preview");
   if (!prev) return;
-  // önceki vurguları temizle
   prev.querySelectorAll(".pv.pv-hl").forEach(e=> e.classList.remove("pv-hl"));
-  // bu anahtarın tüm örnekleri (tekrarlı alanlarda birden çok olabilir)
   const hedefler = prev.querySelectorAll(`.pv[data-pk="${(window.CSS&&CSS.escape)?CSS.escape(key):key}"]`);
   if (!hedefler.length) return;
   const ilk = hedefler[0];
   hedefler.forEach(e=> e.classList.add("pv-hl"));
-  // kaydır: önizleme kutusu içinde ortala
   try { ilk.scrollIntoView({behavior:"smooth", block:"center", inline:"nearest"}); }
   catch(_) { ilk.scrollIntoView(); }
   clearTimeout(_hlTimer);
