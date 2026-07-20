@@ -338,7 +338,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v68</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v70</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -349,7 +349,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v68</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v70</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -826,6 +826,7 @@ const TEMPLATES = [
     ]},
     {t:"Kiracı", fields:[
       {k:"kcIsim", l:"Adı ve Soyadı", req:1},
+      {k:"kcTc", l:"T.C. Kimlik Numarası"},
       {k:"kcAdres", l:"İkamet Adresi", type:"textarea"},
       {k:"kcIs", l:"İş Adresi", type:"textarea"},
       {k:"kcTel", l:"Telefon Numarası", fmt:"phone"},
@@ -883,6 +884,7 @@ const TEMPLATES = [
       ["Kiralanan Şeyin Cinsi", fv("cins")],
       ...kvRows,
       ["Kiracının Adı Ve Soyadı", fv("kcIsim")],
+      ["Kiracının Türkiye Cumhuriyeti Kimlik Numarası", fv("kcTc")],
       ["Kiracının İkamet Adresi", fv("kcAdres")],
       ["Kiracının İş Adresi", fv("kcIs")],
       ["Kiracının Telefon Numarası", fv("kcTel")],
@@ -954,7 +956,7 @@ const TEMPLATES = [
     <div class="shead kefhead">Kefil / Kefalet Beyanı</div>
     <table class="kefal">
       <tr><th>Kefaletin Türü</th><th>Müşterek ve Müteselsil Kefil ve Adresi</th><th>Azami Kefalet Tutarı</th><th>Kefalet Tarihi</th><th>İmza</th></tr>
-      <tr><td>&nbsp;</td><td>${fv("kfIsim")}${fvRaw("kfAdres")?" — "+fvRaw("kfAdres"):""}</td><td>&nbsp;</td><td>&nbsp;</td><td></td></tr>
+      <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td></tr>
     </table>
     <div class="pgbottom">${sigK}</div>
     </div>
