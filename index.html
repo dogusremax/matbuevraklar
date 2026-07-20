@@ -72,6 +72,10 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 /* ===== DOCUMENT (preview + print) — Word evraklarıyla birebir ===== */
 .sheetwrap{background:#9aa0ab;border-radius:12px;padding:18px;overflow-x:auto}
 .sheet{background:#fff;width:210mm;min-height:296mm;margin:0 auto;padding:10mm 10mm 10mm;box-shadow:0 6px 24px rgba(0,0,0,.25);color:#1a1a1a;font-family:"Times New Roman",Times,serif;transform-origin:top left}
+/* önizleme alan vurgusu (forma tıklayınca) */
+.pv{border-radius:2px;transition:background-color .2s,box-shadow .2s;scroll-margin:40px}
+.pv:empty{display:inline-block;min-width:14px;min-height:.9em;vertical-align:middle}
+.pv-hl{background:#FFE68A;box-shadow:0 0 0 3px #FFE68A,0 0 0 4px #E5A800}
 @media(max-width:900px){.sheetwrap{padding:8px}}
 
 /* üst lacivert bant: logo + UMT GROUP */
@@ -329,7 +333,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v60</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v63</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -340,7 +344,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v60</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v63</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -448,7 +452,10 @@ const f = (key, w=90) => {
     ? `<span class="blank filled">${esc(val)}</span>`
     : `<span class="blank" style="min-width:${w}px">&nbsp;</span>`;
 };
-const fv = key => esc((V[key]||"").trim());
+const fv = key => `<span class="pv" data-pk="${key}">${esc((V[key]||"").trim())}</span>`;
+const fvRaw = key => esc((V[key]||"").trim());
+/* dolu ise span'li değer + birim, boşsa fallback */
+const fvu = (key,unit,fb="&nbsp;") => fvRaw(key) ? `${fv(key)} ${unit}` : fb;
 
 /* ---- çoklu taraf (birden fazla mülk sahibi/satıcı/alıcı) ---- */
 const repCount = base => (V.__rep||{})[base] || 1;
@@ -512,7 +519,7 @@ function hdrBand(title){
   </tr></table>`;
 }
 function dateLine(dateLabel){
-  return `<div class="dline">${dateLabel||"İMZA TARİH"}: <span>${fv("imzaTarihi")||"………………………………."}</span></div>`;
+  return `<div class="dline">${dateLabel||"İMZA TARİH"}: <span>${(fvRaw("imzaTarihi")? fv("imzaTarihi") : "……………………………….")}</span></div>`;
 }
 function secHead(t){ return `<div class="shead">${t}</div>`; }
 function ftbl(rows){
@@ -600,7 +607,7 @@ const TEMPLATES = [
       `<table class="ftbl">
         <tr><td class="fl">Ticari Ünvan</td><td class="fv" colspan="3">UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İNŞ. SAN. TİC. LTD. ŞTİ.</td></tr>
         <tr><td class="fl4">Vergi Dairesi / No</td><td class="fv4">GÖZTEPE VD. — 8920318332</td><td class="fl4">Yetki Belge No</td><td class="fv4">3402699</td></tr>
-        <tr><td class="fl4">Sorumlu Emlak Danışmanı</td><td class="fv4">${(fv("danisman")? fv("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">Telefon Numarası</td><td class="fv4">0216 315 15 15</td></tr>
+        <tr><td class="fl4">Sorumlu Emlak Danışmanı</td><td class="fv4">${(fvRaw("danisman")? fvRaw("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">Telefon Numarası</td><td class="fv4">0216 315 15 15</td></tr>
         <tr><td class="fl">Mail Adresi</td><td class="fv" colspan="3">info@remaxdogus.com.tr</td></tr>
         <tr><td class="fl">İş Yeri Adresi</td><td class="fv" colspan="3">Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok Dükkan 14, Kadıköy / İstanbul</td></tr>
       </table>`
@@ -608,8 +615,8 @@ const TEMPLATES = [
     blocks.push(
       secHead("İşlem Bilgileri") +
       `<table class="ftbl">
-        <tr><td class="fl4">Satış Bedeli</td><td class="fv4">${fv("bedel") ? fv("bedel")+" TL" : "&nbsp;"}</td><td class="fl4">Hizmet Bedeli</td><td class="fv4">${fv("hizmet")||"&nbsp;"}</td></tr>
-        <tr><td class="fl4">Yetki Süresi</td><td class="fv4">${fv("sure")||"&nbsp;"}</td><td class="fl4">Yetki Başlangıç Tarihi</td><td class="fv4">${fv("yetkiBas")||"&nbsp;"}</td></tr>
+        <tr><td class="fl4">Satış Bedeli</td><td class="fv4">${fvu("bedel","TL")}</td><td class="fl4">Hizmet Bedeli</td><td class="fv4">${(fvRaw("hizmet")? fv("hizmet") : "&nbsp;")}</td></tr>
+        <tr><td class="fl4">Yetki Süresi</td><td class="fv4">${(fvRaw("sure")? fv("sure") : "&nbsp;")}</td><td class="fl4">Yetki Başlangıç Tarihi</td><td class="fv4">${(fvRaw("yetkiBas")? fv("yetkiBas") : "&nbsp;")}</td></tr>
       </table>`
     );
     // kısa tabloları ikişerli yan yana yerleştir; uzun danışman bloğu hep tam genişlik
@@ -689,7 +696,7 @@ const TEMPLATES = [
       `<table class="ftbl">
         <tr><td class="fl">Ticari Ünvan</td><td class="fv" colspan="3">UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İNŞ. SAN. TİC. LTD. ŞTİ.</td></tr>
         <tr><td class="fl4">Vergi Dairesi / No</td><td class="fv4">GÖZTEPE VD. — 8920318332</td><td class="fl4">Yetki Belge No</td><td class="fv4">3402699</td></tr>
-        <tr><td class="fl4">Sorumlu Emlak Danışmanı</td><td class="fv4">${(fv("danisman")? fv("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">Telefon Numarası</td><td class="fv4">0216 315 15 15</td></tr>
+        <tr><td class="fl4">Sorumlu Emlak Danışmanı</td><td class="fv4">${(fvRaw("danisman")? fvRaw("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">Telefon Numarası</td><td class="fv4">0216 315 15 15</td></tr>
         <tr><td class="fl">Mail Adresi</td><td class="fv" colspan="3">info@remaxdogus.com.tr</td></tr>
         <tr><td class="fl">İş Yeri Adresi</td><td class="fv" colspan="3">Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok Dükkan 14, Kadıköy / İstanbul</td></tr>
       </table>`
@@ -697,8 +704,8 @@ const TEMPLATES = [
     blocks.push(
       secHead("İşlem Bilgileri") +
       `<table class="ftbl">
-        <tr><td class="fl4">Kiralama Bedeli</td><td class="fv4">${fv("bedel") ? fv("bedel")+" TL" : "&nbsp;"}</td><td class="fl4">Hizmet Bedeli</td><td class="fv4">${fv("hizmet")||"&nbsp;"}</td></tr>
-        <tr><td class="fl4">Yetki Süresi</td><td class="fv4">${fv("sure")||"&nbsp;"}</td><td class="fl4">Yetki Başlangıç Tarihi</td><td class="fv4">${fv("yetkiBas")||"&nbsp;"}</td></tr>
+        <tr><td class="fl4">Kiralama Bedeli</td><td class="fv4">${fvu("bedel","TL")}</td><td class="fl4">Hizmet Bedeli</td><td class="fv4">${(fvRaw("hizmet")? fv("hizmet") : "&nbsp;")}</td></tr>
+        <tr><td class="fl4">Yetki Süresi</td><td class="fv4">${(fvRaw("sure")? fv("sure") : "&nbsp;")}</td><td class="fl4">Yetki Başlangıç Tarihi</td><td class="fv4">${(fvRaw("yetkiBas")? fv("yetkiBas") : "&nbsp;")}</td></tr>
       </table>`
     );
     // kısa tabloları ikişerli yan yana yerleştir; uzun danışman bloğu hep tam genişlik
@@ -835,7 +842,8 @@ const TEMPLATES = [
       {k:"muddet", l:"Kira Müddeti", def:"1 Yıl"},
       {k:"baslangic", l:"Kira Başlangıcı", ph:"GG.AA.YYYY", fmt:"date"},
       {k:"bitis", l:"Kira Bitişi", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"depozito", l:"Depozito Tutarı (TL)", fmt:"money"},
+      {k:"depozito", l:"Depozito Tutarı", fmt:"money"},
+      {k:"depozitoBirim", l:"Para Birimi", type:"select", opts:["Seçiniz","TL","USD"], def:"Seçiniz"},
     ]},
     {t:"Ek-A Demirbaşlar", fields:[
       {k:"demirbasVar", l:"Demirbaş", type:"select", opts:["Var","Yok"], def:"Var"},
@@ -873,8 +881,8 @@ const TEMPLATES = [
       ["Kiracının İkamet Adresi", fv("kcAdres")],
       ["Kiracının İş Adresi", fv("kcIs")],
       ["Kiracının Telefon Numarası", fv("kcTel")],
-      ["Bir Senelik Kira Karşılığı", fv("yillik") ? fv("yillik")+" TL" : ""],
-      ["Bir Aylık Kira Karşılığı", fv("aylik") ? fv("aylik")+" TL" : ""],
+      ["Bir Senelik Kira Karşılığı", fvu("yillik","TL","")],
+      ["Bir Aylık Kira Karşılığı", fvu("aylik","TL","")],
       ["Kira Karşılığının Ne Şekilde Ödeneceği", fv("odeme")],
       ["Kira Müddeti", fv("muddet")],
       ["Kiranın Başlangıcı", fv("baslangic")],
@@ -912,7 +920,9 @@ const TEMPLATES = [
     <div class="clz"><b>11.</b> Kiracı iflas ettiği, vefat ettiği, konkordato ilan ettiği ya da herhangi bir nedenle tevkif edildiği takdirde kira akdi sona erecek ve Mal Sahibi evi tahliye edebilecektir.</div>
     <div class="clz"><b>12.</b> Kiralanandaki demirbaş, sistem, beyaz eşya ve dairenin kötü kullanımından kaynaklanan hasarların tamir, temizleme ve ıslah masrafları Kiracı'ya aittir. Kullanıcı hatası ve kötü kullanımdan kaynaklanmadığı sürece, yapısal nitelikli demirbaş (pencere, kepenk vb.), tesisat (su, elektrik, klima, ısıtma, kombi, dahili telefon ve alarm vb.) ve Ek-A'daki eşyalarda yapılacak tamir, bakım, yenileme, değiştirme işleri ile gizli kusurlardan kaynaklanan işler Mal Sahibi'nin sorumluluğundadır ve zamanında yapılacaktır.</div>
     <div class="clz"><b>13.</b> Kullanıcı hatası ve kötü kullanımdan kaynaklanmadığı sürece, sözleşme süresince ana tamirat giderleri ile gizli kusurlardan kaynaklanan tamir ve yenileme masrafları Mal Sahibi tarafından karşılanır. Kiralanan tamir gerektirir veya üçüncü şahıs hak iddia ederse Kiracı derhal Mal Sahibi'ne haber vermeye mecburdur; aksi halde zarardan sorumludur. Kiracı zaruri tamiratın icrasına müsaade etmek zorundadır. Olağan kullanım için gereken ufak tefek işler (menteşe, cam, kilit, badana vb.) mal sahibine haber verilmeden yaptırılırsa masrafı Mal Sahibi'nden istenemez.</div>
-    <div class="clz"><b>14.</b> Kiracı, Mal Sahibi'ne iki aylık kira bedeli karşılığı olarak <b>#</b>${fnum("depozito",90)}<b>#</b> TL adına peşin depozito ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içinde <b>O GÜN ÖDENEN GÜNCEL KİRA BEDELİ ÜZERİNDEN İKİ AYLIK KİRA BEDELİ</b> olarak aynen iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.</div>
+    <div class="clz"><b>14.</b> ${fvRaw("depozitoBirim")==="USD"
+      ? `Kiracı, Mal Sahibi'ne iki aylık kira bedeli karşılığı olarak <b>#</b>${fnum("depozito",90)}<b>#</b> USD peşin depozito ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içerisinde USD <b>#</b>${fnum("depozito",90)}<b>#</b> olarak iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.`
+      : `Kiracı, Mal Sahibi'ne iki aylık kira bedeli karşılığı olarak <b>#</b>${fnum("depozito",90)}<b>#</b> TL adına peşin depozito ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içinde <b>O GÜN ÖDENEN GÜNCEL KİRA BEDELİ ÜZERİNDEN İKİ AYLIK KİRA BEDELİ</b> olarak aynen iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.`}</div>
     <div class="clz"><b>15.</b> Kiracı'nın bu sözleşmenin herhangi bir hükmünü kusuru veya ihmali ile ihlal etmesi ve bunu Mal Sahibi'nin yazılı ihtarının tebliğinden itibaren en geç 15 gün içinde gidermemesi durumunda Mal Sahibi sözleşmeyi derhal feshetme ve uğradığı zararı talep etme hakkına sahiptir.</div>
     <div class="clz"><b>16.</b> Taraflardan herhangi biri, diğer tarafın işbu sözleşmeye aykırı hareket etmesi durumunda yazılı bildirimle sözleşmeyi feshedebilir.</div>
     <div class="clz"><b>17.</b> Kiracı ve Mal Sahibi'nin sözleşmede yazılı adresleri yasal tebligat adresleridir; değişiklik yazılı bildirilmedikçe bu adreslere yapılacak her türlü tebligat -tebliğ edilmese dahi- yapılmış sayılır.</div>
@@ -927,10 +937,10 @@ const TEMPLATES = [
     <div class="clz"><b>22.</b> Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.</div>
     <div class="clz">Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.</div>
     ${secHead("EK-A — DEMİRBAŞ LİSTESİ")}
-    ${fv("demirbasVar")==="Yok"
+    ${fvRaw("demirbasVar")==="Yok"
       ? `<div class="clz" style="margin-top:2mm">Kiralanan taşınmazda taraflarca tespit edilen demirbaş bulunmamaktadır.</div>`
       : (()=>{
-          const dolu = [1,2,3,4,5,6,7,8,9].filter(i=>(fv("d"+i)||"").trim());
+          const dolu = [1,2,3,4,5,6,7,8,9].filter(i=>(fvRaw("d"+i)||"").trim());
           if (dolu.length)
             return `<table class="demir">${dolu.map((i,n)=>`<tr><td class="dn">${n+1}.</td><td>${fv("d"+i)}</td></tr>`).join("")}</table>`;
           /* hiç demirbaş yazılmamışsa: elle doldurmak için boş satırlar */
@@ -939,7 +949,7 @@ const TEMPLATES = [
     <div class="shead kefhead">Kefil / Kefalet Beyanı</div>
     <table class="kefal">
       <tr><th>Kefaletin Türü</th><th>Müşterek ve Müteselsil Kefil ve Adresi</th><th>Azami Kefalet Tutarı</th><th>Kefalet Tarihi</th><th>İmza</th></tr>
-      <tr><td>${fv("kefTur")}</td><td>${fv("kfIsim")}${fv("kfAdres")?" — "+fv("kfAdres"):""}</td><td>${fv("kefTutar")?fv("kefTutar")+" TL":""}</td><td>${fv("kefTarih")}</td><td></td></tr>
+      <tr><td>${fv("kefTur")}</td><td>${fv("kfIsim")}${fvRaw("kfAdres")?" — "+fvRaw("kfAdres"):""}</td><td>${fvu("kefTutar","TL","")}</td><td>${fv("kefTarih")}</td><td></td></tr>
     </table>
     <div class="pgbottom">${sigK}</div>
     </div>
@@ -989,8 +999,8 @@ const TEMPLATES = [
     <div class="clz" style="font-size:10pt;line-height:1.7">Teklifim kabul olur ve daireyi almaktan vazgeçersem RE/MAX DOĞUŞ'a <b>%2 + KDV</b> ceza bedeli ödeyeceğimi kabul, beyan ve taahhüt ederim.</div>
     <div style="height:2mm"></div>
     ${ftbl([
-      ["Daire Satış Bedeli", fv("bedel") ? fv("bedel")+" TL" : ""],
-      ["Tapu Masrafı", fv("tapu") ? fv("tapu")+" TL" : ""],
+      ["Daire Satış Bedeli", fvu("bedel","TL","")],
+      ["Tapu Masrafı", fvu("tapu","TL","")],
       ["Hizmet Bedeli", fv("hizmet")],
     ])}
     ${sigBlock([{t:"TEKLİF VEREN",s:fv("tIsim")}], false, true)}
@@ -1050,8 +1060,8 @@ const TEMPLATES = [
     <div class="clz" style="font-size:10pt;line-height:1.7">Teklifim kabul olur ve daireyi kiralamaktan vazgeçersem RE/MAX DOĞUŞ'a <b>1 Kira Bedeli + KDV</b> ceza bedeli ödeyeceğimi kabul, beyan ve taahhüt ederim.</div>
     <div style="height:2mm"></div>
     ${ftbl([
-      ["Daire Kiralama Bedeli", fv("bedel") ? fv("bedel")+" TL" : ""],
-      ["Depozito Bedeli", fv("depozito") ? fv("depozito")+" TL" : ""],
+      ["Daire Kiralama Bedeli", fvu("bedel","TL","")],
+      ["Depozito Bedeli", fvu("depozito","TL","")],
       ["Hizmet Bedeli", fv("hizmet")],
     ])}
     ${sigBlock([{t:"TEKLİF VEREN",s:fv("tIsim")}], false, true)}
@@ -1154,8 +1164,8 @@ const TEMPLATES = [
       ["Kiralanacak Mülkün Açık Adresi", fv("mAdres"), 1],
       ["Kiracı Adı ve Soyadı", fv("kcIsim")],
       ["T.C. Kimlik No", fv("kcTc")],
-      ["Kira Bedeli", fv("kiraBedel") ? fv("kiraBedel")+" TL" : ""],
-      ["Depozito Bedeli", fv("depozito") ? fv("depozito")+" TL" : ""],
+      ["Kira Bedeli", fvu("kiraBedel","TL","")],
+      ["Depozito Bedeli", fvu("depozito","TL","")],
     ])}
     <div style="height:3mm"></div>
     <div class="clz"><b>1-</b> Yukarıda adresi yazılı olan gayrimenkulün kiralanması ile ilgili KİRALAYAN ve KİRACI arasında mutabakata varılmıştır.</div>
@@ -1202,7 +1212,7 @@ const TEMPLATES = [
       <div class="clz">Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim.</div>
       <div class="psig">
         <div class="prow">Taahhüt Tarihi : ${(()=>{const t=plusOneMonth(fv("tahliyeTarihi"));return t?`<span class="blank filled">${t}</span>`:`<span class="blank" style="min-width:110px">&nbsp;</span>`;})()}</div>
-        <div class="prow">Taahhüt Eden : <b>${fv("kiraciIsim")||""}</b></div>
+        <div class="prow">Taahhüt Eden : <b>${fvRaw("kiraciIsim")||""}</b></div>
         <div class="prow">İmzası :</div>
       </div>
     </div>
@@ -1237,11 +1247,11 @@ const TEMPLATES = [
       <div class="clz">Kiraya Veren ${f("kvIsim",150)} ile Kiracı ${f("kcIsim",150)} arasındaki ${f("sozTarih",100)} tarihli Kira Sözleşmesi'ne ilişkin olarak; kiracı ${f("kcIsim",150)}'in ${f("lehine",130)} lehine doğmuş/doğacak borçlarına eşim ${f("kefilIsim",150)}'ın müşterek ve müteselsil kefil olmasına rıza göstermekteyim.</div>
       <div class="prow">Kefaletin Türü : ${f("kefTur",180)}</div>
       <div class="prow">Müşterek ve Müteselsil Kefilin Adı-Soyadı : ${f("kefilIsim",180)}</div>
-      <div class="prow">Azami Kefalet Tutarı : ${fv("kefTutar")?'<span class="blank filled">'+fv("kefTutar")+' TL</span>':'<span class="blank" style="min-width:140px">&nbsp;</span>'}</div>
+      <div class="prow">Azami Kefalet Tutarı : ${fvRaw("kefTutar")?'<span class="blank filled">'+fvRaw("kefTutar")+' TL</span>':'<span class="blank" style="min-width:140px">&nbsp;</span>'}</div>
       <div class="prow">İşbu Rıza Belgesinin Tanzim Tarihi : ${f("tanzim",110)}</div>
       <div class="psig">
         <div class="prow"><span class="plabel">Rıza Veren (Eş)</span></div>
-        <div class="prow">Ad-Soyad : <b>${fv("rizaIsim")||""}</b>${fv("rizaIsim")?"":'<span class="blank" style="min-width:150px">&nbsp;</span>'}</div>
+        <div class="prow">Ad-Soyad : <b>${fvRaw("rizaIsim")||""}</b>${fvRaw("rizaIsim")?"":'<span class="blank" style="min-width:150px">&nbsp;</span>'}</div>
         <div class="prow">T.C. Kimlik No : ${f("rizaTc",150)}</div>
         <div class="prow">İmza :</div>
       </div>
@@ -1388,7 +1398,31 @@ function buildForm(){
       localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V));
       refresh();
     });
+    // odak/tıklama → önizlemede eşleşen alanı göster
+    const gotoPreview = ()=> highlightPreview(el.dataset.k);
+    el.addEventListener("focus", gotoPreview);
+    el.addEventListener("click", gotoPreview);
   });
+}
+
+/* önizlemede verilen anahtarın olduğu yere kaydır + kısa süre vurgula */
+let _hlTimer = null;
+function highlightPreview(key){
+  if (!key) return;
+  const prev = $("preview");
+  if (!prev) return;
+  // önceki vurguları temizle
+  prev.querySelectorAll(".pv.pv-hl").forEach(e=> e.classList.remove("pv-hl"));
+  // bu anahtarın tüm örnekleri (tekrarlı alanlarda birden çok olabilir)
+  const hedefler = prev.querySelectorAll(`.pv[data-pk="${(window.CSS&&CSS.escape)?CSS.escape(key):key}"]`);
+  if (!hedefler.length) return;
+  const ilk = hedefler[0];
+  hedefler.forEach(e=> e.classList.add("pv-hl"));
+  // kaydır: önizleme kutusu içinde ortala
+  try { ilk.scrollIntoView({behavior:"smooth", block:"center", inline:"nearest"}); }
+  catch(_) { ilk.scrollIntoView(); }
+  clearTimeout(_hlTimer);
+  _hlTimer = setTimeout(()=> hedefler.forEach(e=> e.classList.remove("pv-hl")), 1600);
 }
 
 function addRep(base){
@@ -1754,6 +1788,8 @@ async function buildPageImages(){
     holder.style.cssText = "position:absolute;left:-12000px;top:0;width:794px;background:#fff;pointer-events:none;";
     const clone = $("preview").cloneNode(true);
     clone.removeAttribute("id");
+    // önizleme vurgusu PDF'e sızmasın
+    clone.querySelectorAll(".pv-hl").forEach(e=> e.classList.remove("pv-hl"));
     clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
