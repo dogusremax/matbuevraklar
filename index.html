@@ -350,7 +350,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v84</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v85</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -361,7 +361,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v84</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v85</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
@@ -1622,6 +1622,9 @@ function autoFit(){
   const sheet = $("preview");
   if (!sheet) return;
   sheet.classList.remove("fit1","fit2","fit3","big1","big2","big3");
+  // Sabit sayfa sonu (pgbrk) olan belgelerde sayfalar kiraFlow ile yönetilir;
+  // yazı küçültme (fit) uygulanmaz — çift dilde daralmayı önler.
+  if (sheet.querySelector(".pgbrk")) return;
   const base = segPages(sheet);
   if (base <= 1){
     // sayfa doldurma: boşluk varsa maddeleri büyüt (en büyük sığan kademe)
