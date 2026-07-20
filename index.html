@@ -131,6 +131,7 @@ table.sigs td.sigpad{border:none;background:none}
 .sig .sh{background:#21237B;color:#fff;font-size:8pt;font-weight:bold;text-align:center;padding:4px 5px;letter-spacing:.4px;text-transform:uppercase}
 .sig .sb{padding:5px 7px}
 .sig .sn{font-size:8pt;color:#1a1a1a;border-bottom:1px dotted #777;padding:3px 1px 4px;min-height:14px;line-height:1.3}
+.sig .stc{font-size:8pt;color:#1a1a1a;border-bottom:1px dotted #777;padding:3px 1px 4px;min-height:14px;line-height:1.3}
 .sig .sn b{color:#000}
 .sig .space{height:14mm;display:table;width:100%}
 .sig .space.tall{height:19.5mm}
@@ -346,7 +347,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v80</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v82</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -357,9 +358,10 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v80</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v82</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
+      <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
     </div>
@@ -455,6 +457,18 @@ const OFFICE = {
 /* =================== YARDIMCILAR =================== */
 let V = {};           // aktif form değerleri
 let currentTpl = null;
+/* ---- Dil (TR/EN) ---- */
+let LANG = localStorage.getItem("matbuLang") || "tr";
+function L(tr, en){ return (LANG==="en" && en!=null) ? en : tr; }
+function toggleLang(){
+  LANG = (LANG==="en") ? "tr" : "en";
+  localStorage.setItem("matbuLang", LANG);
+  const b = $("langBtn"); if (b) b.textContent = LANG==="en" ? "🌐 EN" : "🌐 TR";
+  if (currentTpl){ buildForm(); refresh(); }
+}
+function initLang(){
+  const b = $("langBtn"); if (b) b.textContent = LANG==="en" ? "🌐 EN" : "🌐 TR";
+}
 let me = null;
 
 const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -517,6 +531,14 @@ function fmtMoney(s){
   const d = s.replace(/\D/g,"").replace(/^0+(?=\d)/,"");
   return d.replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
+/* İngilizce sıra eki: 1→st, 2→nd, 3→rd, 4-20→th ... */
+function ordEn(nStr){
+  const n = parseInt(String(nStr).replace(/[^0-9]/g,""),10);
+  if (!Number.isFinite(n)) return "";
+  const s = n % 100;
+  if (s >= 11 && s <= 13) return "th";
+  switch (n % 10){ case 1: return "st"; case 2: return "nd"; case 3: return "rd"; default: return "th"; }
+}
 /* rakama Türkçe "-i hali" eki: 1'i, 5'i, 20'si, 30'u, 9'u ...
    Kural: sayının Türkçe okunuşundaki SON sesliye göre ünlü uyumu +
    son ses sesli ise kaynaştırma (s). */
@@ -574,16 +596,20 @@ function sigBlock(blocks, compact, alignRight){
   for (let i=0;i<blocks.length;i+=3) rows.push(blocks.slice(i,i+3));
   const cell = b => {
     const name = (b.s && b.s !== "İSİM VE SOYİSİM") ? `<b>${b.s}</b>` : "";
+    const tcLine = (b.tc && String(b.tc).trim())
+      ? `<div class="stc">${L("T.C. No","ID/Passport")}: <b>${b.tc}</b></div>`
+      : "";
     const body = b.logo
       ? `<div class="space tall"><span><img src="${UMT_LOGO}"></span></div>`
-      : `<div class="sn">Adı Soyadı: ${name}</div>
+      : `<div class="sn">${L("Adı Soyadı","Full Name")}: ${name}</div>
+        ${tcLine}
         <div class="space"><span></span></div>`;
     return `
     <td class="sig">
       <div class="sh">${b.t}</div>
       <div class="sb">
         ${body}
-        <div class="sf">İMZA</div>
+        <div class="sf">${L("İMZA","SIGNATURE")}</div>
       </div>
     </td>`;
   };
@@ -846,60 +872,61 @@ const TEMPLATES = [
 
 /* ---------- 4. KİRA SÖZLEŞMESİ ---------- */
 {
-  id:"kira", fileBase:"Kira_Sozlesmesi", nameKey:"kcIsim", ic:"📄", title:"Kira Sözleşmesi",
+  id:"kira", fileBase:"Kira_Sozlesmesi", nameKey:"kcIsim", ic:"📄", title:"Kira Sözleşmesi", titleEn:"Residential Lease Agreement",
   desc:"Kiraya veren, kiracı ve kefil arasında; 22 maddelik hususi şartlar + Ek-A demirbaş listesi.",
+  descEn:"Between lessor, tenant and guarantor; 22 special conditions + Annex-A fixture list.",
   groups:[
-    {t:"Kiralanan Mülk", fields:[
-      {k:"daireNo", l:"Daire No"},
-      {k:"mahalle", l:"Mahallesi - İlçe - Şehir", req:1},
-      {k:"mAdres", l:"Adres", type:"textarea", req:1},
-      {k:"cins", l:"Kiralanan Şeyin Cinsi", ph:"Daire / Dükkan / Ofis ..."},
-      {k:"durum", l:"Kiralananın Mevcut Durumu", ph:"Boş / Eşyalı ..."},
-      {k:"amac", l:"Ne İçin Kullanılacağı", ph:"Konut / İşyeri"},
+    {t:"Kiralanan Mülk", tEn:"Leased Property", fields:[
+      {k:"daireNo", l:"Daire No", lEn:"Flat No"},
+      {k:"mahalle", l:"Mahallesi - İlçe - Şehir", lEn:"District - Town - City", req:1},
+      {k:"mAdres", l:"Adres", lEn:"Address", type:"textarea", req:1},
+      {k:"cins", l:"Kiralanan Şeyin Cinsi", lEn:"Type of Property", ph:"Daire / Dükkan / Ofis ..."},
+      {k:"durum", l:"Kiralananın Mevcut Durumu", lEn:"Current Condition", ph:"Boş / Eşyalı ..."},
+      {k:"amac", l:"Ne İçin Kullanılacağı", lEn:"Purpose of Use", ph:"Konut / İşyeri"},
     ]},
-    {t:"Kiraya Veren", repeat:{base:"kv", label:"Kiraya Veren", max:3}, fields:[
-      {k:"kvIsim", l:"Adı ve Soyadı", req:1},
-      {k:"kvTc", l:"T.C. Kimlik Numarası"},
-      {k:"kvAdres", l:"İkamet Adresi", type:"textarea"},
-      {k:"kvTel", l:"Telefon Numarası", fmt:"phone"},
+    {t:"Kiraya Veren", tEn:"Lessor (Owner)", repeat:{base:"kv", label:"Kiraya Veren", labelEn:"Lessor", max:3}, fields:[
+      {k:"kvIsim", l:"Adı ve Soyadı", lEn:"Full Name", req:1},
+      {k:"kvTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
+      {k:"kvAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
+      {k:"kvTel", l:"Telefon Numarası", lEn:"Phone Number", fmt:"phone"},
     ]},
-    {t:"Kiracı", fields:[
-      {k:"kcIsim", l:"Adı ve Soyadı", req:1},
-      {k:"kcTc", l:"T.C. Kimlik Numarası"},
-      {k:"kcAdres", l:"İkamet Adresi", type:"textarea"},
-      {k:"kcIs", l:"İş Adresi", type:"textarea"},
-      {k:"kcTel", l:"Telefon Numarası", fmt:"phone"},
+    {t:"Kiracı", tEn:"Tenant (Lessee)", fields:[
+      {k:"kcIsim", l:"Adı ve Soyadı", lEn:"Full Name", req:1},
+      {k:"kcTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
+      {k:"kcAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
+      {k:"kcIs", l:"İş Adresi", lEn:"Work Address", type:"textarea"},
+      {k:"kcTel", l:"Telefon Numarası", lEn:"Phone Number", fmt:"phone"},
     ]},
-    {t:"Kefil", fields:[
-      {k:"kfIsim", l:"Adı ve Soyadı"},
-      {k:"kfTc", l:"T.C. Kimlik Numarası"},
-      {k:"kfTel", l:"Telefon", fmt:"phone"},
-      {k:"kfIs", l:"İş Adresi", type:"textarea"},
-      {k:"kfAdres", l:"İkamet Adresi", type:"textarea"},
+    {t:"Kefil", tEn:"Guarantor", fields:[
+      {k:"kfIsim", l:"Adı ve Soyadı", lEn:"Full Name"},
+      {k:"kfTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
+      {k:"kfTel", l:"Telefon", lEn:"Phone", fmt:"phone"},
+      {k:"kfIs", l:"İş Adresi", lEn:"Work Address", type:"textarea"},
+      {k:"kfAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
     ]},
-    {t:"Kira Koşulları", fields:[
-      {k:"yillik", l:"Bir Senelik Kira (TL)", fmt:"money"},
-      {k:"aylik", l:"Bir Aylık Kira (TL)", req:1, fmt:"money"},
-      {k:"aylikYazi", l:"Aylık Kira (Yazıyla)"},
-      {k:"odemeGun", l:"Ödeme Şekli", type:"dayrange", pre:"Her ayın", post:"arasında"},
-      {k:"iban", l:"Ödeme Yapılacak Hesap / IBAN", fmt:"raw"},
-      {k:"hesapAdi", l:"Hesap Sahibi Adı"},
-      {k:"muddet", l:"Kira Müddeti", def:"1 Yıl"},
-      {k:"baslangic", l:"Kira Başlangıcı", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"bitis", l:"Kira Bitişi", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"depozito", l:"Depozito Tutarı", fmt:"money"},
-      {k:"depozitoBirim", l:"Para Birimi", type:"select", opts:["Seçiniz","TL","USD"], def:"Seçiniz"},
-      {k:"imzaTarihi", l:"İmza Tarihi", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Kira Koşulları", tEn:"Lease Terms", fields:[
+      {k:"yillik", l:"Bir Senelik Kira (TL)", lEn:"Annual Rent (TL)", fmt:"money"},
+      {k:"aylik", l:"Bir Aylık Kira (TL)", lEn:"Monthly Rent (TL)", req:1, fmt:"money"},
+      {k:"aylikYazi", l:"Aylık Kira (Yazıyla)", lEn:"Monthly Rent (in Words)"},
+      {k:"odemeGun", l:"Ödeme Şekli", lEn:"Payment Days", type:"dayrange", pre:"Her ayın", preEn:"Between the", post:"arasında", postEn:"of each month"},
+      {k:"iban", l:"Ödeme Yapılacak Hesap / IBAN", lEn:"Payment Account / IBAN", fmt:"raw"},
+      {k:"hesapAdi", l:"Hesap Sahibi Adı", lEn:"Account Holder Name"},
+      {k:"muddet", l:"Kira Müddeti", lEn:"Lease Duration", def:"1 Yıl"},
+      {k:"baslangic", l:"Kira Başlangıcı", lEn:"Lease Start Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"bitis", l:"Kira Bitişi", lEn:"Lease End Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"depozito", l:"Depozito Tutarı", lEn:"Deposit Amount", fmt:"money"},
+      {k:"depozitoBirim", l:"Para Birimi", lEn:"Currency", type:"select", opts:["Seçiniz","TL","USD"], optsEn:["Select","TL","USD"], def:"Seçiniz"},
+      {k:"imzaTarihi", l:"İmza Tarihi", lEn:"Signature Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Ek-A Demirbaşlar", fields:[
-      {k:"demirbasVar", l:"Demirbaş", type:"select", opts:["Var","Yok"], def:"Var"},
+    {t:"Ek-A Demirbaşlar", tEn:"Annex-A Fixtures", fields:[
+      {k:"demirbasVar", l:"Demirbaş", lEn:"Fixtures", type:"select", opts:["Var","Yok"], optsEn:["Yes","No"], def:"Var"},
       {k:"d1",l:"1."},{k:"d2",l:"2."},{k:"d3",l:"3."},{k:"d4",l:"4."},{k:"d5",l:"5."},
       {k:"d6",l:"6."},{k:"d7",l:"7."},{k:"d8",l:"8."},{k:"d9",l:"9."},
     ]},
-    {t:"Kefalet Beyanı", fields:[
-      {k:"kefTur", l:"Kefaletin Türü", def:"Müşterek ve Müteselsil", handwrite:1},
-      {k:"kefTutar", l:"Azami Kefalet Tutarı (TL)", fmt:"money", handwrite:1},
-      {k:"kefTarih", l:"Kefalet Tarihi", ph:"GG.AA.YYYY", fmt:"date", handwrite:1},
+    {t:"Kefalet Beyanı", tEn:"Guarantee Declaration", fields:[
+      {k:"kefTur", l:"Kefaletin Türü", lEn:"Type of Guarantee", def:"Müşterek ve Müteselsil", handwrite:1},
+      {k:"kefTutar", l:"Azami Kefalet Tutarı (TL)", lEn:"Maximum Guarantee Amount (TL)", fmt:"money", handwrite:1},
+      {k:"kefTarih", l:"Kefalet Tarihi", lEn:"Guarantee Date", ph:"GG.AA.YYYY", fmt:"date", handwrite:1},
     ]},
   ],
   render(){
@@ -907,95 +934,95 @@ const TEMPLATES = [
     const kvRows = [];
     for (let i=1;i<=ckv;i++){
       const n = ckv>1 ? ` ${i}'in` : "in";
-      kvRows.push([`Kiraya Veren${n} Adı Ve Soyadı`, fvi("kvIsim",i)]);
-      kvRows.push([`Kiraya Veren${n} İkamet Adresi`, fvi("kvAdres",i)]);
-      kvRows.push([`Kiraya Veren${n} Telefon Numarası`, fvi("kvTel",i)]);
-      kvRows.push([`Kiraya Veren${n} Türkiye Cumhuriyeti Kimlik Numarası`, fvi("kvTc",i)]);
+      const nEn = ckv>1 ? ` ${i}` : "";
+      kvRows.push([L(`Kiraya Veren${n} Adı Ve Soyadı`,`Lessor${nEn} Full Name`), fvi("kvIsim",i)]);
+      kvRows.push([L(`Kiraya Veren${n} İkamet Adresi`,`Lessor${nEn} Residential Address`), fvi("kvAdres",i)]);
+      kvRows.push([L(`Kiraya Veren${n} Telefon Numarası`,`Lessor${nEn} Phone Number`), fvi("kvTel",i)]);
+      kvRows.push([L(`Kiraya Veren${n} Türkiye Cumhuriyeti Kimlik Numarası`,`Lessor${nEn} National ID / Passport No`), fvi("kvTc",i)]);
     }
-    const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ",s:fvi("kvIsim",x+1)})),{t:"KEFİL",s:fv("kfIsim")},{t:"KİRACI",s:fv("kcIsim")}], true);
+    const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},{t:L("KİRACI","TENANT"),s:fv("kcIsim"),tc:fvRaw("kcTc")}], true);
     return `
     <div class="pgsec pg1 pgflex">
     <div class="pgfill">
-    <div class="tcenter">KİRA SÖZLEŞMESİ</div>
+    <div class="tcenter">${L("KİRA SÖZLEŞMESİ","RESIDENTIAL LEASE AGREEMENT")}</div>
     <div class="tgrow">${ftbl([
-      ["Daire No", fv("daireNo")],
-      ["Mahallesi - İlçe - Şehir", fv("mahalle")],
-      ["Adres", fv("mAdres")],
-      ["Kiralanan Şeyin Cinsi", fv("cins")],
+      [L("Daire No","Flat No"), fv("daireNo")],
+      [L("Mahallesi - İlçe - Şehir","District - Town - City"), fv("mahalle")],
+      [L("Adres","Address"), fv("mAdres")],
+      [L("Kiralanan Şeyin Cinsi","Type of Property"), fv("cins")],
       ...kvRows,
-      ["Kiracının Adı Ve Soyadı", fv("kcIsim")],
-      ["Kiracının Türkiye Cumhuriyeti Kimlik Numarası", fv("kcTc")],
-      ["Kiracının İkamet Adresi", fv("kcAdres")],
-      ["Kiracının İş Adresi", fv("kcIs")],
-      ["Kiracının Telefon Numarası", fv("kcTel")],
-      ["Bir Senelik Kira Karşılığı", fvu("yillik","TL","")],
-      ["Bir Aylık Kira Karşılığı", fvu("aylik","TL","")],
-      ["Kira Karşılığının Ne Şekilde Ödeneceği", `Her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile`],
-      ["Kira Müddeti", fv("muddet")],
-      ["Kiranın Başlangıcı", fv("baslangic")],
-      ["Kiralananın Mevcut Durumu", fv("durum")],
-      ["Kiralanan Şeyin Ne İçin Kullanılacağı", fv("amac")],
+      [L("Kiracının Adı Ve Soyadı","Tenant Full Name"), fv("kcIsim")],
+      [L("Kiracının Türkiye Cumhuriyeti Kimlik Numarası","Tenant National ID / Passport No"), fv("kcTc")],
+      [L("Kiracının İkamet Adresi","Tenant Residential Address"), fv("kcAdres")],
+      [L("Kiracının İş Adresi","Tenant Work Address"), fv("kcIs")],
+      [L("Kiracının Telefon Numarası","Tenant Phone Number"), fv("kcTel")],
+      [L("Bir Senelik Kira Karşılığı","Annual Rent"), fvu("yillik","TL","")],
+      [L("Bir Aylık Kira Karşılığı","Monthly Rent"), fvu("aylik","TL","")],
+      [L("Kira Karşılığının Ne Şekilde Ödeneceği","Method of Rent Payment"), L(`Her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile`, `By bank transfer between the ${(fvRaw("odemeGunBas")||"1")}${ordEn(fvRaw("odemeGunBas")||"1")} and ${(fvRaw("odemeGunBit")||"5")}${ordEn(fvRaw("odemeGunBit")||"5")} of each month`)],
+      [L("Kira Müddeti","Lease Duration"), fv("muddet")],
+      [L("Kiranın Başlangıcı","Lease Start"), fv("baslangic")],
+      [L("Kiralananın Mevcut Durumu","Current Condition"), fv("durum")],
+      [L("Kiralanan Şeyin Ne İçin Kullanılacağı","Purpose of Use"), fv("amac")],
     ])}</div>
-    ${secHead("Kefil Bilgileri")}
+    ${secHead(L("Kefil Bilgileri","Guarantor Details"))}
     <div class="kfgrow">${ftbl([
-      ["Adı Ve Soyadı", fv("kfIsim")],
-      ["Türkiye Cumhuriyeti Kimlik Numarası", fv("kfTc")],
-      ["Telefon", fv("kfTel")],
-      ["İş Adresi", fv("kfIs")],
-      ["İkamet Adresi", fv("kfAdres")],
+      [L("Adı Ve Soyadı","Full Name"), fv("kfIsim")],
+      [L("Türkiye Cumhuriyeti Kimlik Numarası","National ID / Passport No"), fv("kfTc")],
+      [L("Telefon","Phone"), fv("kfTel")],
+      [L("İş Adresi","Work Address"), fv("kfIs")],
+      [L("İkamet Adresi","Residential Address"), fv("kfAdres")],
     ])}</div>
     </div>
     <div class="pgbottom">${sigK}</div>
     </div>
     <div class="pgbrk"></div>
     <div class="pgsec pg2 pgflex">
-    <div class="shead" style="text-align:center">HUSUSİ ŞARTLAR</div>
-    <div class="clz"><b>1. Konu.</b> İşbu kira sözleşmesinin konusu ${f("mahalle",120)} adresinde mukim mecurun ${fj("kvIsim","kv",130)} (Mal Sahibi) tarafından ${f("kcIsim",130)} (Kiracı) ${f("amac",70)} olarak kiralanmasıdır. İşbu aşağıdaki özel şartlar kira sözleşmesinin bütününü oluşturur.</div>
-    <div class="clz"><b>2.</b> Mecur kira süresi içinde Kiracının kullanımına tahsis edilmiştir. Kiracı, mecuru tahsis amacının dışında başka bir amaçla kullanamaz/kullandıramaz, üçüncü şahıslara kiralayamaz, devir ve temlik edemez, başkasının istifade ve işgaline terk ve tahsis edemez. Aksi durum mal sahibi için sözleşme fesih sebebidir.</div>
-    <div class="clz"><b>3.</b> Kiracı, Kiralanana ait bina aidat, yakıt, su, elektrik, doğalgaz, telefon, internet, TV gibi kendi kullanımından doğan giderleri ilgili kurumlara zamanında ödeyeceğini kabul ve taahhüt eder; site/apartman yönetiminin alacağı kararlara ve ödeme planlarına uyacaktır. Kiracı her türlü aboneliğini 1 ay içerisinde kendi adına yaptıracak, depozitoları kendi adına yatıracaktır. Tahliye halinde ilgili idarelerle ilişkisini kesecek, birikmiş tüm borçlarını ödeyecek, depozitolarını geri alacak ve borcu yoktur yazısını mal sahibine ibraz edecektir.</div>
-    <div class="clz"><b>4.</b> Kiralananda deprem, yangın ve doğal afet hasar sigortası Mal Sahibi tarafından yaptırılmış olup, kira süresince (yenileme dönemleri dâhil) Mal Sahibi tarafından geçerli tutulacaktır. Kiracı kendi eşya sigortasını yaptırmakla sorumludur.</div>
-    <div class="clz"><b>5.</b> AYLIK kira bedeli <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL'dir. Ödemeler kontrat süresince her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile, kiraya veren mal sahibinin ${f("iban",170)} Nolu hesabına ${f("hesapAdi",110)} adına ödenecektir. Kira bedeli, ilk kira yılının sonunda ve gelen yıllarda Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan tüketici fiyat endeksi (TÜFE) on iki aylık ortalaması oranında arttırılacaktır. Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir. Türk Borçlar Kanunu'na göre kontrat tarihinden itibaren 5. yılın sonunda yeni kira belirlenirken mal sahibinin emsal kira rayiçlerine göre kira bedeli isteme hakkı olduğundan, 5. yıl bitiminde yeni kira bedeli mal sahibi ile kiracı emsal kira rayiçlerine göre anlaşarak belirlenecektir.</div>
-    <div class="clz"><b>6.</b> Kira akdi 1 yıllıktır, ${f("baslangic",80)} tarihinde başlayıp ${f("bitis",80)} tarihinde sona erecektir. Kiracı veya mal sahibi bu sözleşme süresinin bitiminden en az 60 gün önce bildirimde bulunmadıkça sözleşme aynı koşullarla ve belirtilen kira artışı uygulanarak 1 yıl uzatılmış sayılır. Taraflardan biri 60 gün öncesinde bildirim yaparsa sözleşme bitiş tarihinde sonlanır.</div>
-    <div class="clz"><b>7.</b> İşbu kira sözleşmesine ait ödenmesi gereken damga vergisi ile doğabilecek diğer bedel ve harçları ödeme borcu kiracıya aittir. Kiraya veren herhangi bir sebeple bunları ödemek zorunda kaldığında bu bedel kiracıya rücu edilerek tahsil edilecektir.</div>
-    <div class="clz"><b>8.</b> Mecur, kiralama döneminin başlamasından önce Kiracı'ya temiz, bakımlı, gereken tamirler yapılmış durumda ve bütün alet, edevat ve beyaz eşyalar çalışır halde teslim edilmiştir. Bunların durumunu gösteren ve taraflarca imzalanmış eşya listesi Ek-A'da yer alır. Günlük yaşamın olağan değişiklikleri (tablo asmak için çivi çakmak vb.) haricinde Kiracı, Mal Sahibi'nin önceden yazılı izni olmaksızın Kiralanan üzerinde değişiklik, tamirat ve tadilat yapamaz; yazılı izinle yapsa dahi masraflarını talep edemez. Sözleşme sonunda Kiracı, Kiralanan'ı (normal aşınma ve yıpranmalar hariç) ilk teslim aldığı koşullarda teslim edecektir.</div>
+    <div class="shead" style="text-align:center">${L("HUSUSİ ŞARTLAR","SPECIAL CONDITIONS")}</div>
+    <div class="clz"><b>${L("1. Konu.","1. Subject.")}</b> ${L(`İşbu kira sözleşmesinin konusu ${f("mahalle",120)} adresinde mukim mecurun ${fj("kvIsim","kv",130)} (Mal Sahibi) tarafından ${f("kcIsim",130)} (Kiracı) ${f("amac",70)} olarak kiralanmasıdır. İşbu aşağıdaki özel şartlar kira sözleşmesinin bütününü oluşturur.`, `The subject of this lease agreement is the leasing of the property located at ${f("mahalle",120)} by ${fj("kvIsim","kv",130)} (the Owner) to ${f("kcIsim",130)} (the Tenant) for use as ${f("amac",70)}. The following special conditions constitute the entirety of the lease agreement.`)}</div>
+    <div class="clz"><b>2.</b> ${L("Mecur kira süresi içinde Kiracının kullanımına tahsis edilmiştir. Kiracı, mecuru tahsis amacının dışında başka bir amaçla kullanamaz/kullandıramaz, üçüncü şahıslara kiralayamaz, devir ve temlik edemez, başkasının istifade ve işgaline terk ve tahsis edemez. Aksi durum mal sahibi için sözleşme fesih sebebidir.", "The property is allocated for the Tenant's use during the lease term. The Tenant may not use or allow the use of the property for any purpose other than that allocated, may not sublease it to third parties, may not assign or transfer it, and may not surrender or allocate it to the benefit or occupation of others. Any breach constitutes grounds for termination by the Owner.")}</div>
+    <div class="clz"><b>3.</b> ${L("Kiracı, Kiralanana ait bina aidat, yakıt, su, elektrik, doğalgaz, telefon, internet, TV gibi kendi kullanımından doğan giderleri ilgili kurumlara zamanında ödeyeceğini kabul ve taahhüt eder; site/apartman yönetiminin alacağı kararlara ve ödeme planlarına uyacaktır. Kiracı her türlü aboneliğini 1 ay içerisinde kendi adına yaptıracak, depozitoları kendi adına yatıracaktır. Tahliye halinde ilgili idarelerle ilişkisini kesecek, birikmiş tüm borçlarını ödeyecek, depozitolarını geri alacak ve borcu yoktur yazısını mal sahibine ibraz edecektir.", "The Tenant agrees and undertakes to pay on time to the relevant institutions all charges arising from their own use, such as building dues, fuel, water, electricity, natural gas, telephone, internet and TV, and shall comply with the decisions and payment plans of the site/apartment management. The Tenant shall register all utility subscriptions in their own name within 1 month and pay the relevant deposits in their own name. Upon vacating, the Tenant shall terminate their relationship with the relevant authorities, pay all accrued debts, reclaim their deposits, and submit a clearance (no-debt) letter to the Owner.")}</div>
+    <div class="clz"><b>4.</b> ${L("Kiralananda deprem, yangın ve doğal afet hasar sigortası Mal Sahibi tarafından yaptırılmış olup, kira süresince (yenileme dönemleri dâhil) Mal Sahibi tarafından geçerli tutulacaktır. Kiracı kendi eşya sigortasını yaptırmakla sorumludur.", "Earthquake, fire and natural disaster damage insurance for the property has been arranged by the Owner and shall be kept in force by the Owner throughout the lease term (including renewal periods). The Tenant is responsible for arranging insurance for their own belongings.")}</div>
+    <div class="clz"><b>5.</b> ${L(`AYLIK kira bedeli <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL'dir. Ödemeler kontrat süresince her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile, kiraya veren mal sahibinin ${f("iban",170)} Nolu hesabına ${f("hesapAdi",110)} adına ödenecektir. Kira bedeli, ilk kira yılının sonunda ve gelen yıllarda Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan tüketici fiyat endeksi (TÜFE) on iki aylık ortalaması oranında arttırılacaktır. Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir. Türk Borçlar Kanunu'na göre kontrat tarihinden itibaren 5. yılın sonunda yeni kira belirlenirken mal sahibinin emsal kira rayiçlerine göre kira bedeli isteme hakkı olduğundan, 5. yıl bitiminde yeni kira bedeli mal sahibi ile kiracı emsal kira rayiçlerine göre anlaşarak belirlenecektir.`, `The MONTHLY rent is <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL. Throughout the contract term, payments shall be made by bank transfer between the ${(fvRaw("odemeGunBas")||"1")}${ordEn(fvRaw("odemeGunBas")||"1")} and ${(fvRaw("odemeGunBit")||"5")}${ordEn(fvRaw("odemeGunBit")||"5")} of each month, to the account No. ${f("iban",170)} of the lessor owner, in the name of ${f("hesapAdi",110)}. The rent shall be increased at the end of the first lease year and in subsequent years at the rate of the twelve-month average of the consumer price index (CPI) announced by the Turkish Statistical Institute (TÜİK). If the rent and site dues are not paid for two consecutive months and/or for any two months during the lease period, and payments are not made within 2 business days from the service of the written notice by the Lessor, the entire rent until the end of that lease period shall become due and payable. This also constitutes indisputable grounds for eviction. Pursuant to the Turkish Code of Obligations, since the owner has the right to request rent based on comparable rental values at the end of the 5th year from the contract date, at the end of the 5th year the new rent shall be determined by agreement between owner and tenant according to comparable rental values.`)}</div>
+    <div class="clz"><b>6.</b> ${L(`Kira akdi 1 yıllıktır, ${f("baslangic",80)} tarihinde başlayıp ${f("bitis",80)} tarihinde sona erecektir. Kiracı veya mal sahibi bu sözleşme süresinin bitiminden en az 60 gün önce bildirimde bulunmadıkça sözleşme aynı koşullarla ve belirtilen kira artışı uygulanarak 1 yıl uzatılmış sayılır. Taraflardan biri 60 gün öncesinde bildirim yaparsa sözleşme bitiş tarihinde sonlanır.`, `The lease is for 1 year, commencing on ${f("baslangic",80)} and ending on ${f("bitis",80)}. Unless the tenant or owner gives notice at least 60 days before the end of this term, the agreement shall be deemed extended for 1 year under the same conditions with the specified rent increase applied. If either party gives notice 60 days in advance, the agreement terminates on the end date.`)}</div>
+    <div class="clz"><b>7.</b> ${L("İşbu kira sözleşmesine ait ödenmesi gereken damga vergisi ile doğabilecek diğer bedel ve harçları ödeme borcu kiracıya aittir. Kiraya veren herhangi bir sebeple bunları ödemek zorunda kaldığında bu bedel kiracıya rücu edilerek tahsil edilecektir.", "The obligation to pay the stamp tax due on this lease agreement and any other fees and charges that may arise belongs to the tenant. If the lessor is for any reason obliged to pay these, such amounts shall be collected from the tenant by way of recourse.")}</div>
+    <div class="clz"><b>8.</b> ${L("Mecur, kiralama döneminin başlamasından önce Kiracı'ya temiz, bakımlı, gereken tamirler yapılmış durumda ve bütün alet, edevat ve beyaz eşyalar çalışır halde teslim edilmiştir. Bunların durumunu gösteren ve taraflarca imzalanmış eşya listesi Ek-A'da yer alır. Günlük yaşamın olağan değişiklikleri (tablo asmak için çivi çakmak vb.) haricinde Kiracı, Mal Sahibi'nin önceden yazılı izni olmaksızın Kiralanan üzerinde değişiklik, tamirat ve tadilat yapamaz; yazılı izinle yapsa dahi masraflarını talep edemez. Sözleşme sonunda Kiracı, Kiralanan'ı (normal aşınma ve yıpranmalar hariç) ilk teslim aldığı koşullarda teslim edecektir.", "The property was delivered to the Tenant before the start of the lease period clean, well-maintained, with necessary repairs completed, and with all appliances and white goods in working order. The itemized list showing their condition, signed by the parties, is set out in Annex-A. Except for ordinary changes of daily life (such as driving a nail to hang a picture), the Tenant may not make alterations, repairs or modifications to the Property without the prior written consent of the Owner; even if made with written consent, the Tenant may not claim the costs. At the end of the agreement, the Tenant shall deliver the Property in the condition first received (excluding normal wear and tear).")}</div>
     <div class="pgbottom">${sigK}</div>
     </div>
     <div class="pgbrk"></div>
     <div class="pgsec pg3 pgflex">
-    <div class="clz"><b>9.</b> Kiracı, kiralanan yeri teslim aldığı demirbaşlarla birlikte ve teslim aldığı halde, âdete göre Mal Sahibi'ne teslim etmeye mecburdur. Normal kullanıma bağlı eskime ve yıpranmalar bu yükümlülük kapsamında değildir.</div>
-    <div class="clz"><b>10.</b> Kiracı, kiralanan yerde ve ana taşınmaz içinde gürültülü ve çevreyi kirletecek işlerle uğraşamaz, yüksek sesle müzik yayını yapamaz, yangına sebep verecek cihazlar kullanamaz ve site yönetiminin aldığı kararlara uyacağını kabul ve taahhüt eder.</div>
-    <div class="clz"><b>11.</b> Kiracı iflas ettiği, vefat ettiği, konkordato ilan ettiği ya da herhangi bir nedenle tevkif edildiği takdirde kira akdi sona erecek ve Mal Sahibi evi tahliye edebilecektir.</div>
-    <div class="clz"><b>12.</b> Kiralanandaki demirbaş, sistem, beyaz eşya ve dairenin kötü kullanımından kaynaklanan hasarların tamir, temizleme ve ıslah masrafları Kiracı'ya aittir. Kullanıcı hatası ve kötü kullanımdan kaynaklanmadığı sürece, yapısal nitelikli demirbaş (pencere, kepenk vb.), tesisat (su, elektrik, klima, ısıtma, kombi, dahili telefon ve alarm vb.) ve Ek-A'daki eşyalarda yapılacak tamir, bakım, yenileme, değiştirme işleri ile gizli kusurlardan kaynaklanan işler Mal Sahibi'nin sorumluluğundadır ve zamanında yapılacaktır.</div>
-    <div class="clz"><b>13.</b> Kullanıcı hatası ve kötü kullanımdan kaynaklanmadığı sürece, sözleşme süresince ana tamirat giderleri ile gizli kusurlardan kaynaklanan tamir ve yenileme masrafları Mal Sahibi tarafından karşılanır. Kiralanan tamir gerektirir veya üçüncü şahıs hak iddia ederse Kiracı derhal Mal Sahibi'ne haber vermeye mecburdur; aksi halde zarardan sorumludur. Kiracı zaruri tamiratın icrasına müsaade etmek zorundadır. Olağan kullanım için gereken ufak tefek işler (menteşe, cam, kilit, badana vb.) mal sahibine haber verilmeden yaptırılırsa masrafı Mal Sahibi'nden istenemez.</div>
+    <div class="clz"><b>9.</b> ${L("Kiracı, kiralanan yeri teslim aldığı demirbaşlarla birlikte ve teslim aldığı halde, âdete göre Mal Sahibi'ne teslim etmeye mecburdur. Normal kullanıma bağlı eskime ve yıpranmalar bu yükümlülük kapsamında değildir.", "The Tenant is obliged to deliver the leased property back to the Owner together with the fixtures received and in the condition received, in accordance with custom. Ageing and wear due to normal use are not within the scope of this obligation.")}</div>
+    <div class="clz"><b>10.</b> ${L("Kiracı, kiralanan yerde ve ana taşınmaz içinde gürültülü ve çevreyi kirletecek işlerle uğraşamaz, yüksek sesle müzik yayını yapamaz, yangına sebep verecek cihazlar kullanamaz ve site yönetiminin aldığı kararlara uyacağını kabul ve taahhüt eder.", "The Tenant may not engage in noisy or polluting activities in the leased property or within the main building, may not play loud music, may not use devices that could cause fire, and agrees and undertakes to comply with the decisions of the site management.")}</div>
+    <div class="clz"><b>11.</b> ${L("Kiracı iflas ettiği, vefat ettiği, konkordato ilan ettiği ya da herhangi bir nedenle tevkif edildiği takdirde kira akdi sona erecek ve Mal Sahibi evi tahliye edebilecektir.", "If the Tenant becomes bankrupt, dies, declares a composition (concordat) or is detained for any reason, the lease shall terminate and the Owner may evict the property.")}</div>
+    <div class="clz"><b>12.</b> ${L("Kiralanandaki demirbaş, sistem, beyaz eşya ve dairenin kötü kullanımından kaynaklanan hasarların tamir, temizleme ve ıslah masrafları Kiracı'ya aittir. Kullanıcı hatası ve kötü kullanımdan kaynaklanmadığı sürece, yapısal nitelikli demirbaş (pencere, kepenk vb.), tesisat (su, elektrik, klima, ısıtma, kombi, dahili telefon ve alarm vb.) ve Ek-A'daki eşyalarda yapılacak tamir, bakım, yenileme, değiştirme işleri ile gizli kusurlardan kaynaklanan işler Mal Sahibi'nin sorumluluğundadır ve zamanında yapılacaktır.", "The costs of repairing, cleaning and remedying damage arising from misuse of the fixtures, systems, white goods and the flat belong to the Tenant. Unless arising from user error or misuse, repair, maintenance, renewal and replacement of structural fixtures (windows, shutters, etc.), installations (water, electricity, air conditioning, heating, boiler, intercom and alarm, etc.) and the items in Annex-A, as well as work arising from hidden defects, are the responsibility of the Owner and shall be carried out in a timely manner.")}</div>
+    <div class="clz"><b>13.</b> ${L("Kullanıcı hatası ve kötü kullanımdan kaynaklanmadığı sürece, sözleşme süresince ana tamirat giderleri ile gizli kusurlardan kaynaklanan tamir ve yenileme masrafları Mal Sahibi tarafından karşılanır. Kiralanan tamir gerektirir veya üçüncü şahıs hak iddia ederse Kiracı derhal Mal Sahibi'ne haber vermeye mecburdur; aksi halde zarardan sorumludur. Kiracı zaruri tamiratın icrasına müsaade etmek zorundadır. Olağan kullanım için gereken ufak tefek işler (menteşe, cam, kilit, badana vb.) mal sahibine haber verilmeden yaptırılırsa masrafı Mal Sahibi'nden istenemez.", "Unless arising from user error or misuse, major repair costs and repair and renewal costs arising from hidden defects during the term of the agreement shall be borne by the Owner. If the leased property requires repair or a third party asserts a claim, the Tenant is obliged to notify the Owner immediately; otherwise the Tenant is liable for the damage. The Tenant must allow the execution of necessary repairs. If minor works required for ordinary use (hinges, glass, locks, whitewashing, etc.) are carried out without notifying the owner, their cost may not be claimed from the Owner.")}</div>
     <div class="clz"><b>14.</b> ${fvRaw("depozitoBirim")==="USD"
-      ? `Kiracı, Mal Sahibi'ne depozito olarak <b>#</b>${fnum("depozito",90)}<b>#</b> USD peşin ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içerisinde <b>#</b>${fnum("depozito",90)}<b>#</b> USD olarak iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.`
-      : `Kiracı, Mal Sahibi'ne iki aylık kira bedeli karşılığı olarak <b>#</b>${fnum("depozito",90)}<b>#</b> TL adına peşin depozito ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içinde <b>O GÜN ÖDENEN GÜNCEL KİRA BEDELİ ÜZERİNDEN İKİ AYLIK KİRA BEDELİ</b> olarak aynen iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.`}</div>
-    <div class="clz"><b>15.</b> Kiracı'nın bu sözleşmenin herhangi bir hükmünü kusuru veya ihmali ile ihlal etmesi ve bunu Mal Sahibi'nin yazılı ihtarının tebliğinden itibaren en geç 15 gün içinde gidermemesi durumunda Mal Sahibi sözleşmeyi derhal feshetme ve uğradığı zararı talep etme hakkına sahiptir.</div>
-    <div class="clz"><b>16.</b> Taraflardan herhangi biri, diğer tarafın işbu sözleşmeye aykırı hareket etmesi durumunda yazılı bildirimle sözleşmeyi feshedebilir.</div>
-    <div class="clz"><b>17.</b> Kiracı ve Mal Sahibi'nin sözleşmede yazılı adresleri yasal tebligat adresleridir; değişiklik yazılı bildirilmedikçe bu adreslere yapılacak her türlü tebligat -tebliğ edilmese dahi- yapılmış sayılır.</div>
-    <div class="clz"><b>18.</b> Kefil, kiracı ile birlikte işbu sözleşmeden doğmuş ve doğacak tüm borçlardan azami sorumluluk tutarı kapsamında müteselsilen sorumlu olup sözleşmenin tüm şartlarını kabul eder. Kefilin sorumluluğu sözleşme devam ettiği, uzatıldığı ve yenilendiği sürece ve kiracı kiralananı eksiksiz ve borçsuz teslim edene kadar devam eder.</div>
-    <div class="clz"><b>19.</b> Müteselsil kefilin il dışına çıkması, vefatı, iflası ya da kefaletten vazgeçmesi halinde sözleşme yeni müteselsil kefil ile yenilenecektir. Mal Sahibi başka bir kefil gösterilmesini isterse Kiracı bu isteği yerine getirecektir.</div>
+      ? L(`Kiracı, Mal Sahibi'ne depozito olarak <b>#</b>${fnum("depozito",90)}<b>#</b> USD peşin ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içerisinde <b>#</b>${fnum("depozito",90)}<b>#</b> USD olarak iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.`, `The Tenant shall pay the Owner a deposit of <b>#</b>${fnum("depozito",90)}<b>#</b> USD in advance. The Tenant shall not under any circumstances request that the deposit be offset against rent. At the end of the contract and upon the Tenant vacating the property, if there is no damage, loss, unpaid invoice, debt or dues, this deposit shall be refunded to the Tenant by the Owner within one month at the latest as <b>#</b>${fnum("depozito",90)}<b>#</b> USD. Otherwise, the remainder shall be refunded after probable debts and damage to the property are deducted from the deposit. If the amount of debt and damage exceeds the deposit, the difference shall be covered by the Tenant in cash at the time of vacating.`)
+      : L(`Kiracı, Mal Sahibi'ne iki aylık kira bedeli karşılığı olarak <b>#</b>${fnum("depozito",90)}<b>#</b> TL adına peşin depozito ödeyecektir. Kiracı, ödediği depozitoyu, hiçbir şekilde kiraya mahsup etme talebinde bulunmayacaktır. Kontratın hitamında ve Kiracının mecuru tahliyesi sırasında herhangi bir hasar, zarar, ziyan, ödenmemiş fatura, borç ve aidat yok ise bu depozito Kiracıya Mal Sahibi tarafından en geç bir ay içinde <b>O GÜN ÖDENEN GÜNCEL KİRA BEDELİ ÜZERİNDEN İKİ AYLIK KİRA BEDELİ</b> olarak aynen iade edilir. Aksi takdirde muhtemel borçlar ve gayrimenkule verilmiş zarar depozitodan mahsup edildikten sonra geriye kalan iade edilecektir. Borç ve zarar miktarının depozitoyu aşması halinde ise aradaki fark Kiracı tarafından nakden tahliye anında karşılanacaktır.`, `The Tenant shall pay the Owner a deposit of <b>#</b>${fnum("depozito",90)}<b>#</b> TL in advance, corresponding to two months' rent. The Tenant shall not under any circumstances request that the deposit be offset against rent. At the end of the contract and upon the Tenant vacating the property, if there is no damage, loss, unpaid invoice, debt or dues, this deposit shall be refunded to the Tenant by the Owner within one month at the latest as <b>TWO MONTHS' RENT BASED ON THE CURRENT RENT PAID ON THAT DAY</b>. Otherwise, the remainder shall be refunded after probable debts and damage to the property are deducted from the deposit. If the amount of debt and damage exceeds the deposit, the difference shall be covered by the Tenant in cash at the time of vacating.`)}</div>
+    <div class="clz"><b>15.</b> ${L("Kiracı'nın bu sözleşmenin herhangi bir hükmünü kusuru veya ihmali ile ihlal etmesi ve bunu Mal Sahibi'nin yazılı ihtarının tebliğinden itibaren en geç 15 gün içinde gidermemesi durumunda Mal Sahibi sözleşmeyi derhal feshetme ve uğradığı zararı talep etme hakkına sahiptir.", "If the Tenant breaches any provision of this agreement through fault or negligence and fails to remedy it within 15 days at the latest from the service of the Owner's written notice, the Owner shall have the right to terminate the agreement immediately and claim the damages incurred.")}</div>
+    <div class="clz"><b>16.</b> ${L("Taraflardan herhangi biri, diğer tarafın işbu sözleşmeye aykırı hareket etmesi durumunda yazılı bildirimle sözleşmeyi feshedebilir.", "Either party may terminate the agreement by written notice if the other party acts in breach of this agreement.")}</div>
+    <div class="clz"><b>17.</b> ${L("Kiracı ve Mal Sahibi'nin sözleşmede yazılı adresleri yasal tebligat adresleridir; değişiklik yazılı bildirilmedikçe bu adreslere yapılacak her türlü tebligat -tebliğ edilmese dahi- yapılmış sayılır.", "The addresses of the Tenant and Owner stated in the agreement are their legal notification addresses; unless a change is notified in writing, any notification made to these addresses shall be deemed served even if not actually delivered.")}</div>
+    <div class="clz"><b>18.</b> ${L("Kefil, kiracı ile birlikte işbu sözleşmeden doğmuş ve doğacak tüm borçlardan azami sorumluluk tutarı kapsamında müteselsilen sorumlu olup sözleşmenin tüm şartlarını kabul eder. Kefilin sorumluluğu sözleşme devam ettiği, uzatıldığı ve yenilendiği sürece ve kiracı kiralananı eksiksiz ve borçsuz teslim edene kadar devam eder.", "The Guarantor is jointly and severally liable together with the tenant for all debts arisen and to arise from this agreement, up to the maximum liability amount, and accepts all terms of the agreement. The Guarantor's liability continues as long as the agreement continues, is extended and renewed, and until the tenant delivers the leased property complete and debt-free.")}</div>
+    <div class="clz"><b>19.</b> ${L("Müteselsil kefilin il dışına çıkması, vefatı, iflası ya da kefaletten vazgeçmesi halinde sözleşme yeni müteselsil kefil ile yenilenecektir. Mal Sahibi başka bir kefil gösterilmesini isterse Kiracı bu isteği yerine getirecektir.", "If the joint guarantor leaves the province, dies, becomes bankrupt or withdraws from the guarantee, the agreement shall be renewed with a new joint guarantor. If the Owner requests that another guarantor be provided, the Tenant shall fulfil this request.")}</div>
     <div class="pgbottom">${sigK}</div>
     </div>
     <div class="pgbrk"></div>
     <div class="pgsec pg4 pgflex">
-    <div class="clz"><b>20.</b> Gayrimenkul sahibi daireyi satmaya karar verirse Kiracı, randevu ile gelen müşterilere evi göstermekle yükümlüdür. Ayrıca sözleşmenin bitiminden önceki 2 ay içinde, kendisinin belirleyeceği haftanın iki gününde evi yeni kiracı adaylarına gösterecektir.</div>
-    <div class="clz"><b>21.</b> Kira müddeti bittiği halde kiralananı boşaltmaz ise Kiracı, Mal Sahibi'nin bundan doğacak zarar ve ziyanını tazmin edecektir.</div>
-    <div class="clz"><b>22.</b> Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.</div>
-    <div class="clz">Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından ${fvRaw("imzaTarihi")?`<b>${fvRaw("imzaTarihi")}</b>`:"..........................."} tarihinde okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.</div>
-    ${secHead("EK-A — DEMİRBAŞ LİSTESİ")}
+    <div class="clz"><b>20.</b> ${L("Gayrimenkul sahibi daireyi satmaya karar verirse Kiracı, randevu ile gelen müşterilere evi göstermekle yükümlüdür. Ayrıca sözleşmenin bitiminden önceki 2 ay içinde, kendisinin belirleyeceği haftanın iki gününde evi yeni kiracı adaylarına gösterecektir.", "If the property owner decides to sell the flat, the Tenant is obliged to show the property to customers who come by appointment. Furthermore, within the 2 months before the end of the agreement, the Tenant shall show the property to prospective new tenants on two days of the week to be determined by the Tenant.")}</div>
+    <div class="clz"><b>21.</b> ${L("Kira müddeti bittiği halde kiralananı boşaltmaz ise Kiracı, Mal Sahibi'nin bundan doğacak zarar ve ziyanını tazmin edecektir.", "If the Tenant does not vacate the leased property although the lease term has ended, the Tenant shall compensate the Owner for any resulting loss and damage.")}</div>
+    <div class="clz"><b>22.</b> ${L("Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.", "The costs of any decoration the Tenant has carried out inside and outside the leased property belong to the Tenant; upon termination of the agreement the Tenant may not claim compensation for such costs, and all additions made become the property of the Owner.")}</div>
+    <div class="clz">${L(`Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından ${fvRaw("imzaTarihi")?`<b>${fvRaw("imzaTarihi")}</b>`:"..........................."} tarihinde okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.`, `Istanbul Anatolian Courts and Enforcement Offices have jurisdiction over disputes arising from this agreement. For matters not covered in the agreement, the Turkish Civil Code, the Turkish Code of Obligations, the Condominium Law No. 634, the relevant legislation in force and the case-law of the Court of Cassation shall apply. This agreement, consisting of the printed terms, 22 special conditions and Annex-A, has been read, accepted and signed in two copies by the parties and the joint guarantor on ${fvRaw("imzaTarihi")?`<b>${fvRaw("imzaTarihi")}</b>`:"..........................."}.`)}</div>
+    ${secHead(L("EK-A — DEMİRBAŞ LİSTESİ","ANNEX-A — LIST OF FIXTURES"))}
     ${fvRaw("demirbasVar")==="Yok"
-      ? `<div class="clz" style="margin-top:2mm">Kiralanan taşınmazda taraflarca tespit edilen demirbaş bulunmamaktadır.</div>`
+      ? `<div class="clz" style="margin-top:2mm">${L("Kiralanan taşınmazda taraflarca tespit edilen demirbaş bulunmamaktadır.","No fixtures have been identified by the parties in the leased property.")}</div>`
       : (()=>{
           const dolu = [1,2,3,4,5,6,7,8,9].filter(i=>(fvRaw("d"+i)||"").trim());
           if (dolu.length)
             return `<table class="demir">${dolu.map((i,n)=>`<tr><td class="dn">${n+1}.</td><td>${fv("d"+i)}</td></tr>`).join("")}</table>`;
-          /* hiç demirbaş yazılmamışsa: elle doldurmak için boş satırlar */
           return `<table class="demir">${[1,2,3,4,5].map(n=>`<tr><td class="dn">${n}.</td><td>&nbsp;</td></tr>`).join("")}</table>`;
         })()}
-    <div class="shead kefhead">Kefil / Kefalet Beyanı</div>
+    <div class="shead kefhead">${L("Kefil / Kefalet Beyanı","Guarantor / Guarantee Declaration")}</div>
     <table class="kefal">
-      <tr><th>Kefaletin Türü</th><th>Müşterek ve Müteselsil Kefil ve Adresi</th><th>Azami Kefalet Tutarı</th><th>Kefalet Tarihi</th><th>İmza</th></tr>
+      <tr><th>${L("Kefaletin Türü","Type of Guarantee")}</th><th>${L("Müşterek ve Müteselsil Kefil ve Adresi","Joint Guarantor and Address")}</th><th>${L("Azami Kefalet Tutarı","Maximum Guarantee Amount")}</th><th>${L("Kefalet Tarihi","Guarantee Date")}</th><th>${L("İmza","Signature")}</th></tr>
       <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td></tr>
     </table>
     <div class="pgbottom">${sigK}</div>
@@ -1339,6 +1366,7 @@ function enter(pin){
   $("login").style.display = "none";
   $("app").style.display = "block";
   $("whoami").textContent = me.name;
+  initLang();
   renderCatalog();
 }
 function logout(){
@@ -1354,10 +1382,10 @@ function renderCatalog(){
   $("cards").innerHTML = TEMPLATES.map(t=>{
     const hasDraft = !!localStorage.getItem(draftKey(t.id));
     return `<div class="card ${hasDraft?"draft":""}" onclick="openTpl('${t.id}')">
-      <span class="tag">${hasDraft?"TASLAK VAR":"HAZIR"}</span>
+      <span class="tag">${hasDraft?L("TASLAK VAR","DRAFT"):L("HAZIR","READY")}</span>
       <div class="ic">${t.ic}</div>
-      <h3>${t.title}</h3>
-      <p>${t.desc}</p>
+      <h3>${L(t.title,t.titleEn)}</h3>
+      <p>${L(t.desc,t.descEn)}</p>
     </div>`;
   }).join("");
 }
@@ -1406,7 +1434,7 @@ function buildForm(){
     for (let i=1;i<=inst;i++){
       const rm = (g.repeat && i>1 && i===inst)
         ? ` <a href="#" class="rm" onclick="removeRep('${g.repeat.base}');return false">− kaldır</a>` : "";
-      out += `<div class="fgroup"><div class="gt">${g.t}${(g.repeat&&inst>1)?" "+i:""}${rm}</div>`;
+      out += `<div class="fgroup"><div class="gt">${L(g.t,g.tEn)}${(g.repeat&&inst>1)?" "+i:""}${rm}</div>`;
       out += g.fields.map(fd=>{
         const key = kfor(fd.k, i);
         const val = esc(V[key]||"");
@@ -1414,30 +1442,30 @@ function buildForm(){
         const inputMode = (fmtAttr==="date"||fmtAttr==="phone"||fmtAttr==="money") ? ` inputmode="numeric"` : "";
         const common = `id="in_${key}" data-k="${key}" data-fmt="${fmtAttr}"${inputMode} placeholder="${fd.ph||""}"`;
         const input = fd.handwrite
-          ? `<div class="hwfld" onclick="hwUyari()" title="Elle doldurulacak">
-               <span class="hwtxt">✋ Kefil kendi el yazısıyla dolduracak</span>
+          ? `<div class="hwfld" onclick="hwUyari()" title="${L("Elle doldurulacak","To be filled by hand")}">
+               <span class="hwtxt">${L("✋ Kefil kendi el yazısıyla dolduracak","✋ To be filled by the guarantor in own handwriting")}</span>
                <span class="hwlock">🔒</span>
              </div>`
           : fd.type==="dayrange"
           ? `<div class="dayrange">
-               <span class="drpre">${fd.pre||"Her ayın"}</span>
+               <span class="drpre">${L(fd.pre||"Her ayın", fd.preEn||"Between the")}</span>
                <input type="text" inputmode="numeric" maxlength="2" class="drbox" id="in_${key}Bas" data-k="${key}Bas" data-fmt="num2" value="${esc(V[key+"Bas"]||"")}" placeholder="1">
                <span class="drdash">-</span>
                <input type="text" inputmode="numeric" maxlength="2" class="drbox" id="in_${key}Bit" data-k="${key}Bit" data-fmt="num2" value="${esc(V[key+"Bit"]||"")}" placeholder="5">
-               <span class="drpost">${fd.post||"arasında"}</span>
+               <span class="drpost">${L(fd.post||"arasında", fd.postEn||"of each month")}</span>
              </div>`
           : fd.type==="textarea"
           ? `<textarea ${common}>${val}</textarea>`
           : fd.type==="select"
-          ? `<select ${common}>${(fd.opts||[]).map(o=>`<option${(val||fd.def)===o?" selected":""}>${o}</option>`).join("")}</select>`
+          ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||fd.def)===o?" selected":""}>${esc(fd.optsEn?fd.optsEn[oi]:o)}</option>`).join("")}</select>`
           : `<input type="text" ${common} value="${val}">`;
         const req = fd.req && i===1;
-        return `<div class="fld"><label>${fd.l}${req?' <span class="req">*</span>':''}</label>${input}</div>`;
+        return `<div class="fld"><label>${L(fd.l,fd.lEn)}${req?' <span class="req">*</span>':''}</label>${input}</div>`;
       }).join("");
       out += `</div>`;
     }
     if (g.repeat && inst < g.repeat.max){
-      out += `<button class="btn btn-g addrep" onclick="addRep('${g.repeat.base}')">+ ${g.repeat.label} Ekle</button>`;
+      out += `<button class="btn btn-g addrep" onclick="addRep('${g.repeat.base}')">+ ${L(g.repeat.label+" Ekle", (g.repeat.labelEn||g.repeat.label)+" Add")}</button>`;
     }
     return out;
   }).join("");
