@@ -346,7 +346,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v78</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v79</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -357,7 +357,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v78</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v79</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -2099,6 +2099,8 @@ async function saveDrive(btn){
     p.append("dosyaAdi", dosyaAdi);
     p.append("mime", "application/pdf");
     p.append("veri", b64);
+    p.append("tplId", currentTpl.id);
+    try { p.append("formVeri", JSON.stringify(V||{})); } catch(_){ p.append("formVeri","{}"); }
 
     const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
     const txt = await r.text();
@@ -2185,6 +2187,22 @@ function askConfirm(baslik, aciklama){
 }
 
 /* Kayıt sil — yalnızca broker */
+/* Kayıttan düzenle: form verisini yükle, şablonu aç */
+function kytDuzenle(i){
+  const k = kytCache[i];
+  if (!k || !k.tplId || !k.formVeri) return;
+  let veri;
+  try { veri = JSON.parse(k.formVeri); }
+  catch(_){ alert("Bu kaydın düzenlenebilir verisi okunamadı."); return; }
+  const tpl = TEMPLATES.find(t=>t.id===k.tplId);
+  if (!tpl){ alert("Bu evrak türü uygulamada bulunamadı."); return; }
+  // form verisini yükle + taslağa yaz, sonra şablonu aç
+  V = veri || {};
+  localStorage.setItem(draftKey(tpl.id), JSON.stringify(V));
+  closeKayitlar();
+  openTpl(tpl.id);
+}
+
 async function kytSil(i){
   if (!me.admin) return;
   const k = kytCache[i];
@@ -2226,6 +2244,7 @@ function kytRender(q){
       <div style="font-size:12px;color:#5B6470;margin:3px 0 8px">${k.evrak}${me.admin?" · "+k.danisman:""} · ${k.tarih}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         ${k.link?`<a href="${k.link}" target="_blank" rel="noopener" style="display:inline-block;padding:7px 12px;background:#1A56C4;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700">📄 Aç</a>`:`<span style="font-size:12px;color:#9AA3B0;padding:7px 0">link yok</span>`}
+        ${(k.tplId && k.formVeri)?`<button onclick="kytDuzenle(${kytCache.indexOf(k)})" style="padding:7px 12px;background:#fff;color:#0E7A3D;border:1px solid #B7E0C4;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✏️ Düzenle</button>`:""}
         ${me.admin?`<button onclick="kytSil(${kytCache.indexOf(k)})" style="padding:7px 12px;background:#fff;color:#C8102E;border:1px solid #F1C4CC;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🗑️ Sil</button>`:""}
       </div>
     </div>`).join("")
@@ -2264,6 +2283,8 @@ async function driveUpload(blob, kayitAdi, dosyaAdi, danisman){
     p.append("dosyaAdi", dosyaAdi);
     p.append("mime", "application/pdf");
     p.append("veri", b64);
+    p.append("tplId", currentTpl.id);
+    try { p.append("formVeri", JSON.stringify(V||{})); } catch(_){ p.append("formVeri","{}"); }
     const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
     const txt = await r.text();
     let j = {}; try{ j = JSON.parse(txt); }catch(_){}
