@@ -81,6 +81,12 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .hwfld:active{background:#FDF2CC}
 .hwfld .hwtxt{font-size:12.5px;color:#8A6D1A;font-weight:600;line-height:1.3}
 .hwfld .hwlock{font-size:15px;opacity:.7}
+/* gün aralığı alanı: Her ayın [1] - [5] arasında */
+.dayrange{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0}
+.dayrange .drpre,.dayrange .drpost{font-size:14px;color:#1A1A1A;font-weight:600}
+.dayrange .drdash{font-size:16px;color:#888;font-weight:700}
+.dayrange .drbox{width:56px;text-align:center;padding:9px 6px;border:1.5px solid var(--line);border-radius:8px;font-size:16px;font-family:inherit;outline:none;background:#fff}
+.dayrange .drbox:focus{border-color:#1A56C4}
 @media(max-width:900px){.sheetwrap{padding:8px}}
 
 /* üst lacivert bant: logo + UMT GROUP */
@@ -338,7 +344,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v70</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v75</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -349,7 +355,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v70</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v75</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
@@ -509,7 +515,38 @@ function fmtMoney(s){
   const d = s.replace(/\D/g,"").replace(/^0+(?=\d)/,"");
   return d.replace(/\B(?=(\d{3})+(?!\d))/g,".");
 }
+/* rakama Türkçe "-i hali" eki: 1'i, 5'i, 20'si, 30'u, 9'u ...
+   Kural: sayının Türkçe okunuşundaki SON sesliye göre ünlü uyumu +
+   son ses sesli ise kaynaştırma (s). */
+function ekIHali(nStr){
+  const n = parseInt(String(nStr).replace(/[^0-9]/g,""),10);
+  if (!Number.isFinite(n)) return "'";
+  // sayının okunuşundaki son kelimenin son seslisi ve son harfinin sesli olup olmadığı
+  const birler = ["sıfır","bir","iki","üç","dört","beş","altı","yedi","sekiz","dokuz"];
+  const onlar  = ["","on","yirmi","otuz","kırk","elli","altmış","yetmiş","seksen","doksan"];
+  let sonKelime;
+  if (n < 10) sonKelime = birler[n];
+  else if (n < 100){
+    const b = n % 10, o = Math.floor(n/10);
+    sonKelime = b === 0 ? onlar[o] : birler[b];
+  } else {
+    // 100 ve üstü: pratikte gün sayısı 1-31, yine de kaba destek
+    sonKelime = birler[n % 10] || "sıfır";
+  }
+  // son sesli harf
+  const seslis = sonKelime.match(/[aeıioöuü]/gi) || [];
+  const sonSesli = (seslis[seslis.length-1]||"e").toLowerCase();
+  // ünlü uyumu: -i hali eki
+  const ekMap = {a:"ı", "ı":"ı", o:"u", u:"u", e:"i", "i":"i", "ö":"ü", "ü":"ü"};
+  const ek = ekMap[sonSesli] || "i";
+  // kaynaştırma: son harf sesli ise araya "s"
+  const sonHarf = sonKelime.slice(-1).toLowerCase();
+  const sonHarfSesli = "aeıioöuü".includes(sonHarf);
+  return "'" + (sonHarfSesli ? "s" : "") + ek;
+}
+
 function applyFmt(fmt, val){
+  if (fmt==="num2")  return String(val).replace(/[^0-9]/g,"").slice(0,2);
   if (fmt==="date")  return fmtDate(val);
   if (fmt==="phone") return fmtPhone(val);
   if (fmt==="money") return fmtMoney(val);
@@ -842,7 +879,7 @@ const TEMPLATES = [
       {k:"yillik", l:"Bir Senelik Kira (TL)", fmt:"money"},
       {k:"aylik", l:"Bir Aylık Kira (TL)", req:1, fmt:"money"},
       {k:"aylikYazi", l:"Aylık Kira (Yazıyla)"},
-      {k:"odeme", l:"Ödeme Şekli", def:"Her ayın 1'i - 5'i arasında banka havalesi"},
+      {k:"odemeGun", l:"Ödeme Şekli", type:"dayrange", pre:"Her ayın", post:"arasında"},
       {k:"iban", l:"Ödeme Yapılacak Hesap / IBAN", fmt:"raw"},
       {k:"hesapAdi", l:"Hesap Sahibi Adı"},
       {k:"muddet", l:"Kira Müddeti", def:"1 Yıl"},
@@ -850,6 +887,7 @@ const TEMPLATES = [
       {k:"bitis", l:"Kira Bitişi", ph:"GG.AA.YYYY", fmt:"date"},
       {k:"depozito", l:"Depozito Tutarı", fmt:"money"},
       {k:"depozitoBirim", l:"Para Birimi", type:"select", opts:["Seçiniz","TL","USD"], def:"Seçiniz"},
+      {k:"imzaTarihi", l:"İmza Tarihi", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
     {t:"Ek-A Demirbaşlar", fields:[
       {k:"demirbasVar", l:"Demirbaş", type:"select", opts:["Var","Yok"], def:"Var"},
@@ -914,7 +952,7 @@ const TEMPLATES = [
     <div class="clz"><b>2.</b> Mecur kira süresi içinde Kiracının kullanımına tahsis edilmiştir. Kiracı, mecuru tahsis amacının dışında başka bir amaçla kullanamaz/kullandıramaz, üçüncü şahıslara kiralayamaz, devir ve temlik edemez, başkasının istifade ve işgaline terk ve tahsis edemez. Aksi durum mal sahibi için sözleşme fesih sebebidir.</div>
     <div class="clz"><b>3.</b> Kiracı, Kiralanana ait bina aidat, yakıt, su, elektrik, doğalgaz, telefon, internet, TV gibi kendi kullanımından doğan giderleri ilgili kurumlara zamanında ödeyeceğini kabul ve taahhüt eder; site/apartman yönetiminin alacağı kararlara ve ödeme planlarına uyacaktır. Kiracı her türlü aboneliğini 1 ay içerisinde kendi adına yaptıracak, depozitoları kendi adına yatıracaktır. Tahliye halinde ilgili idarelerle ilişkisini kesecek, birikmiş tüm borçlarını ödeyecek, depozitolarını geri alacak ve borcu yoktur yazısını mal sahibine ibraz edecektir.</div>
     <div class="clz"><b>4.</b> Kiralananda deprem, yangın ve doğal afet hasar sigortası Mal Sahibi tarafından yaptırılmış olup, kira süresince (yenileme dönemleri dâhil) Mal Sahibi tarafından geçerli tutulacaktır. Kiracı kendi eşya sigortasını yaptırmakla sorumludur.</div>
-    <div class="clz"><b>5.</b> AYLIK kira bedeli <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL'dir. Ödemeler kontrat süresince her ayın 1'i - 5'i arasında, kiraya veren mal sahibinin ${f("iban",170)} Nolu hesabına ${f("hesapAdi",110)} adına ödenecektir. Kira bedeli, ilk kira yılının sonunda ve gelen yıllarda Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan tüketici fiyat endeksi (TÜFE) on iki aylık ortalaması oranında arttırılacaktır. Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir. Türk Borçlar Kanunu'na göre kontrat tarihinden itibaren 5. yılın sonunda yeni kira belirlenirken mal sahibinin emsal kira rayiçlerine göre kira bedeli isteme hakkı olduğundan, 5. yıl bitiminde yeni kira bedeli mal sahibi ile kiracı emsal kira rayiçlerine göre anlaşarak belirlenecektir.</div>
+    <div class="clz"><b>5.</b> AYLIK kira bedeli <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL'dir. Ödemeler kontrat süresince her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile, kiraya veren mal sahibinin ${f("iban",170)} Nolu hesabına ${f("hesapAdi",110)} adına ödenecektir. Kira bedeli, ilk kira yılının sonunda ve gelen yıllarda Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan tüketici fiyat endeksi (TÜFE) on iki aylık ortalaması oranında arttırılacaktır. Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir. Türk Borçlar Kanunu'na göre kontrat tarihinden itibaren 5. yılın sonunda yeni kira belirlenirken mal sahibinin emsal kira rayiçlerine göre kira bedeli isteme hakkı olduğundan, 5. yıl bitiminde yeni kira bedeli mal sahibi ile kiracı emsal kira rayiçlerine göre anlaşarak belirlenecektir.</div>
     <div class="clz"><b>6.</b> Kira akdi 1 yıllıktır, ${f("baslangic",80)} tarihinde başlayıp ${f("bitis",80)} tarihinde sona erecektir. Kiracı veya mal sahibi bu sözleşme süresinin bitiminden en az 60 gün önce bildirimde bulunmadıkça sözleşme aynı koşullarla ve belirtilen kira artışı uygulanarak 1 yıl uzatılmış sayılır. Taraflardan biri 60 gün öncesinde bildirim yaparsa sözleşme bitiş tarihinde sonlanır.</div>
     <div class="clz"><b>7.</b> İşbu kira sözleşmesine ait ödenmesi gereken damga vergisi ile doğabilecek diğer bedel ve harçları ödeme borcu kiracıya aittir. Kiraya veren herhangi bir sebeple bunları ödemek zorunda kaldığında bu bedel kiracıya rücu edilerek tahsil edilecektir.</div>
     <div class="clz"><b>8.</b> Mecur, kiralama döneminin başlamasından önce Kiracı'ya temiz, bakımlı, gereken tamirler yapılmış durumda ve bütün alet, edevat ve beyaz eşyalar çalışır halde teslim edilmiştir. Bunların durumunu gösteren ve taraflarca imzalanmış eşya listesi Ek-A'da yer alır. Günlük yaşamın olağan değişiklikleri (tablo asmak için çivi çakmak vb.) haricinde Kiracı, Mal Sahibi'nin önceden yazılı izni olmaksızın Kiralanan üzerinde değişiklik, tamirat ve tadilat yapamaz; yazılı izinle yapsa dahi masraflarını talep edemez. Sözleşme sonunda Kiracı, Kiralanan'ı (normal aşınma ve yıpranmalar hariç) ilk teslim aldığı koşullarda teslim edecektir.</div>
@@ -942,7 +980,7 @@ const TEMPLATES = [
     <div class="clz"><b>20.</b> Gayrimenkul sahibi daireyi satmaya karar verirse Kiracı, randevu ile gelen müşterilere evi göstermekle yükümlüdür. Ayrıca sözleşmenin bitiminden önceki 2 ay içinde, kendisinin belirleyeceği haftanın iki gününde evi yeni kiracı adaylarına gösterecektir.</div>
     <div class="clz"><b>21.</b> Kira müddeti bittiği halde kiralananı boşaltmaz ise Kiracı, Mal Sahibi'nin bundan doğacak zarar ve ziyanını tazmin edecektir.</div>
     <div class="clz"><b>22.</b> Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.</div>
-    <div class="clz">Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.</div>
+    <div class="clz">Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından ${fvRaw("imzaTarihi")?`<b>${fvRaw("imzaTarihi")}</b>`:"..........................."} tarihinde okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.</div>
     ${secHead("EK-A — DEMİRBAŞ LİSTESİ")}
     ${fvRaw("demirbasVar")==="Yok"
       ? `<div class="clz" style="margin-top:2mm">Kiralanan taşınmazda taraflarca tespit edilen demirbaş bulunmamaktadır.</div>`
@@ -1377,6 +1415,14 @@ function buildForm(){
           ? `<div class="hwfld" onclick="hwUyari()" title="Elle doldurulacak">
                <span class="hwtxt">✋ Kefil kendi el yazısıyla dolduracak</span>
                <span class="hwlock">🔒</span>
+             </div>`
+          : fd.type==="dayrange"
+          ? `<div class="dayrange">
+               <span class="drpre">${fd.pre||"Her ayın"}</span>
+               <input type="text" inputmode="numeric" maxlength="2" class="drbox" id="in_${key}Bas" data-k="${key}Bas" data-fmt="num2" value="${esc(V[key+"Bas"]||"")}" placeholder="1">
+               <span class="drdash">-</span>
+               <input type="text" inputmode="numeric" maxlength="2" class="drbox" id="in_${key}Bit" data-k="${key}Bit" data-fmt="num2" value="${esc(V[key+"Bit"]||"")}" placeholder="5">
+               <span class="drpost">${fd.post||"arasında"}</span>
              </div>`
           : fd.type==="textarea"
           ? `<textarea ${common}>${val}</textarea>`
