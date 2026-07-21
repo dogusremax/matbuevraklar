@@ -140,6 +140,18 @@ table.sigs td.sigpad{border:none;background:none}
 .sig .stc{font-size:8pt;color:#1a1a1a;border-bottom:1px dotted #777;padding:3px 1px 4px;min-height:14px;line-height:1.3}
 /* çift dil: madde altındaki İngilizce metin */
 .clz .enc{margin-top:2mm;color:#444;font-style:italic;font-size:.94em}
+/* çift dil: EK-A ve Kefil başlıkları üstteki içerikten ayrılsın (nefes payı).
+   HUSUSİ ŞARTLAR başlığı .pg2'de olduğu için etkilenmez. */
+/* EK-A ve Kefil başlıkları üstteki içerikten ayrılsın (nefes payı) — tüm dillerde.
+   clzwrap'ten (maddeler) hemen sonra gelen EK-A başlığını da yakalar. */
+.clzwrap + .shead, .clzwrap-top + .shead, .clz + .shead{margin-top:8mm}
+.kefhead{margin-top:8mm}
+/* EK-A başlığı bir sayfanın ilk elemanıysa (tek dilde) tepeden ayrılsın */
+.pgsec > .shead:first-child{padding-top:7mm}
+.sheet.bilingual .clzwrap + .shead, .sheet.bilingual .clzwrap-top + .shead, .sheet.bilingual .clz + .shead{margin-top:9mm}
+.sheet.bilingual .kefhead{margin-top:9mm}
+table.demir{margin-top:2.5mm}
+.sheet.bilingual table.kefal{margin-top:2.5mm}
 .clz .enc b{color:#222}
 .sig .sn b{color:#000}
 .sig .space{height:14mm;display:table;width:100%}
@@ -212,6 +224,11 @@ table.ftbl .fv4{background:#fff;width:33%}
 /* madde sayfalarında maddeler arası SABİT boşluk + dikey ortalama
    (üst boşluk = alt boşluk, aralar her sayfada aynı) */
 .pgflex .clzwrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:4.5mm;padding:3mm 0}
+/* son sayfa (EK-A/kefalet olan): tüm içerik dikeyde ortalanır, imza dibe yapışmaz →
+   üst kenar boşluğu = alt kenar boşluğu. clzwrap esnemez, sayfa kendisi ortalar. */
+.pgflex.lastpage{justify-content:center}
+.pgflex.lastpage .clzwrap.clzwrap-top{flex:0 0 auto;justify-content:flex-start;padding:0}
+.pgflex.lastpage > .pgbottom{margin-top:6mm;margin-bottom:0}
 .pgflex .clzwrap > .clz{margin-bottom:0}
 /* madde sayfası başlıkları (HUSUSİ ŞARTLAR / Kefalet) tepede sabit dursun */
 .pgflex > .shead, .pgflex > .kefhead{flex:0 0 auto;margin-top:0}
@@ -366,7 +383,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v93</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v99</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -377,7 +394,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v93</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v99</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1752,13 +1769,27 @@ function kiraFlow(){
     // zaten sarılıysa çöz (tekrar refresh'te)
     const eski = sec.querySelector(":scope > .clzwrap");
     if (eski){ while (eski.firstChild) sec.insertBefore(eski.firstChild, eski); eski.remove(); }
-    const pb = sec.querySelector(":scope > .pgbottom");
-    const items = Array.from(sec.querySelectorAll(":scope > .clz, :scope > table.demir, :scope > table.kefal"));
-    if (items.length < 2) return;  // tek öğe varsa yayma
+    // Baştaki HUSUSİ ŞARTLAR başlığını (varsa) atla, sonraki ARDIŞIK maddeleri sar.
+    // Böylece madde grubu dikeyde ortalanır; başlık üstte, EK-A/tablo altta doğal kalır.
+    const kids = Array.from(sec.children);
+    let idx0 = 0;
+    if (kids[0] && kids[0].classList.contains("shead")) idx0 = 1; // baştaki başlık dışarıda
+    const clzGroup = [];
+    for (let j = idx0; j < kids.length; j++){
+      if (kids[j].classList.contains("clz")) clzGroup.push(kids[j]);
+      else break;
+    }
+    if (clzGroup.length < 2) return;
     const wrap = document.createElement("div");
     wrap.className = "clzwrap";
-    sec.insertBefore(wrap, items[0]);
-    items.forEach(it=> wrap.appendChild(it));
+    // Bu bölümde EK-A/kefalet tablosu da varsa (son sayfa), maddeleri ORTALAMA;
+    // üstte doğal sırada dursunlar ki imza kutusu margin-top:auto ile dibe insin.
+    if (sec.querySelector(":scope > table.demir, :scope > table.kefal")){
+      wrap.classList.add("clzwrap-top");
+      sec.classList.add("lastpage");
+    }
+    sec.insertBefore(wrap, clzGroup[0]);
+    clzGroup.forEach(it=> wrap.appendChild(it));
   });
 }
 function openPreview(){
