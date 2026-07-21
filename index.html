@@ -203,8 +203,9 @@ table.ftbl .fv4{background:#fff;width:33%}
 .pgsec{display:block}
 .pgflex{display:flex;flex-direction:column;min-height:1047px}
 .pgflex .pgbottom{margin-top:auto;margin-bottom:18mm}
-/* madde sayfalarında maddeleri dikeyde eşit yay (üst=alt boşluk, aralar orantılı) */
-.pgflex .clzwrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;padding:4mm 0}
+/* madde sayfalarında maddeler arası SABİT boşluk + dikey ortalama
+   (üst boşluk = alt boşluk, aralar her sayfada aynı) */
+.pgflex .clzwrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:4.5mm;padding:3mm 0}
 .pgflex .clzwrap > .clz{margin-bottom:0}
 .pg1 .pgfill{flex:1;display:flex;flex-direction:column;min-height:0}
 .pg1 .tgrow{margin-top:3mm}
@@ -357,7 +358,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v86</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v87</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -368,7 +369,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v86</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v87</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
