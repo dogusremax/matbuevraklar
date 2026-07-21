@@ -383,7 +383,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v99</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v100</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -394,7 +394,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v99</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v100</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -770,7 +770,7 @@ const TEMPLATES = [
     <div class="clz clzL"><b>${L("6- VAZGEÇME:","6- WITHDRAWAL:")}</b> ${Lc("Taraflar sözleşme süresi içinde sözleşmeyi tek taraflı feshedemez. Mal Sahibi süre dolmadan tek yanlı feshederse veya RE/MAX DOĞUŞ'un sözleşmedeki şartlarla bulduğu müşteriyi kendisine önermesi halinde derhal satışı gerçekleştirmezse, satış bedelinin %4 + KDV'si oranında tellâliye (hizmet) ücretini ödemeyi kabul ve taahhüt eder.", "The parties may not unilaterally terminate the agreement during its term. If the Owner unilaterally terminates before expiry, or fails to immediately complete the sale when RE/MAX DOĞUŞ presents a buyer found under the terms of the agreement, the Owner agrees and undertakes to pay a brokerage (service) fee equal to 4% + VAT of the sale price.")}</div>
     <div class="clz clzL"><b>${L("7- ZİLYETLİK VE SORUMLULUK:","7- POSSESSION AND LIABILITY:")}</b> ${Lc("Mal Sahibi, taşınmaz üzerinde zilyetliği (mülkü fiilen elinde bulundurma/kullanma hakkı) ve/veya işlem yapma yetkisi bulunmaması ya da gerçek kişinin şirket yetkilisi olmadığı halde şirket kaşesi altına imza atması halinde, RE/MAX DOĞUŞ'un uğradığı/uğrayacağı tüm zararları ve satış bedelinin %4 + KDV'si tutarındaki hizmet bedelinin tamamını bizzat tazmin etmeyi peşinen kabul ve taahhüt eder.", "If the Owner does not hold possession (the right to actually hold/use the property) and/or the authority to transact on the property, or if a natural person signs under a company seal without being an authorized company officer, the Owner accepts and undertakes in advance to personally indemnify all losses incurred/to be incurred by RE/MAX DOĞUŞ and the entire service fee equal to 4% + VAT of the sale price.")}</div>
     <div class="clz clzL"><b>${L("8- TARAFLAR:","8- PARTIES:")}</b> ${Lc("İşbu sözleşme, taraflarca kabul edilerek 8 madde ve 2 asıl nüsha olarak düzenlenmiştir; bir nüshası UMT GROUP'a, bir nüshası Mal Sahibi'ne verilecektir. Sözleşmeden doğacak ihtilaflarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.", "This agreement has been drawn up and accepted by the parties in 8 articles and 2 original copies; one copy shall be given to UMT GROUP and one copy to the Owner. Istanbul Anatolian Courts and Enforcement Offices have jurisdiction over disputes arising from the agreement.")}</div>
-    ${sigBlock([...Array.from({length:c},(_,x)=>({t:L(c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", c>1?"OWNER "+(x+1):"OWNER"),s:fvi("msIsim",x+1)})),...(c>=5?[]:[{t:L("SORUMLU EMLAK DANIŞMANI","RESPONSIBLE CONSULTANT"),s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
+    ${sigBlock([...Array.from({length:c},(_,x)=>({t:L(c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", c>1?"OWNER "+(x+1):"OWNER"),s:fvi("msIsim",x+1),tc:fvRaw(kfor("msVergi",x+1))})),...(c>=5?[]:[{t:L("SORUMLU EMLAK DANIŞMANI","RESPONSIBLE CONSULTANT"),s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
   `;}
 },
 
@@ -859,7 +859,7 @@ const TEMPLATES = [
     <div class="clz clzL"><b>${L("6- VAZGEÇME:","6- WITHDRAWAL:")}</b> ${Lc("Taraflar sözleşme süresi içinde sözleşmeyi tek taraflı feshedemez. Mal Sahibi süre dolmadan tek yanlı feshederse veya RE/MAX DOĞUŞ'un sözleşmedeki şartlarla bulduğu müşteriyi kendisine önermesi halinde derhal kiralamayı gerçekleştirmezse, 2 (iki) aylık kira karşılığı + KDV oranında tellâliye ücretini ödemeyi kabul ve taahhüt eder.", "The parties may not unilaterally terminate the agreement during its term. If the Owner unilaterally terminates before expiry, or fails to immediately complete the rental when RE/MAX DOĞUŞ presents a client found under the terms of the agreement, the Owner agrees and undertakes to pay a brokerage fee equal to two (2) months' rent + VAT.")}</div>
     <div class="clz clzL"><b>${L("7- ZİLYETLİK VE SORUMLULUK:","7- POSSESSION AND LIABILITY:")}</b> ${Lc("Mal Sahibi, taşınmaz üzerinde zilyetliği (mülkü fiilen elinde bulundurma/kullanma hakkı) ve/veya işlem yapma yetkisi bulunmaması ya da gerçek kişinin şirket yetkilisi olmadığı halde şirket kaşesi altına imza atması halinde, RE/MAX DOĞUŞ'un uğradığı/uğrayacağı tüm zararları ve 2 (iki) aylık kira bedeli + KDV tutarındaki hizmet bedelinin tamamını bizzat tazmin etmeyi peşinen kabul ve taahhüt eder.", "If the Owner does not hold possession (the right to actually hold/use the property) and/or the authority to transact on the property, or if a natural person signs under a company seal without being an authorized company officer, the Owner accepts and undertakes in advance to personally indemnify all losses incurred/to be incurred by RE/MAX DOĞUŞ and the entire service fee equal to two (2) months' rent + VAT.")}</div>
     <div class="clz clzL"><b>${L("8- TARAFLAR:","8- PARTIES:")}</b> ${Lc("İşbu sözleşme, taraflarca kabul edilerek 8 madde ve 2 asıl nüsha olarak düzenlenmiştir; bir nüshası UMT GROUP (RE/MAX DOĞUŞ)'a, bir nüshası Mal Sahibi'ne verilecektir. Sözleşmeden doğacak ihtilaflarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.", "This agreement has been drawn up and accepted by the parties in 8 articles and 2 original copies; one copy shall be given to UMT GROUP (RE/MAX DOĞUŞ) and one copy to the Owner. Istanbul Anatolian Courts and Enforcement Offices have jurisdiction over disputes arising from the agreement.")}</div>
-    ${sigBlock([...Array.from({length:c},(_,x)=>({t:L(c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", c>1?"OWNER "+(x+1):"OWNER"),s:fvi("msIsim",x+1)})),...(c>=5?[]:[{t:L("SORUMLU EMLAK DANIŞMANI","RESPONSIBLE CONSULTANT"),s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
+    ${sigBlock([...Array.from({length:c},(_,x)=>({t:L(c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", c>1?"OWNER "+(x+1):"OWNER"),s:fvi("msIsim",x+1),tc:fvRaw(kfor("msVergi",x+1))})),...(c>=5?[]:[{t:L("SORUMLU EMLAK DANIŞMANI","RESPONSIBLE CONSULTANT"),s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
   `;}
 },
 
@@ -927,7 +927,7 @@ const TEMPLATES = [
     <div class="clz"><b>9-</b> ${Lc("Taşınmazın tapudaki satış bedeli ne olursa olsun işbu sözleşmede belirtilen bedel, alım-satım bedeli olarak kabul edilmiştir. UMT GROUP'a hizmet bedeli, işbu sözleşmedeki satış bedeli üzerinden ödenecektir.", "Whatever the sale price recorded at the land registry, the price specified in this agreement is accepted as the purchase-and-sale price. The service fee to UMT GROUP shall be paid over the sale price in this agreement.")}</div>
     <div class="clz"><b>10-</b> ${Lc("İşbu sözleşme bir sayfa ve 10 (on) maddeden ibaret olup 3 asıl olarak düzenlenmiştir; bir nüshası ALICI'ya, bir nüshası SATICI'ya ve bir nüshası UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.'ne verilmiştir.", "This agreement consists of one page and 10 (ten) articles and has been drawn up in 3 originals; one copy has been given to the BUYER, one to the SELLER, and one to UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.")}</div>
     <div class="clz">${Lc("Bu sözleşmenin uygulanmasından doğacak her türlü uyuşmazlığın giderilmesinde İstanbul Anadolu Ticaret Mahkemeleri ve İcra Daireleri yetkilidir.", "Istanbul Anatolian Commercial Courts and Enforcement Offices have jurisdiction over the resolution of any dispute arising from the application of this agreement.")}</div>
-    ${sigBlock([...Array.from({length:cs},(_,x)=>({t:L(cs>1?"SATICI "+(x+1):"MÜLK SAHİBİ (SATICI)", cs>1?"SELLER "+(x+1):"OWNER (SELLER)"),s:fvi("sIsim",x+1)})),...Array.from({length:ca},(_,x)=>({t:L(ca>1?"ALICI "+(x+1):"ALICI", ca>1?"BUYER "+(x+1):"BUYER"),s:fvi("aIsim",x+1)})),{t:"RE/MAX DOĞUŞ",logo:1}])}
+    ${sigBlock([...Array.from({length:cs},(_,x)=>({t:L(cs>1?"SATICI "+(x+1):"MÜLK SAHİBİ (SATICI)", cs>1?"SELLER "+(x+1):"OWNER (SELLER)"),s:fvi("sIsim",x+1),tc:fvRaw(kfor("sVergi",x+1))})),...Array.from({length:ca},(_,x)=>({t:L(ca>1?"ALICI "+(x+1):"ALICI", ca>1?"BUYER "+(x+1):"BUYER"),s:fvi("aIsim",x+1),tc:fvRaw(kfor("aVergi",x+1))})),{t:"RE/MAX DOĞUŞ",logo:1}])}
   `;}
 },
 
@@ -1139,7 +1139,7 @@ const TEMPLATES = [
       [L("Tapu Masrafı","Title Deed Fee"), fvu("tapu","TL","")],
       [L("Hizmet Bedeli","Service Fee"), fv("hizmet")],
     ])}
-    ${sigBlock([{t:L("TEKLİF VEREN","OFFEROR"),s:fv("tIsim")}], false, true)}
+    ${sigBlock([{t:L("TEKLİF VEREN","OFFEROR"),s:fv("tIsim"),tc:fvRaw("tTc")}], false, true)}
     <div class="pgbottom">
     <div class="bankbox">
     <div class="sh">${L("RE/MAX DOĞUŞ BANKA BİLGİLERİ","RE/MAX DOĞUŞ BANK DETAILS")}</div>
@@ -1201,7 +1201,7 @@ const TEMPLATES = [
       [L("Depozito Bedeli","Deposit Amount"), fvu("depozito","TL","")],
       [L("Hizmet Bedeli","Service Fee"), fv("hizmet")],
     ])}
-    ${sigBlock([{t:L("TEKLİF VEREN","OFFEROR"),s:fv("tIsim")}], false, true)}
+    ${sigBlock([{t:L("TEKLİF VEREN","OFFEROR"),s:fv("tIsim"),tc:fvRaw("tTc")}], false, true)}
     <div class="pgbottom">
     <div class="bankbox">
     <div class="sh">${L("RE/MAX DOĞUŞ BANKA BİLGİLERİ","RE/MAX DOĞUŞ BANK DETAILS")}</div>
@@ -1264,7 +1264,7 @@ const TEMPLATES = [
     <div class="clz"><b>4-</b> ${Lc(`ALICI, işbu taşınmazın alım-satımına aracılık eden <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye ${f("hizmet",90)} TL (${f("hizmetYazi",150)} Türk Lirası) + KDV hizmet bedelini en geç taşınmazın tapu devrinin yapılacağı gün, devir işlemi yapılmadan önce nakden ödemeyi kabul ve taahhüt eder.`, `The BUYER agrees and undertakes to pay the service fee of ${f("hizmet",90)} TL (${f("hizmetYazi",150)} Turkish Liras) + VAT to <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, which acted as intermediary in the purchase and sale of this property, in cash at the latest on the day of the title deed transfer, before the transfer transaction is carried out.`)}</div>
     <div class="clz"><b>5-</b> ${Lc("Bu sözleşme imzalandıktan sonra Türk Borçlar Kanunu'nun 178. maddesine göre taraflardan ALICI, bu Gayrimenkulü almaktan vazgeçtiği takdirde verdiği cayma tazminatını geri alamayacak, bu bedel SATICI'ya teslim edilecektir.", "After this agreement is signed, pursuant to Article 178 of the Turkish Code of Obligations, if the BUYER withdraws from purchasing this property, they shall not recover the deposit paid, and this amount shall be delivered to the SELLER.")}</div>
     <div class="clz">${Lc(`İşbu 5 maddeden ibaret olan sözleşme 2 asıl olarak düzenlenmiş ve ${f("imzaTarihi",80)} tarihinde imzalanmıştır. Yukarıdaki ifadelerle belirlenen bu tutanağın gereklerini kabul ediyoruz.`, `This agreement, consisting of 5 articles, has been drawn up in 2 originals and signed on ${f("imzaTarihi",80)}. We accept the requirements of this protocol as set out in the statements above.`)}</div>
-    ${sigBlock([{t:L("ALICI","BUYER"),s:fv("aIsim")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
+    ${sigBlock([{t:L("ALICI","BUYER"),s:fv("aIsim"),tc:fvRaw("aTc")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
     </div>
   `;}
 },
@@ -1314,7 +1314,7 @@ const TEMPLATES = [
     <div class="clz"><b>5-</b> ${Lc(`Kira Kontratı, Kiracı'nın yükümlülüklerini yerine getirmesi şartı ile ${f("kontratTarih",90)} tarihine kadar yapılacaktır.`, `The lease contract shall be concluded by ${f("kontratTarih",90)}, provided that the Tenant fulfils their obligations.`)}</div>
     <div class="clz"><b>6-</b> ${Lc(`Kiracı, kiralama işlemi gerçekleştiğinde <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye hizmet bedeli olarak; 1 (bir) kira bedeli + KDV'sine denk gelen ${f("hizmet",90)} TL tutarı işlemin yapıldığı gün nakden ve defaten ödemeyi kabul ve taahhüt eder.`, `When the rental is completed, the Tenant agrees and undertakes to pay <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, as a service fee equal to 1 (one) month's rent + VAT, the amount of ${f("hizmet",90)} TL, in cash and in full on the day of the transaction.`)}</div>
     <div class="clz">${Lc(`İşbu sözleşme ${f("imzaTarihi",80)} tarihinde imzalanarak 2 asıl olarak düzenlenmiştir. Yukarıdaki ifadelerle belirlenen bu tutanağın gereklerini kabul ediyoruz.`, `This agreement was signed on ${f("imzaTarihi",80)} and drawn up in 2 originals. We accept the requirements of this protocol as set out in the statements above.`)}</div>
-    ${sigBlock([{t:L("KİRACI","TENANT"),s:fv("kcIsim")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
+    ${sigBlock([{t:L("KİRACI","TENANT"),s:fv("kcIsim"),tc:fvRaw("kcTc")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
     </div>
   `;}
 },
