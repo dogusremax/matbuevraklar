@@ -203,11 +203,18 @@ table.ftbl .fv4{background:#fff;width:33%}
 .pgsec{display:block}
 .pgflex{display:flex;flex-direction:column;min-height:1047px}
 .pgflex .pgbottom{margin-top:auto;margin-bottom:18mm}
+/* madde sayfalarında maddeleri dikeyde eşit yay (üst=alt boşluk, aralar orantılı) */
+.pgflex .clzwrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between;padding:4mm 0}
+.pgflex .clzwrap > .clz{margin-bottom:0}
 .pg1 .pgfill{flex:1;display:flex;flex-direction:column;min-height:0}
 .pg1 .tgrow{margin-top:3mm}
 /* kira sayfaları: referans Word belgesindeki gibi dolu sayfa tipografisi */
 .pg1 .tcenter{font-size:15pt;margin:9mm 0 4mm}
 .pg1 table.ftbl td{font-size:9.8pt;padding:3px 10px;vertical-align:middle}
+/* çift dil: 1. sayfa başlıkları uzayınca hafif sıkıştır (taşmayı önler) */
+.sheet.bilingual .pg1 table.ftbl td{font-size:8.9pt;padding:1.6px 9px;line-height:1.25}
+.sheet.bilingual .pg1 .tcenter{margin:5mm 0 3mm}
+.sheet.bilingual .pg1 .shead{margin:2.5mm 0 1.5mm}
 .pg1 .shead{font-size:12pt;margin:3mm 0 2mm}
 /* SAYFA 1: bilgi tabloları boşluğu doldurur, imzalara ~7mm kalır */
 .pg1 .tgrow{flex:3 1 auto;min-height:0}
@@ -350,7 +357,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v85</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v86</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -361,7 +368,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v85</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v86</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
@@ -1580,6 +1587,7 @@ function removeRep(base){
 function refresh(){
   updateDemirbas();
   $("preview").innerHTML = currentTpl.render();
+  $("preview").classList.toggle("bilingual", LANG==="bi");
   bindClauses();
   kiraFlow();
   autoFit();
@@ -1710,6 +1718,22 @@ function kiraFlow(){
     if (pb){ yeni.appendChild(pb.cloneNode(true)); }
     last.after(pgbrk); pgbrk.after(yeni);
   }
+
+  // d) Her madde sayfasında maddeleri dikeyde eşit yay:
+  //    üst boşluk = alt boşluk, maddeler arası orantılı. İmza yine dibe oturur.
+  const allFlow = Array.from(sheet.querySelectorAll(".pgsec")).slice(1);
+  allFlow.forEach(sec=>{
+    // zaten sarılıysa çöz (tekrar refresh'te)
+    const eski = sec.querySelector(":scope > .clzwrap");
+    if (eski){ while (eski.firstChild) sec.insertBefore(eski.firstChild, eski); eski.remove(); }
+    const pb = sec.querySelector(":scope > .pgbottom");
+    const items = Array.from(sec.querySelectorAll(":scope > .clz, :scope > table.demir, :scope > table.kefal, :scope > .shead, :scope > .kefhead"));
+    if (items.length < 2) return;  // tek öğe varsa yayma
+    const wrap = document.createElement("div");
+    wrap.className = "clzwrap";
+    sec.insertBefore(wrap, items[0]);
+    items.forEach(it=> wrap.appendChild(it));
+  });
 }
 function openPreview(){
   refresh(); // en güncel hal + autoFit
