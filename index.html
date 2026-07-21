@@ -26,6 +26,12 @@ body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--val
 .btn-p{background:var(--accent);color:#fff}
 .btn-g{background:#fff;color:var(--navy);border:1px solid var(--line)}
 .btn-w{background:rgba(255,255,255,.14);color:#fff}
+/* dil butonu: yuvarlak bayrak */
+.langbtn{padding:5px 9px;display:inline-flex;align-items:center}
+.flagc{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(255,255,255,.75);box-shadow:0 1px 3px rgba(0,0,0,.25);vertical-align:middle;background:#fff;line-height:0}
+.flagc svg, .flagc img{width:22px;height:22px;display:block;object-fit:cover}
+.flagpair{display:inline-flex;align-items:center}
+.flagpair .flagc:last-child{margin-left:-7px}
 .btn:disabled{opacity:.45;cursor:default}
 .wrap{max-width:1180px;margin:0 auto;padding:16px}
 
@@ -360,7 +366,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v89</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v93</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -371,10 +377,10 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v89</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v93</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
-      <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
+      <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
       <button class="btn btn-w" onclick="openKayitlar()">📁 Kayıtlar</button>
       <button class="btn btn-w" onclick="logout()">Çıkış</button>
     </div>
@@ -486,15 +492,25 @@ function Lc(tr, en){
   if (LANG==="bi") return tr + `<div class="enc">${en}</div>`;
   return tr;
 }
-function langLabel(){ return LANG==="en" ? "🌐 EN" : (LANG==="bi" ? "🌐 TR+EN" : "🌐 TR"); }
+/* Yuvarlak bayrak SVG'leri (viewBox 0 0 24 24, daire kırpımı .flagc ile) */
+const FLAG_TR = `<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid slice"><rect width="24" height="24" fill="#E30A17"/><circle cx="11" cy="12" r="4.6" fill="#fff"/><circle cx="12.3" cy="12" r="3.7" fill="#E30A17"/><path fill="#fff" d="M15.6 12l3.05-.99-1.885 2.59v-3.2z"/></svg>`;
+const FLAG_GB = `<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid slice"><rect width="24" height="24" fill="#012169"/><path d="M0 0l24 24M24 0L0 24" stroke="#fff" stroke-width="4"/><path d="M0 0l24 24M24 0L0 24" stroke="#C8102E" stroke-width="2.4"/><path d="M12 0v24M0 12h24" stroke="#fff" stroke-width="6.5"/><path d="M12 0v24M0 12h24" stroke="#C8102E" stroke-width="3.9"/></svg>`;
+function langLabel(){
+  // yuvarlak bayrak(lar), yazısız, inline SVG (internet gerektirmez)
+  const tr = `<span class="flagc" title="Türkçe">${FLAG_TR}</span>`;
+  const en = `<span class="flagc" title="English">${FLAG_GB}</span>`;
+  if (LANG==="en") return en;
+  if (LANG==="bi") return `<span class="flagpair">${tr}${en}</span>`;
+  return tr;
+}
 function toggleLang(){
   LANG = LANG==="tr" ? "en" : (LANG==="en" ? "bi" : "tr");
   localStorage.setItem("matbuLang", LANG);
-  const b = $("langBtn"); if (b) b.textContent = langLabel();
+  const b = $("langBtn"); if (b) b.innerHTML = langLabel();
   if (currentTpl){ buildForm(); refresh(); }
 }
 function initLang(){
-  const b = $("langBtn"); if (b) b.textContent = langLabel();
+  const b = $("langBtn"); if (b) b.innerHTML = langLabel();
 }
 let me = null;
 
@@ -832,68 +848,69 @@ const TEMPLATES = [
 
 /* ---------- 3. ALIM SATIM ---------- */
 {
-  id:"alim-satim", fillPage:true, fileBase:"Alim_Satim_Sozlesmesi", nameKey:"sIsim", ic:"🤝", title:"Gayrimenkul Alım Satım Sözleşmesi",
+  id:"alim-satim", fillPage:true, fileBase:"Alim_Satim_Sozlesmesi", nameKey:"sIsim", ic:"🤝", title:"Gayrimenkul Alım Satım Sözleşmesi", titleEn:"Real Estate Purchase and Sale Agreement",
   desc:"Alıcı ile satıcı arasında, cayma tazminatı ve satış şartlarını bağlayan 10 maddelik sözleşme.",
+  descEn:"A 10-article agreement between buyer and seller binding the deposit and sale conditions.",
   groups:[
-    {t:"Satıcı", repeat:{base:"s", label:"Satıcı", max:3}, fields:[
-      {k:"sIsim", l:"İsim Soyisim / Ticari Ünvan", req:1},
-      {k:"sVergi", l:"Vergi No / TC No"},
-      {k:"sAdres", l:"Adres", type:"textarea"},
-      {k:"sTel", l:"Telefon ve Mail", fmt:"raw"},
+    {t:"Satıcı", tEn:"Seller", repeat:{base:"s", label:"Satıcı", labelEn:"Seller", max:3}, fields:[
+      {k:"sIsim", l:"İsim Soyisim / Ticari Ünvan", lEn:"Full Name / Company Title", req:1},
+      {k:"sVergi", l:"Vergi No / TC No", lEn:"Tax No / National ID"},
+      {k:"sAdres", l:"Adres", lEn:"Address", type:"textarea"},
+      {k:"sTel", l:"Telefon ve Mail", lEn:"Phone and E-mail", fmt:"raw"},
     ]},
-    {t:"Alıcı", repeat:{base:"a", label:"Alıcı", max:3}, fields:[
-      {k:"aIsim", l:"İsim Soyisim / Ticari Ünvan", req:1},
-      {k:"aVergi", l:"Vergi No / TC No"},
-      {k:"aAdres", l:"Adres", type:"textarea"},
-      {k:"aTel", l:"Telefon ve Mail", fmt:"raw"},
+    {t:"Alıcı", tEn:"Buyer", repeat:{base:"a", label:"Alıcı", labelEn:"Buyer", max:3}, fields:[
+      {k:"aIsim", l:"İsim Soyisim / Ticari Ünvan", lEn:"Full Name / Company Title", req:1},
+      {k:"aVergi", l:"Vergi No / TC No", lEn:"Tax No / National ID"},
+      {k:"aAdres", l:"Adres", lEn:"Address", type:"textarea"},
+      {k:"aTel", l:"Telefon ve Mail", lEn:"Phone and E-mail", fmt:"raw"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Açık Adres", type:"textarea", req:1},
-      {k:"mAda", l:"Ada / Parsel"},
-      {k:"mIl", l:"İl / İlçe"},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Açık Adres", lEn:"Full Address", type:"textarea", req:1},
+      {k:"mAda", l:"Ada / Parsel", lEn:"Block / Parcel"},
+      {k:"mIl", l:"İl / İlçe", lEn:"Province / District"},
     ]},
-    {t:"İşlem", fields:[
-      {k:"bedel", l:"Satış Bedeli (TL)", req:1, fmt:"money"},
-      {k:"caymaTarih", l:"Cayma Tazminatı Alınma Tarihi", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"caymaBedel", l:"Cayma Tazminatı Tutarı (TL)", fmt:"money"},
-      {k:"satisTarih", l:"Satış (Tapu) Tarihi", ph:"GG.AA.YYYY", fmt:"date"},
+    {t:"İşlem", tEn:"Transaction", fields:[
+      {k:"bedel", l:"Satış Bedeli (TL)", lEn:"Sale Price (TL)", req:1, fmt:"money"},
+      {k:"caymaTarih", l:"Cayma Tazminatı Alınma Tarihi", lEn:"Deposit Receipt Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"caymaBedel", l:"Cayma Tazminatı Tutarı (TL)", lEn:"Deposit Amount (TL)", fmt:"money"},
+      {k:"satisTarih", l:"Satış (Tapu) Tarihi", lEn:"Sale (Title Deed) Date", ph:"GG.AA.YYYY", fmt:"date"},
     ]},
   ],
   render(){
     const cs = repCount("s"), ca = repCount("a");
-    const partBlock = (base, label, count, keys) => Array.from({length:count},(_,x)=>x+1).map(i=>
-      secHead(`${label}${count>1?" "+i:""} Bilgileri`) +
+    const partBlock = (base, label, labelEn, count, keys) => Array.from({length:count},(_,x)=>x+1).map(i=>
+      secHead(L(`${label}${count>1?" "+i:""} Bilgileri`, `${labelEn}${count>1?" "+i:""} Details`)) +
       ftbl([
-        ["İsim ve Soyisim / Ticari Ünvan", fvi(keys[0],i)],
-        ["Vergi No / TC No", fvi(keys[1],i)],
-        ["Adres", fvi(keys[2],i)],
-        ["Telefon ve Mail Adresi", fvi(keys[3],i)],
+        [L("İsim ve Soyisim / Ticari Ünvan","Full Name / Company Title"), fvi(keys[0],i)],
+        [L("Vergi No / TC No","Tax No / National ID"), fvi(keys[1],i)],
+        [L("Adres","Address"), fvi(keys[2],i)],
+        [L("Telefon ve Mail Adresi","Phone and E-mail"), fvi(keys[3],i)],
       ])
     ).join("");
     return `
-    ${hdrBand("GAYRİMENKUL ALIM SATIM SÖZLEŞMESİ")}
-    ${partBlock("s","Satıcı",cs,["sIsim","sVergi","sAdres","sTel"])}
-    ${partBlock("a","Alıcı",ca,["aIsim","aVergi","aAdres","aTel"])}
-    ${secHead("Mülk Bilgileri")}
+    ${hdrBand(L("GAYRİMENKUL ALIM SATIM SÖZLEŞMESİ","REAL ESTATE PURCHASE AND SALE AGREEMENT"))}
+    ${partBlock("s","Satıcı","Seller",cs,["sIsim","sVergi","sAdres","sTel"])}
+    ${partBlock("a","Alıcı","Buyer",ca,["aIsim","aVergi","aAdres","aTel"])}
+    ${secHead(L("Mülk Bilgileri","Property Details"))}
     ${ftbl([
-      ["Açık Adres", fv("mAdres")],
-      ["Ada / Parsel", fv("mAda")],
-      ["İl / İlçe", fv("mIl")],
+      [L("Açık Adres","Full Address"), fv("mAdres")],
+      [L("Ada / Parsel","Block / Parcel"), fv("mAda")],
+      [L("İl / İlçe","Province / District"), fv("mIl")],
     ])}
     <div style="height:2mm"></div>
-    <div class="clz">ALICI ve SATICI, adres ve tapu bilgileri yukarıda belirtilmiş olan gayrimenkulün satışı hususunda <b>RE/MAX DOĞUŞ</b> aracılığı ile aşağıdaki şartlarda anlaşmayı kabul ederler.</div>
-    <div class="clz"><b>1-</b> SATICI sahibi bulunduğu bu mülkü ${f("bedel",100)} TL bedelle satmayı, ALICI da bu bedel üzerinden almayı kabul, beyan ve taahhüt etmişlerdir.</div>
-    <div class="clz"><b>2-</b> Bu satışla ilgili olarak ${f("caymaTarih",80)} tarihinde ${f("caymaBedel",90)} TL cayma tazminatı olarak tutanak karşılığında alınmıştır. ALICI ve SATICI, cayma tazminatı bedelinin yediemin sıfatıyla UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. uhdesinde kalmasına onay vermişlerdir.</div>
-    <div class="clz"><b>3-</b> Satış bedelinin kalan miktarı, satış işlemleri sırasında SATICI'ya ALICI tarafından ödenecektir.</div>
-    <div class="clz"><b>4-</b> Satış işlemleri ${f("satisTarih",80)} tarihinde mesai bitimine kadar yapılacaktır. Satış işlemlerinin bu tarihe kadar yapılmaması, satıştan veya satın almaktan kaçınılması hâllerinin cayma anlamına geldiğini taraflar kabul ve taahhüt eder.</div>
-    <div class="clz"><b>5-</b> Bu sözleşme imzalandıktan sonra Türk Borçlar Kanunu'nun 178. maddesine göre taraflardan ALICI, bu gayrimenkulü almaktan vazgeçtiği takdirde verdiği cayma tazminatını geri alamayacak, bu bedel SATICI'ya teslim edilecektir. SATICI gayrimenkulü satmaktan vazgeçerse cayma tazminatı ALICI'ya geri verilecek, SATICI cayma tazminatı miktarı kadar ALICI'ya ayrıca tazminat ödeyecektir. Alınan cayma tazminatı tutarı, her iki taraf için de geçerli olmak kaydıyla, işbu sözleşmede belirtilen satış tutarının en az %5'i (yüzde beşi) kadar olacaktır.</div>
-    <div class="clz"><b>6-</b> SATICI; satış tarihine kadar gerçekleşmiş aidat borçları, belediye vergileri, elektrik, su, doğalgaz, telefon ve sair borçları ödeyerek ALICI'ya gayrimenkulü borçsuz teslim etmeyi kabul ve taahhüt eder.</div>
-    <div class="clz"><b>7-</b> Gayrimenkul üzerindeki emlak vergisi ve sair borçlar (içinde bulunulan yıl dâhil) satış öncesinde SATICI tarafından ödenecektir. Satıcının bu yükümlülüğü Emlak Vergisi Kanunu'ndan kaynaklanmaktadır; ilgili mülkün maliki olan kişi, anılan yılın emlak vergilerini ödemekle yükümlüdür.</div>
-    <div class="clz"><b>8-</b> ALICI ve SATICI, işbu alım-satım anlaşmasının yapılması ile UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.'nin aracılık hizmetini tamamladığını kabul ederler. UMT GROUP'a ödenecek hizmet bedeli olan %2 (yüzde iki) + KDV, satış tarihinde nakit olarak ALICI ve SATICI tarafından ayrı ayrı ödenecektir. ALICI veya SATICI, işbu anlaşma imzalandıktan sonra alım-satım sözleşmesinden vazgeçerse; vazgeçen ve/veya haksız olan taraf, yukarıda belirtilen satış bedeli üzerinden hizmet bedelinin tamamı olan %4 (yüzde dört) + KDV'yi ve bu nedenle maruz kalınacak her türlü mahkeme, icra ve avukatlık masrafını ödemekle yükümlüdür.</div>
-    <div class="clz"><b>9-</b> Taşınmazın tapudaki satış bedeli ne olursa olsun işbu sözleşmede belirtilen bedel, alım-satım bedeli olarak kabul edilmiştir. UMT GROUP'a hizmet bedeli, işbu sözleşmedeki satış bedeli üzerinden ödenecektir.</div>
-    <div class="clz"><b>10-</b> İşbu sözleşme bir sayfa ve 10 (on) maddeden ibaret olup 3 asıl olarak düzenlenmiştir; bir nüshası ALICI'ya, bir nüshası SATICI'ya ve bir nüshası UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.'ne verilmiştir.</div>
-    <div class="clz">Bu sözleşmenin uygulanmasından doğacak her türlü uyuşmazlığın giderilmesinde İstanbul Anadolu Ticaret Mahkemeleri ve İcra Daireleri yetkilidir.</div>
-    ${sigBlock([...Array.from({length:cs},(_,x)=>({t:cs>1?"SATICI "+(x+1):"MÜLK SAHİBİ (SATICI)",s:fvi("sIsim",x+1)})),...Array.from({length:ca},(_,x)=>({t:ca>1?"ALICI "+(x+1):"ALICI",s:fvi("aIsim",x+1)})),{t:"RE/MAX DOĞUŞ",logo:1}])}
+    <div class="clz">${Lc("ALICI ve SATICI, adres ve tapu bilgileri yukarıda belirtilmiş olan gayrimenkulün satışı hususunda <b>RE/MAX DOĞUŞ</b> aracılığı ile aşağıdaki şartlarda anlaşmayı kabul ederler.", "The BUYER and SELLER agree, through the intermediation of <b>RE/MAX DOĞUŞ</b>, to the sale of the property whose address and title deed details are specified above, under the following conditions.")}</div>
+    <div class="clz"><b>1-</b> ${Lc(`SATICI sahibi bulunduğu bu mülkü ${f("bedel",100)} TL bedelle satmayı, ALICI da bu bedel üzerinden almayı kabul, beyan ve taahhüt etmişlerdir.`, `The SELLER has agreed, declared and undertaken to sell this property owned by them for ${f("bedel",100)} TL, and the BUYER to purchase it at this price.`)}</div>
+    <div class="clz"><b>2-</b> ${Lc(`Bu satışla ilgili olarak ${f("caymaTarih",80)} tarihinde ${f("caymaBedel",90)} TL cayma tazminatı olarak tutanak karşılığında alınmıştır. ALICI ve SATICI, cayma tazminatı bedelinin yediemin sıfatıyla UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. uhdesinde kalmasına onay vermişlerdir.`, `In connection with this sale, ${f("caymaBedel",90)} TL was received on ${f("caymaTarih",80)} as a deposit (earnest money) against a receipt. The BUYER and SELLER have consented to the deposit being held in trust (as escrow agent) by UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.`)}</div>
+    <div class="clz"><b>3-</b> ${Lc("Satış bedelinin kalan miktarı, satış işlemleri sırasında SATICI'ya ALICI tarafından ödenecektir.", "The remaining amount of the sale price shall be paid by the BUYER to the SELLER during the sale transaction.")}</div>
+    <div class="clz"><b>4-</b> ${Lc(`Satış işlemleri ${f("satisTarih",80)} tarihinde mesai bitimine kadar yapılacaktır. Satış işlemlerinin bu tarihe kadar yapılmaması, satıştan veya satın almaktan kaçınılması hâllerinin cayma anlamına geldiğini taraflar kabul ve taahhüt eder.`, `The sale transaction shall be completed by the end of business on ${f("satisTarih",80)}. The parties accept and undertake that failure to complete the sale by this date, or avoidance of selling or purchasing, constitutes withdrawal.`)}</div>
+    <div class="clz"><b>5-</b> ${Lc("Bu sözleşme imzalandıktan sonra Türk Borçlar Kanunu'nun 178. maddesine göre taraflardan ALICI, bu gayrimenkulü almaktan vazgeçtiği takdirde verdiği cayma tazminatını geri alamayacak, bu bedel SATICI'ya teslim edilecektir. SATICI gayrimenkulü satmaktan vazgeçerse cayma tazminatı ALICI'ya geri verilecek, SATICI cayma tazminatı miktarı kadar ALICI'ya ayrıca tazminat ödeyecektir. Alınan cayma tazminatı tutarı, her iki taraf için de geçerli olmak kaydıyla, işbu sözleşmede belirtilen satış tutarının en az %5'i (yüzde beşi) kadar olacaktır.", "After this agreement is signed, pursuant to Article 178 of the Turkish Code of Obligations, if the BUYER withdraws from purchasing the property, they shall not recover the deposit paid, and this amount shall be delivered to the SELLER. If the SELLER withdraws from selling the property, the deposit shall be returned to the BUYER, and the SELLER shall additionally pay the BUYER compensation equal to the deposit amount. The deposit amount, applicable to both parties, shall be at least 5% (five percent) of the sale price specified in this agreement.")}</div>
+    <div class="clz"><b>6-</b> ${Lc("SATICI; satış tarihine kadar gerçekleşmiş aidat borçları, belediye vergileri, elektrik, su, doğalgaz, telefon ve sair borçları ödeyerek ALICI'ya gayrimenkulü borçsuz teslim etmeyi kabul ve taahhüt eder.", "The SELLER agrees and undertakes to deliver the property to the BUYER free of debt, by paying all dues, municipal taxes, electricity, water, natural gas, telephone and other debts accrued up to the sale date.")}</div>
+    <div class="clz"><b>7-</b> ${Lc("Gayrimenkul üzerindeki emlak vergisi ve sair borçlar (içinde bulunulan yıl dâhil) satış öncesinde SATICI tarafından ödenecektir. Satıcının bu yükümlülüğü Emlak Vergisi Kanunu'ndan kaynaklanmaktadır; ilgili mülkün maliki olan kişi, anılan yılın emlak vergilerini ödemekle yükümlüdür.", "The property tax and other debts on the property (including the current year) shall be paid by the SELLER before the sale. This obligation of the seller arises from the Property Tax Law; the person who is the owner of the relevant property is liable to pay that year's property taxes.")}</div>
+    <div class="clz"><b>8-</b> ${Lc("ALICI ve SATICI, işbu alım-satım anlaşmasının yapılması ile UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.'nin aracılık hizmetini tamamladığını kabul ederler. UMT GROUP'a ödenecek hizmet bedeli olan %2 (yüzde iki) + KDV, satış tarihinde nakit olarak ALICI ve SATICI tarafından ayrı ayrı ödenecektir. ALICI veya SATICI, işbu anlaşma imzalandıktan sonra alım-satım sözleşmesinden vazgeçerse; vazgeçen ve/veya haksız olan taraf, yukarıda belirtilen satış bedeli üzerinden hizmet bedelinin tamamı olan %4 (yüzde dört) + KDV'yi ve bu nedenle maruz kalınacak her türlü mahkeme, icra ve avukatlık masrafını ödemekle yükümlüdür.", "The BUYER and SELLER acknowledge that, upon conclusion of this purchase-and-sale agreement, UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. has completed its brokerage service. The service fee payable to UMT GROUP, being 2% (two percent) + VAT, shall be paid in cash separately by the BUYER and the SELLER on the sale date. If the BUYER or SELLER withdraws from the purchase-and-sale agreement after it is signed, the withdrawing and/or defaulting party is liable to pay the full service fee of 4% (four percent) + VAT over the sale price stated above, together with all court, enforcement and attorney costs incurred as a result.")}</div>
+    <div class="clz"><b>9-</b> ${Lc("Taşınmazın tapudaki satış bedeli ne olursa olsun işbu sözleşmede belirtilen bedel, alım-satım bedeli olarak kabul edilmiştir. UMT GROUP'a hizmet bedeli, işbu sözleşmedeki satış bedeli üzerinden ödenecektir.", "Whatever the sale price recorded at the land registry, the price specified in this agreement is accepted as the purchase-and-sale price. The service fee to UMT GROUP shall be paid over the sale price in this agreement.")}</div>
+    <div class="clz"><b>10-</b> ${Lc("İşbu sözleşme bir sayfa ve 10 (on) maddeden ibaret olup 3 asıl olarak düzenlenmiştir; bir nüshası ALICI'ya, bir nüshası SATICI'ya ve bir nüshası UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.'ne verilmiştir.", "This agreement consists of one page and 10 (ten) articles and has been drawn up in 3 originals; one copy has been given to the BUYER, one to the SELLER, and one to UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti.")}</div>
+    <div class="clz">${Lc("Bu sözleşmenin uygulanmasından doğacak her türlü uyuşmazlığın giderilmesinde İstanbul Anadolu Ticaret Mahkemeleri ve İcra Daireleri yetkilidir.", "Istanbul Anatolian Commercial Courts and Enforcement Offices have jurisdiction over the resolution of any dispute arising from the application of this agreement.")}</div>
+    ${sigBlock([...Array.from({length:cs},(_,x)=>({t:L(cs>1?"SATICI "+(x+1):"MÜLK SAHİBİ (SATICI)", cs>1?"SELLER "+(x+1):"OWNER (SELLER)"),s:fvi("sIsim",x+1)})),...Array.from({length:ca},(_,x)=>({t:L(ca>1?"ALICI "+(x+1):"ALICI", ca>1?"BUYER "+(x+1):"BUYER"),s:fvi("aIsim",x+1)})),{t:"RE/MAX DOĞUŞ",logo:1}])}
   `;}
 },
 
@@ -1059,55 +1076,56 @@ const TEMPLATES = [
 
 /* ---------- 5. SATILIK TEKLİF YAZISI ---------- */
 {
-  id:"satilik-teklif", fileBase:"Satilik_Teklif", nameKey:"tIsim", ic:"📝", title:"Satılık Teklif Yazısı",
+  id:"satilik-teklif", fileBase:"Satilik_Teklif", nameKey:"tIsim", ic:"📝", title:"Satılık Teklif Yazısı", titleEn:"Property Purchase Offer Letter",
   desc:"Alıcı adayının mülke resmi satın alma teklifi. 7 iş günü geçerli; banka bilgileri ve IBAN ekli.",
+  descEn:"Prospective buyer's formal purchase offer. Valid for 7 business days; bank details and IBAN attached.",
   groups:[
-    {t:"Genel", fields:[
-      {k:"imzaTarihi", l:"Tarih", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Genel", tEn:"General", fields:[
+      {k:"imzaTarihi", l:"Tarih", lEn:"Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Teklif Veren", fields:[
-      {k:"tIsim", l:"İsim ve Soyisim", req:1},
-      {k:"tTc", l:"T.C. Kimlik Numarası"},
-      {k:"tAdres", l:"Adres", type:"textarea"},
-      {k:"tEmail", l:"E-mail", fmt:"raw"},
+    {t:"Teklif Veren", tEn:"Offeror", fields:[
+      {k:"tIsim", l:"İsim ve Soyisim", lEn:"Full Name", req:1},
+      {k:"tTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
+      {k:"tAdres", l:"Adres", lEn:"Address", type:"textarea"},
+      {k:"tEmail", l:"E-mail", lEn:"E-mail", fmt:"raw"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Teklif Yapılan Mülkün Adresi", type:"textarea", req:1},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Teklif Yapılan Mülkün Adresi", lEn:"Address of the Offered Property", type:"textarea", req:1},
     ]},
-    {t:"Teklif Şartları", fields:[
-      {k:"bedel", l:"Daire Satış Bedeli (TL)", req:1, fmt:"money"},
-      {k:"tapu", l:"Tapu Masrafı (TL)", fmt:"money"},
-      {k:"hizmet", l:"Hizmet Bedeli", def:"%2 + KDV"},
+    {t:"Teklif Şartları", tEn:"Offer Terms", fields:[
+      {k:"bedel", l:"Daire Satış Bedeli (TL)", lEn:"Property Sale Price (TL)", req:1, fmt:"money"},
+      {k:"tapu", l:"Tapu Masrafı (TL)", lEn:"Title Deed Fee (TL)", fmt:"money"},
+      {k:"hizmet", l:"Hizmet Bedeli", lEn:"Service Fee", def:"%2 + KDV"},
     ]},
   ],
   render(){ return `
     <div class="pgsec pgflex">
-    ${hdrBand("SATILIK TEKLİF YAZISI")}
-    ${dateLine("Tarih")}
+    ${hdrBand(L("SATILIK TEKLİF YAZISI","PROPERTY PURCHASE OFFER LETTER"))}
+    ${dateLine(L("Tarih","Date"))}
     <div style="height:8mm"></div>
     ${ftbl([
-      ["İsim ve Soyisim", fv("tIsim")],
-      ["Türkiye Cumhuriyeti Kimlik Numarası", fv("tTc")],
-      ["Adres", fv("tAdres")],
-      ["E-mail", fv("tEmail")],
+      [L("İsim ve Soyisim","Full Name"), fv("tIsim")],
+      [L("Türkiye Cumhuriyeti Kimlik Numarası","National ID / Passport No"), fv("tTc")],
+      [L("Adres","Address"), fv("tAdres")],
+      [L("E-mail","E-mail"), fv("tEmail")],
     ])}
     <div style="height:2mm"></div>
     ${ftbl([
-      ["Teklif Yapılan Mülkün Adresi", fv("mAdres")],
+      [L("Teklif Yapılan Mülkün Adresi","Address of the Offered Property"), fv("mAdres")],
     ])}
     <div style="height:3mm"></div>
-    <div class="clz" style="font-size:10pt;line-height:1.7">Yukarıda yazılı olan adresteki daireyi satın almak için aşağıda yazılı olan şartlarla teklifim <b>7 (yedi) iş günü</b> için geçerlidir. Teklifimin kabul olması durumunda, RE/MAX DOĞUŞ'a işlemlerin başlaması ve satış sözleşmesinin organize edilmesi için kapora ödeyeceğimi beyan ve taahhüt ederim.</div>
-    <div class="clz" style="font-size:10pt;line-height:1.7">Teklifim kabul olur ve daireyi almaktan vazgeçersem RE/MAX DOĞUŞ'a <b>%2 + KDV</b> ceza bedeli ödeyeceğimi kabul, beyan ve taahhüt ederim.</div>
+    <div class="clz" style="font-size:10pt;line-height:1.7">${Lc("Yukarıda yazılı olan adresteki daireyi satın almak için aşağıda yazılı olan şartlarla teklifim <b>7 (yedi) iş günü</b> için geçerlidir. Teklifimin kabul olması durumunda, RE/MAX DOĞUŞ'a işlemlerin başlaması ve satış sözleşmesinin organize edilmesi için kapora ödeyeceğimi beyan ve taahhüt ederim.", "My offer to purchase the property at the address stated above, under the conditions set out below, is valid for <b>7 (seven) business days</b>. If my offer is accepted, I declare and undertake that I will pay a deposit to RE/MAX DOĞUŞ for the commencement of the process and the organization of the sale agreement.")}</div>
+    <div class="clz" style="font-size:10pt;line-height:1.7">${Lc("Teklifim kabul olur ve daireyi almaktan vazgeçersem RE/MAX DOĞUŞ'a <b>%2 + KDV</b> ceza bedeli ödeyeceğimi kabul, beyan ve taahhüt ederim.", "If my offer is accepted and I withdraw from purchasing the property, I accept, declare and undertake that I will pay RE/MAX DOĞUŞ a penalty of <b>2% + VAT</b>.")}</div>
     <div style="height:2mm"></div>
     ${ftbl([
-      ["Daire Satış Bedeli", fvu("bedel","TL","")],
-      ["Tapu Masrafı", fvu("tapu","TL","")],
-      ["Hizmet Bedeli", fv("hizmet")],
+      [L("Daire Satış Bedeli","Property Sale Price"), fvu("bedel","TL","")],
+      [L("Tapu Masrafı","Title Deed Fee"), fvu("tapu","TL","")],
+      [L("Hizmet Bedeli","Service Fee"), fv("hizmet")],
     ])}
-    ${sigBlock([{t:"TEKLİF VEREN",s:fv("tIsim")}], false, true)}
+    ${sigBlock([{t:L("TEKLİF VEREN","OFFEROR"),s:fv("tIsim")}], false, true)}
     <div class="pgbottom">
     <div class="bankbox">
-    <div class="sh">RE/MAX DOĞUŞ BANKA BİLGİLERİ</div>
+    <div class="sh">${L("RE/MAX DOĞUŞ BANKA BİLGİLERİ","RE/MAX DOĞUŞ BANK DETAILS")}</div>
     <table class="banka"><tr>
       <td class="bq"><img src="${BANKA_QR}"></td>
       <td class="bt"><b>UMT GROUP Gayrimenkul Yatırım ve Danışmanlık İnş. San. Tic. Ltd. Şti.</b><br><b>IBAN:</b> TR54 0015 7000 0000 0127 9656 20</td>
@@ -1120,55 +1138,56 @@ const TEMPLATES = [
 
 /* ---------- 6. KİRALIK TEKLİF YAZISI ---------- */
 {
-  id:"kiralik-teklif", fileBase:"Kiralik_Teklif", nameKey:"tIsim", ic:"🗒️", title:"Kiralık Teklif Yazısı",
+  id:"kiralik-teklif", fileBase:"Kiralik_Teklif", nameKey:"tIsim", ic:"🗒️", title:"Kiralık Teklif Yazısı", titleEn:"Property Rental Offer Letter",
   desc:"Kiracı adayının mülke resmi kiralama teklifi. 3 iş günü geçerli; banka bilgileri ve IBAN ekli.",
+  descEn:"Prospective tenant's formal rental offer. Valid for 3 business days; bank details and IBAN attached.",
   groups:[
-    {t:"Genel", fields:[
-      {k:"imzaTarihi", l:"Tarih", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Genel", tEn:"General", fields:[
+      {k:"imzaTarihi", l:"Tarih", lEn:"Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Teklif Veren", fields:[
-      {k:"tIsim", l:"İsim ve Soyisim", req:1},
-      {k:"tTc", l:"T.C. Kimlik Numarası"},
-      {k:"tAdres", l:"Adres", type:"textarea"},
-      {k:"tEmail", l:"E-mail", fmt:"raw"},
+    {t:"Teklif Veren", tEn:"Offeror", fields:[
+      {k:"tIsim", l:"İsim ve Soyisim", lEn:"Full Name", req:1},
+      {k:"tTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
+      {k:"tAdres", l:"Adres", lEn:"Address", type:"textarea"},
+      {k:"tEmail", l:"E-mail", lEn:"E-mail", fmt:"raw"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Teklif Yapılan Mülkün Adresi", type:"textarea", req:1},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Teklif Yapılan Mülkün Adresi", lEn:"Address of the Offered Property", type:"textarea", req:1},
     ]},
-    {t:"Teklif Şartları", fields:[
-      {k:"bedel", l:"Daire Kiralama Bedeli (TL)", req:1, fmt:"money"},
-      {k:"depozito", l:"Depozito Bedeli (TL)", fmt:"money"},
-      {k:"hizmet", l:"Hizmet Bedeli", def:"1 Kira + KDV"},
+    {t:"Teklif Şartları", tEn:"Offer Terms", fields:[
+      {k:"bedel", l:"Daire Kiralama Bedeli (TL)", lEn:"Property Rental Price (TL)", req:1, fmt:"money"},
+      {k:"depozito", l:"Depozito Bedeli (TL)", lEn:"Deposit Amount (TL)", fmt:"money"},
+      {k:"hizmet", l:"Hizmet Bedeli", lEn:"Service Fee", def:"1 Kira + KDV"},
     ]},
   ],
   render(){ return `
     <div class="pgsec pgflex">
-    ${hdrBand("KİRALIK TEKLİF YAZISI")}
-    ${dateLine("Tarih")}
+    ${hdrBand(L("KİRALIK TEKLİF YAZISI","PROPERTY RENTAL OFFER LETTER"))}
+    ${dateLine(L("Tarih","Date"))}
     <div style="height:8mm"></div>
     ${ftbl([
-      ["İsim ve Soyisim", fv("tIsim")],
-      ["Türkiye Cumhuriyeti Kimlik Numarası", fv("tTc")],
-      ["Adres", fv("tAdres")],
-      ["E-mail", fv("tEmail")],
+      [L("İsim ve Soyisim","Full Name"), fv("tIsim")],
+      [L("Türkiye Cumhuriyeti Kimlik Numarası","National ID / Passport No"), fv("tTc")],
+      [L("Adres","Address"), fv("tAdres")],
+      [L("E-mail","E-mail"), fv("tEmail")],
     ])}
     <div style="height:2mm"></div>
     ${ftbl([
-      ["Teklif Yapılan Mülkün Adresi", fv("mAdres")],
+      [L("Teklif Yapılan Mülkün Adresi","Address of the Offered Property"), fv("mAdres")],
     ])}
     <div style="height:3mm"></div>
-    <div class="clz" style="font-size:10pt;line-height:1.7">Yukarıda yazılı olan adresteki daireyi kiralamak için aşağıda yazılı olan şartlarla teklifim <b>3 (üç) iş günü</b> için geçerlidir. Teklifimin kabul olması durumunda, RE/MAX DOĞUŞ'a işlemlerin başlaması ve kira sözleşmesinin organize edilmesi için <b>1 kira + KDV</b> kapora ödeyeceğimi beyan ve taahhüt ederim.</div>
-    <div class="clz" style="font-size:10pt;line-height:1.7">Teklifim kabul olur ve daireyi kiralamaktan vazgeçersem RE/MAX DOĞUŞ'a <b>1 Kira Bedeli + KDV</b> ceza bedeli ödeyeceğimi kabul, beyan ve taahhüt ederim.</div>
+    <div class="clz" style="font-size:10pt;line-height:1.7">${Lc("Yukarıda yazılı olan adresteki daireyi kiralamak için aşağıda yazılı olan şartlarla teklifim <b>3 (üç) iş günü</b> için geçerlidir. Teklifimin kabul olması durumunda, RE/MAX DOĞUŞ'a işlemlerin başlaması ve kira sözleşmesinin organize edilmesi için <b>1 kira + KDV</b> kapora ödeyeceğimi beyan ve taahhüt ederim.", "My offer to rent the property at the address stated above, under the conditions set out below, is valid for <b>3 (three) business days</b>. If my offer is accepted, I declare and undertake that I will pay a deposit of <b>1 month's rent + VAT</b> to RE/MAX DOĞUŞ for the commencement of the process and the organization of the lease agreement.")}</div>
+    <div class="clz" style="font-size:10pt;line-height:1.7">${Lc("Teklifim kabul olur ve daireyi kiralamaktan vazgeçersem RE/MAX DOĞUŞ'a <b>1 Kira Bedeli + KDV</b> ceza bedeli ödeyeceğimi kabul, beyan ve taahhüt ederim.", "If my offer is accepted and I withdraw from renting the property, I accept, declare and undertake that I will pay RE/MAX DOĞUŞ a penalty of <b>1 month's rent + VAT</b>.")}</div>
     <div style="height:2mm"></div>
     ${ftbl([
-      ["Daire Kiralama Bedeli", fvu("bedel","TL","")],
-      ["Depozito Bedeli", fvu("depozito","TL","")],
-      ["Hizmet Bedeli", fv("hizmet")],
+      [L("Daire Kiralama Bedeli","Property Rental Price"), fvu("bedel","TL","")],
+      [L("Depozito Bedeli","Deposit Amount"), fvu("depozito","TL","")],
+      [L("Hizmet Bedeli","Service Fee"), fv("hizmet")],
     ])}
-    ${sigBlock([{t:"TEKLİF VEREN",s:fv("tIsim")}], false, true)}
+    ${sigBlock([{t:L("TEKLİF VEREN","OFFEROR"),s:fv("tIsim")}], false, true)}
     <div class="pgbottom">
     <div class="bankbox">
-    <div class="sh">RE/MAX DOĞUŞ BANKA BİLGİLERİ</div>
+    <div class="sh">${L("RE/MAX DOĞUŞ BANKA BİLGİLERİ","RE/MAX DOĞUŞ BANK DETAILS")}</div>
     <table class="banka"><tr>
       <td class="bq"><img src="${BANKA_QR}"></td>
       <td class="bt"><b>UMT GROUP Gayrimenkul Yatırım ve Danışmanlık İnş. San. Tic. Ltd. Şti.</b><br><b>IBAN:</b> TR54 0015 7000 0000 0127 9656 20</td>
@@ -1181,140 +1200,143 @@ const TEMPLATES = [
 
 /* ---------- 7. SATIŞ CAYMA AKÇESİ TUTANAĞI ---------- */
 {
-  id:"satis-cayma", fileBase:"Satis_Cayma_Tutanagi", nameKey:"aIsim", ic:"🧾", title:"Satış İşlemi Cayma Akçesi Teslim Tutanağı",
+  id:"satis-cayma", fileBase:"Satis_Cayma_Tutanagi", nameKey:"aIsim", ic:"🧾", title:"Satış İşlemi Cayma Akçesi Teslim Tutanağı", titleEn:"Sale Transaction Deposit Delivery Protocol",
   desc:"Alıcıdan alınan cayma akçesinin teslim tutanağı. 5 madde; satış bedeli, cayma akçesi ve hizmet bedeli kayıtlı.",
+  descEn:"Delivery protocol for the deposit received from the buyer. 5 articles; sale price, deposit and service fee recorded.",
   groups:[
-    {t:"Genel", fields:[
-      {k:"imzaTarihi", l:"Tarih", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Genel", tEn:"General", fields:[
+      {k:"imzaTarihi", l:"Tarih", lEn:"Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Mülkün Açık Adresi", type:"textarea", req:1},
-      {k:"mAda", l:"Ada"},
-      {k:"mPafta", l:"Pafta"},
-      {k:"mParsel", l:"Parsel"},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Mülkün Açık Adresi", lEn:"Full Address of Property", type:"textarea", req:1},
+      {k:"mAda", l:"Ada", lEn:"Block"},
+      {k:"mPafta", l:"Pafta", lEn:"Sheet"},
+      {k:"mParsel", l:"Parsel", lEn:"Parcel"},
     ]},
-    {t:"Alıcı", fields:[
-      {k:"aIsim", l:"Alıcı Adı ve Soyadı", req:1},
-      {k:"aTc", l:"T.C. Kimlik No"},
+    {t:"Alıcı", tEn:"Buyer", fields:[
+      {k:"aIsim", l:"Alıcı Adı ve Soyadı", lEn:"Buyer Full Name", req:1},
+      {k:"aTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
     ]},
-    {t:"Bedeller", fields:[
-      {k:"bedel", l:"Satış Bedeli (TL)", req:1, fmt:"money"},
-      {k:"bedelYazi", l:"Satış Bedeli (Yazıyla)"},
-      {k:"cayma", l:"Cayma Akçesi (TL)", req:1, fmt:"money"},
-      {k:"caymaYazi", l:"Cayma Akçesi (Yazıyla)"},
-      {k:"odemeSekli", l:"Teslim Şekli", def:"kendi rızası ile banka hesabına göndermiştir"},
-      {k:"hizmet", l:"Hizmet Bedeli (TL)", fmt:"money"},
-      {k:"hizmetYazi", l:"Hizmet Bedeli (Yazıyla)"},
+    {t:"Bedeller", tEn:"Amounts", fields:[
+      {k:"bedel", l:"Satış Bedeli (TL)", lEn:"Sale Price (TL)", req:1, fmt:"money"},
+      {k:"bedelYazi", l:"Satış Bedeli (Yazıyla)", lEn:"Sale Price (in Words)"},
+      {k:"cayma", l:"Cayma Akçesi (TL)", lEn:"Deposit (TL)", req:1, fmt:"money"},
+      {k:"caymaYazi", l:"Cayma Akçesi (Yazıyla)", lEn:"Deposit (in Words)"},
+      {k:"odemeSekli", l:"Teslim Şekli", lEn:"Method of Delivery", def:"kendi rızası ile banka hesabına göndermiştir"},
+      {k:"hizmet", l:"Hizmet Bedeli (TL)", lEn:"Service Fee (TL)", fmt:"money"},
+      {k:"hizmetYazi", l:"Hizmet Bedeli (Yazıyla)", lEn:"Service Fee (in Words)"},
     ]},
   ],
   render(){ return `
-    ${hdrBand("SATIŞ İŞLEMİ CAYMA AKÇESİ TESLİM TUTANAĞI")}
+    ${hdrBand(L("SATIŞ İŞLEMİ CAYMA AKÇESİ TESLİM TUTANAĞI","SALE TRANSACTION DEPOSIT DELIVERY PROTOCOL"))}
     <div class="cayma">
-    ${dateLine("Tarih")}
+    ${dateLine(L("Tarih","Date"))}
     <div style="height:8mm"></div>
     ${ftbl([
-      ["Mülkün Açık Adresi", fv("mAdres"), 1],
-      ["Ada", fv("mAda")],
-      ["Pafta", fv("mPafta")],
-      ["Parsel", fv("mParsel")],
-      ["Alıcı Adı ve Soyadı", fv("aIsim")],
-      ["T.C. Kimlik No", fv("aTc")],
+      [L("Mülkün Açık Adresi","Full Address of Property"), fv("mAdres"), 1],
+      [L("Ada","Block"), fv("mAda")],
+      [L("Pafta","Sheet"), fv("mPafta")],
+      [L("Parsel","Parcel"), fv("mParsel")],
+      [L("Alıcı Adı ve Soyadı","Buyer Full Name"), fv("aIsim")],
+      [L("T.C. Kimlik No","National ID / Passport No"), fv("aTc")],
     ])}
     <div style="height:3mm"></div>
-    <div class="clz"><b>1-</b> ALICI, yukarıda bilgileri yazılı gayrimenkulün satışı ile ilgili teklifini <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'nin aracılığı ile Satıcıya iletmiş, taraflar arasında ${f("bedel",90)} TL (${f("bedelYazi",150)} Türk Lirası) satış bedeli üzerinde mutabakat sağlanmıştır.</div>
-    <div class="clz"><b>2-</b> Satış işleminin başlayabilmesi için ALICI, <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye ${f("cayma",90)} TL (${f("caymaYazi",150)} Türk Lirası) cayma akçesini ${f("odemeSekli",180)}. ALICI, cayma akçesinin yediemin sıfatıyla <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'nin uhdesinde kalmasına onay vermiştir. Alınan cayma tazminatı tutarı, her iki taraf için de geçerli olmak kaydıyla, işbu sözleşmede belirtilen satış tutarının en az %5'i (yüzde beşi) kadar olacaktır.</div>
-    <div class="clz"><b>3-</b> Böylelikle <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> mülkün tüm pazarlama faaliyetlerini durduracaktır.</div>
-    <div class="clz"><b>4-</b> ALICI, işbu taşınmazın alım-satımına aracılık eden <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye ${f("hizmet",90)} TL (${f("hizmetYazi",150)} Türk Lirası) + KDV hizmet bedelini en geç taşınmazın tapu devrinin yapılacağı gün, devir işlemi yapılmadan önce nakden ödemeyi kabul ve taahhüt eder.</div>
-    <div class="clz"><b>5-</b> Bu sözleşme imzalandıktan sonra Türk Borçlar Kanunu'nun 178. maddesine göre taraflardan ALICI, bu Gayrimenkulü almaktan vazgeçtiği takdirde verdiği cayma tazminatını geri alamayacak, bu bedel SATICI'ya teslim edilecektir.</div>
-    <div class="clz">İşbu 5 maddeden ibaret olan sözleşme 2 asıl olarak düzenlenmiş ve ${f("imzaTarihi",80)} tarihinde imzalanmıştır. Yukarıdaki ifadelerle belirlenen bu tutanağın gereklerini kabul ediyoruz.</div>
-    ${sigBlock([{t:"ALICI",s:fv("aIsim")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
+    <div class="clz"><b>1-</b> ${Lc(`ALICI, yukarıda bilgileri yazılı gayrimenkulün satışı ile ilgili teklifini <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'nin aracılığı ile Satıcıya iletmiş, taraflar arasında ${f("bedel",90)} TL (${f("bedelYazi",150)} Türk Lirası) satış bedeli üzerinde mutabakat sağlanmıştır.`, `The BUYER has conveyed their offer regarding the sale of the property detailed above to the Seller through the intermediation of <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, and the parties have agreed on a sale price of ${f("bedel",90)} TL (${f("bedelYazi",150)} Turkish Liras).`)}</div>
+    <div class="clz"><b>2-</b> ${Lc(`Satış işleminin başlayabilmesi için ALICI, <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye ${f("cayma",90)} TL (${f("caymaYazi",150)} Türk Lirası) cayma akçesini ${f("odemeSekli",180)}. ALICI, cayma akçesinin yediemin sıfatıyla <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'nin uhdesinde kalmasına onay vermiştir. Alınan cayma tazminatı tutarı, her iki taraf için de geçerli olmak kaydıyla, işbu sözleşmede belirtilen satış tutarının en az %5'i (yüzde beşi) kadar olacaktır.`, `In order for the sale process to commence, the BUYER has delivered the deposit of ${f("cayma",90)} TL (${f("caymaYazi",150)} Turkish Liras) to <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> ${f("odemeSekli",180)}. The BUYER has consented to the deposit being held in trust (as escrow agent) by <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> The deposit amount, applicable to both parties, shall be at least 5% (five percent) of the sale price specified in this agreement.`)}</div>
+    <div class="clz"><b>3-</b> ${Lc("Böylelikle <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> mülkün tüm pazarlama faaliyetlerini durduracaktır.", "Accordingly, <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> shall halt all marketing activities for the property.")}</div>
+    <div class="clz"><b>4-</b> ${Lc(`ALICI, işbu taşınmazın alım-satımına aracılık eden <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye ${f("hizmet",90)} TL (${f("hizmetYazi",150)} Türk Lirası) + KDV hizmet bedelini en geç taşınmazın tapu devrinin yapılacağı gün, devir işlemi yapılmadan önce nakden ödemeyi kabul ve taahhüt eder.`, `The BUYER agrees and undertakes to pay the service fee of ${f("hizmet",90)} TL (${f("hizmetYazi",150)} Turkish Liras) + VAT to <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, which acted as intermediary in the purchase and sale of this property, in cash at the latest on the day of the title deed transfer, before the transfer transaction is carried out.`)}</div>
+    <div class="clz"><b>5-</b> ${Lc("Bu sözleşme imzalandıktan sonra Türk Borçlar Kanunu'nun 178. maddesine göre taraflardan ALICI, bu Gayrimenkulü almaktan vazgeçtiği takdirde verdiği cayma tazminatını geri alamayacak, bu bedel SATICI'ya teslim edilecektir.", "After this agreement is signed, pursuant to Article 178 of the Turkish Code of Obligations, if the BUYER withdraws from purchasing this property, they shall not recover the deposit paid, and this amount shall be delivered to the SELLER.")}</div>
+    <div class="clz">${Lc(`İşbu 5 maddeden ibaret olan sözleşme 2 asıl olarak düzenlenmiş ve ${f("imzaTarihi",80)} tarihinde imzalanmıştır. Yukarıdaki ifadelerle belirlenen bu tutanağın gereklerini kabul ediyoruz.`, `This agreement, consisting of 5 articles, has been drawn up in 2 originals and signed on ${f("imzaTarihi",80)}. We accept the requirements of this protocol as set out in the statements above.`)}</div>
+    ${sigBlock([{t:L("ALICI","BUYER"),s:fv("aIsim")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
     </div>
   `;}
 },
 
 /* ---------- 8. KİRALAMA CAYMA AKÇESİ TUTANAĞI ---------- */
 {
-  id:"kiralama-cayma", fileBase:"Kiralama_Cayma_Tutanagi", nameKey:"kcIsim", ic:"🧾", title:"Kiralama İşlemi Cayma Akçesi Teslim Tutanağı",
+  id:"kiralama-cayma", fileBase:"Kiralama_Cayma_Tutanagi", nameKey:"kcIsim", ic:"🧾", title:"Kiralama İşlemi Cayma Akçesi Teslim Tutanağı", titleEn:"Rental Transaction Deposit Delivery Protocol",
   desc:"Kiracı adayından alınan cayma akçesinin teslim tutanağı; kira, depozito ve hizmet bedeli kayıtlı.",
+  descEn:"Delivery protocol for the deposit received from the prospective tenant; rent, deposit and service fee recorded.",
   groups:[
-    {t:"Genel", fields:[
-      {k:"imzaTarihi", l:"Tarih", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Genel", tEn:"General", fields:[
+      {k:"imzaTarihi", l:"Tarih", lEn:"Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Kiralanacak Mülkün Açık Adresi", type:"textarea", req:1},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Kiralanacak Mülkün Açık Adresi", lEn:"Full Address of Property to be Rented", type:"textarea", req:1},
     ]},
-    {t:"Kiracı", fields:[
-      {k:"kcIsim", l:"Kiracı Adı ve Soyadı", req:1},
-      {k:"kcTc", l:"T.C. Kimlik No"},
+    {t:"Kiracı", tEn:"Tenant", fields:[
+      {k:"kcIsim", l:"Kiracı Adı ve Soyadı", lEn:"Tenant Full Name", req:1},
+      {k:"kcTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
     ]},
-    {t:"Bedeller", fields:[
-      {k:"kiraBedel", l:"Kira Bedeli (TL)", req:1, fmt:"money"},
-      {k:"depozito", l:"Depozito Bedeli (TL)", fmt:"money"},
-      {k:"cayma", l:"Cayma Akçesi (TL)", req:1, fmt:"money"},
-      {k:"caymaYazi", l:"Cayma Akçesi (Yazıyla)"},
-      {k:"kontratTarih", l:"Kontratın Yapılacağı Son Tarih", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"hizmet", l:"Hizmet Bedeli (TL)", fmt:"money"},
+    {t:"Bedeller", tEn:"Amounts", fields:[
+      {k:"kiraBedel", l:"Kira Bedeli (TL)", lEn:"Rent (TL)", req:1, fmt:"money"},
+      {k:"depozito", l:"Depozito Bedeli (TL)", lEn:"Deposit Amount (TL)", fmt:"money"},
+      {k:"cayma", l:"Cayma Akçesi (TL)", lEn:"Deposit / Earnest Money (TL)", req:1, fmt:"money"},
+      {k:"caymaYazi", l:"Cayma Akçesi (Yazıyla)", lEn:"Earnest Money (in Words)"},
+      {k:"kontratTarih", l:"Kontratın Yapılacağı Son Tarih", lEn:"Deadline for Contract", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"hizmet", l:"Hizmet Bedeli (TL)", lEn:"Service Fee (TL)", fmt:"money"},
     ]},
   ],
   render(){ return `
-    ${hdrBand("KİRALAMA İŞLEMİ CAYMA AKÇESİ TESLİM TUTANAĞI")}
+    ${hdrBand(L("KİRALAMA İŞLEMİ CAYMA AKÇESİ TESLİM TUTANAĞI","RENTAL TRANSACTION DEPOSIT DELIVERY PROTOCOL"))}
     <div class="cayma">
-    ${dateLine("Tarih")}
+    ${dateLine(L("Tarih","Date"))}
     <div style="height:8mm"></div>
     ${ftbl([
-      ["Kiralanacak Mülkün Açık Adresi", fv("mAdres"), 1],
-      ["Kiracı Adı ve Soyadı", fv("kcIsim")],
-      ["T.C. Kimlik No", fv("kcTc")],
-      ["Kira Bedeli", fvu("kiraBedel","TL","")],
-      ["Depozito Bedeli", fvu("depozito","TL","")],
+      [L("Kiralanacak Mülkün Açık Adresi","Full Address of Property to be Rented"), fv("mAdres"), 1],
+      [L("Kiracı Adı ve Soyadı","Tenant Full Name"), fv("kcIsim")],
+      [L("T.C. Kimlik No","National ID / Passport No"), fv("kcTc")],
+      [L("Kira Bedeli","Rent"), fvu("kiraBedel","TL","")],
+      [L("Depozito Bedeli","Deposit Amount"), fvu("depozito","TL","")],
     ])}
     <div style="height:3mm"></div>
-    <div class="clz"><b>1-</b> Yukarıda adresi yazılı olan gayrimenkulün kiralanması ile ilgili KİRALAYAN ve KİRACI arasında mutabakata varılmıştır.</div>
-    <div class="clz"><b>2-</b> Kiralama işleminin başlayabilmesi için <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, KİRACI'dan ${f("cayma",90)} TL (${f("caymaYazi",150)} Türk Lirası) cayma tazminatı olarak almıştır. Böylelikle <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> mülkün tüm pazarlama faaliyetlerini durduracaktır.</div>
-    <div class="clz"><b>3-</b> KİRACI işbu gayrimenkulü kiralamaktan vazgeçer ve/veya tarafların anlaştığı sürede kiralamaktan imtina eder veya kiralama işlemi KİRACI'dan kaynaklanan nedenlerle yapılamazsa Cayma Akçesini geri almayacaktır.</div>
-    <div class="clz"><b>4-</b> KİRALAYAN işbu gayrimenkulü kiralamaktan vazgeçer ve/veya tarafların anlaştığı sürede kiralamaktan imtina eder, kiralama işlemi KİRALAYAN'dan kaynaklanan nedenlerle yapılamazsa Cayma Akçesi KİRACI'ya iade edilecektir.</div>
-    <div class="clz"><b>5-</b> Kira Kontratı, Kiracı'nın yükümlülüklerini yerine getirmesi şartı ile ${f("kontratTarih",90)} tarihine kadar yapılacaktır.</div>
-    <div class="clz"><b>6-</b> Kiracı, kiralama işlemi gerçekleştiğinde <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye hizmet bedeli olarak; 1 (bir) kira bedeli + KDV'sine denk gelen ${f("hizmet",90)} TL tutarı işlemin yapıldığı gün nakden ve defaten ödemeyi kabul ve taahhüt eder.</div>
-    <div class="clz">İşbu sözleşme ${f("imzaTarihi",80)} tarihinde imzalanarak 2 asıl olarak düzenlenmiştir. Yukarıdaki ifadelerle belirlenen bu tutanağın gereklerini kabul ediyoruz.</div>
-    ${sigBlock([{t:"KİRACI",s:fv("kcIsim")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
+    <div class="clz"><b>1-</b> ${Lc("Yukarıda adresi yazılı olan gayrimenkulün kiralanması ile ilgili KİRALAYAN ve KİRACI arasında mutabakata varılmıştır.", "An agreement has been reached between the LESSOR and the TENANT regarding the rental of the property whose address is stated above.")}</div>
+    <div class="clz"><b>2-</b> ${Lc(`Kiralama işleminin başlayabilmesi için <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, KİRACI'dan ${f("cayma",90)} TL (${f("caymaYazi",150)} Türk Lirası) cayma tazminatı olarak almıştır. Böylelikle <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> mülkün tüm pazarlama faaliyetlerini durduracaktır.`, `In order for the rental process to commence, <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> has received ${f("cayma",90)} TL (${f("caymaYazi",150)} Turkish Liras) from the TENANT as earnest money. Accordingly, <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b> shall halt all marketing activities for the property.`)}</div>
+    <div class="clz"><b>3-</b> ${Lc("KİRACI işbu gayrimenkulü kiralamaktan vazgeçer ve/veya tarafların anlaştığı sürede kiralamaktan imtina eder veya kiralama işlemi KİRACI'dan kaynaklanan nedenlerle yapılamazsa Cayma Akçesini geri almayacaktır.", "If the TENANT withdraws from renting this property and/or refrains from renting within the period agreed by the parties, or if the rental cannot be completed for reasons attributable to the TENANT, they shall not recover the earnest money.")}</div>
+    <div class="clz"><b>4-</b> ${Lc("KİRALAYAN işbu gayrimenkulü kiralamaktan vazgeçer ve/veya tarafların anlaştığı sürede kiralamaktan imtina eder, kiralama işlemi KİRALAYAN'dan kaynaklanan nedenlerle yapılamazsa Cayma Akçesi KİRACI'ya iade edilecektir.", "If the LESSOR withdraws from renting this property and/or refrains from renting within the period agreed by the parties, or if the rental cannot be completed for reasons attributable to the LESSOR, the earnest money shall be refunded to the TENANT.")}</div>
+    <div class="clz"><b>5-</b> ${Lc(`Kira Kontratı, Kiracı'nın yükümlülüklerini yerine getirmesi şartı ile ${f("kontratTarih",90)} tarihine kadar yapılacaktır.`, `The lease contract shall be concluded by ${f("kontratTarih",90)}, provided that the Tenant fulfils their obligations.`)}</div>
+    <div class="clz"><b>6-</b> ${Lc(`Kiracı, kiralama işlemi gerçekleştiğinde <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>'ye hizmet bedeli olarak; 1 (bir) kira bedeli + KDV'sine denk gelen ${f("hizmet",90)} TL tutarı işlemin yapıldığı gün nakden ve defaten ödemeyi kabul ve taahhüt eder.`, `When the rental is completed, the Tenant agrees and undertakes to pay <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnş. San. Tic. Ltd. Şti.</b>, as a service fee equal to 1 (one) month's rent + VAT, the amount of ${f("hizmet",90)} TL, in cash and in full on the day of the transaction.`)}</div>
+    <div class="clz">${Lc(`İşbu sözleşme ${f("imzaTarihi",80)} tarihinde imzalanarak 2 asıl olarak düzenlenmiştir. Yukarıdaki ifadelerle belirlenen bu tutanağın gereklerini kabul ediyoruz.`, `This agreement was signed on ${f("imzaTarihi",80)} and drawn up in 2 originals. We accept the requirements of this protocol as set out in the statements above.`)}</div>
+    ${sigBlock([{t:L("KİRACI","TENANT"),s:fv("kcIsim")},{t:"RE/MAX DOĞUŞ",logo:1}], false, "split")}
     </div>
   `;}
 },
 
 /* ---------- 9. TAHLİYE TAAHHÜTNAMESİ (sade) ---------- */
 {
-  id:"tahliye", fileBase:"Tahliye_Taahhutnamesi", nameKey:"kiraciIsim", ic:"📃", title:"Tahliye Taahhütnamesi",
+  id:"tahliye", fileBase:"Tahliye_Taahhutnamesi", nameKey:"kiraciIsim", ic:"📃", title:"Tahliye Taahhütnamesi", titleEn:"Eviction Undertaking",
   desc:"Kiracının belirtilen tarihte taşınmazı tahliye taahhüdü. Sade dilekçe formatı, logosuz.",
+  descEn:"Tenant's undertaking to vacate the property on the specified date. Plain petition format, no logo.",
   groups:[
-    {t:"Taahhüt Eden (Kiracı)", fields:[
-      {k:"kiraciIsim", l:"Adı Soyadı", req:1},
-      {k:"kiraciTc", l:"T.C. Kimlik No"},
+    {t:"Taahhüt Eden (Kiracı)", tEn:"Undertaker (Tenant)", fields:[
+      {k:"kiraciIsim", l:"Adı Soyadı", lEn:"Full Name", req:1},
+      {k:"kiraciTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
     ]},
-    {t:"Mal Sahibi (Kiralayan)", fields:[
-      {k:"malIsim", l:"Adı Soyadı", req:1},
-      {k:"malTc", l:"T.C. Kimlik No"},
+    {t:"Mal Sahibi (Kiralayan)", tEn:"Owner (Lessor)", fields:[
+      {k:"malIsim", l:"Adı Soyadı", lEn:"Full Name", req:1},
+      {k:"malTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
     ]},
-    {t:"Taşınmaz", fields:[
-      {k:"adres", l:"Tahliye Edilecek Taşınmazın Adresi", type:"textarea", req:1},
-      {k:"tahliyeTarihi", l:"Tahliye Tarihi", ph:"GG.AA.YYYY", fmt:"date", req:1},
+    {t:"Taşınmaz", tEn:"Property", fields:[
+      {k:"adres", l:"Tahliye Edilecek Taşınmazın Adresi", lEn:"Address of Property to be Vacated", type:"textarea", req:1},
+      {k:"tahliyeTarihi", l:"Tahliye Tarihi", lEn:"Eviction Date", ph:"GG.AA.YYYY", fmt:"date", req:1},
     ]},
   ],
   render(){ return `
     <div class="petition">
-      <div class="ptitle">TAHLİYE TAAHHÜTNAMESİ</div>
-      <div class="prow"><span class="plabel">TAAHHÜT EDEN (KİRACI)</span></div>
-      <div class="prow">ADI SOYADI : ${f("kiraciIsim",180)}</div>
-      <div class="prow">T.C. KİMLİK NO : ${f("kiraciTc",160)}</div>
-      <div class="prow" style="margin-top:8mm"><span class="plabel">MAL SAHİBİ (KİRALAYAN)</span></div>
-      <div class="prow">ADI SOYADI : ${f("malIsim",180)}</div>
-      <div class="prow">T.C. KİMLİK NO : ${f("malTc",160)}</div>
-      <div class="prow" style="margin-top:8mm">TAHLİYE EDİLECEK TAŞINMAZIN ADRESİ : ${f("adres",300)}</div>
-      <div class="prow">TAHLİYE TARİHİ : ${f("tahliyeTarihi",120)}</div>
-      <div class="clz">Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim.</div>
+      <div class="ptitle">${L("TAHLİYE TAAHHÜTNAMESİ","EVICTION UNDERTAKING")}</div>
+      <div class="prow"><span class="plabel">${L("TAAHHÜT EDEN (KİRACI)","UNDERTAKER (TENANT)")}</span></div>
+      <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("kiraciIsim",180)}</div>
+      <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("kiraciTc",160)}</div>
+      <div class="prow" style="margin-top:8mm"><span class="plabel">${L("MAL SAHİBİ (KİRALAYAN)","OWNER (LESSOR)")}</span></div>
+      <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("malIsim",180)}</div>
+      <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("malTc",160)}</div>
+      <div class="prow" style="margin-top:8mm">${L("TAHLİYE EDİLECEK TAŞINMAZIN ADRESİ","ADDRESS OF PROPERTY TO BE VACATED")} : ${f("adres",300)}</div>
+      <div class="prow">${L("TAHLİYE TARİHİ","EVICTION DATE")} : ${f("tahliyeTarihi",120)}</div>
+      <div class="clz">${Lc("Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim.", "I declare, accept and undertake that I shall vacate, unconditionally and without any need for notice or warning, the property at the address stated above which I currently use as a tenant, on the date specified above; that I shall deliver it to the aforementioned owner empty and in sound condition; and that I shall immediately pay, in cash and in advance, without any need for notice, warning or judgment, all costs the owner may incur through enforcement proceedings and any loss and damage the owner may suffer due to my delay in vacating.")}</div>
       <div class="psig">
-        <div class="prow">Taahhüt Tarihi : ${(()=>{const t=plusOneMonth(fv("tahliyeTarihi"));return t?`<span class="blank filled">${t}</span>`:`<span class="blank" style="min-width:110px">&nbsp;</span>`;})()}</div>
-        <div class="prow">Taahhüt Eden : <b>${fvRaw("kiraciIsim")||""}</b></div>
-        <div class="prow">İmzası :</div>
+        <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${(()=>{const t=plusOneMonth(fv("tahliyeTarihi"));return t?`<span class="blank filled">${t}</span>`:`<span class="blank" style="min-width:110px">&nbsp;</span>`;})()}</div>
+        <div class="prow">${L("Taahhüt Eden","Undertaker")} : <b>${fvRaw("kiraciIsim")||""}</b></div>
+        <div class="prow">${L("İmzası","Signature")} :</div>
       </div>
     </div>
   `;}
@@ -1322,39 +1344,40 @@ const TEMPLATES = [
 
 /* ---------- 10. EŞ RIZA BELGESİ (sade) ---------- */
 {
-  id:"es-rizasi", fileBase:"Es_Riza_Belgesi", nameKey:"rizaIsim", ic:"✍️", title:"Eş Rıza Belgesi",
+  id:"es-rizasi", fileBase:"Es_Riza_Belgesi", nameKey:"rizaIsim", ic:"✍️", title:"Eş Rıza Belgesi", titleEn:"Spousal Consent Document",
   desc:"Eşin müşterek ve müteselsil kefalete rıza beyanı. Sade dilekçe formatı, logosuz.",
+  descEn:"Spouse's consent to joint and several guarantee. Plain petition format, no logo.",
   groups:[
-    {t:"Kira Sözleşmesi", fields:[
-      {k:"kvIsim", l:"Kiraya Veren", req:1},
-      {k:"kcIsim", l:"Kiracı", req:1},
-      {k:"sozTarih", l:"Kira Sözleşmesi Tarihi", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"lehine", l:"Lehine (Alacaklı)", def:"Kiraya Veren"},
+    {t:"Kira Sözleşmesi", tEn:"Lease Agreement", fields:[
+      {k:"kvIsim", l:"Kiraya Veren", lEn:"Lessor", req:1},
+      {k:"kcIsim", l:"Kiracı", lEn:"Tenant", req:1},
+      {k:"sozTarih", l:"Kira Sözleşmesi Tarihi", lEn:"Lease Agreement Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"lehine", l:"Lehine (Alacaklı)", lEn:"In Favour of (Creditor)", def:"Kiraya Veren"},
     ]},
-    {t:"Kefalet", fields:[
-      {k:"kefilIsim", l:"Kefil Olan Eşin Adı Soyadı", req:1},
-      {k:"kefTur", l:"Kefaletin Türü", def:"Müşterek ve Müteselsil"},
-      {k:"kefTutar", l:"Azami Kefalet Tutarı (TL)", fmt:"money"},
-      {k:"tanzim", l:"Tanzim Tarihi", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Kefalet", tEn:"Guarantee", fields:[
+      {k:"kefilIsim", l:"Kefil Olan Eşin Adı Soyadı", lEn:"Full Name of Guarantor Spouse", req:1},
+      {k:"kefTur", l:"Kefaletin Türü", lEn:"Type of Guarantee", def:"Müşterek ve Müteselsil"},
+      {k:"kefTutar", l:"Azami Kefalet Tutarı (TL)", lEn:"Maximum Guarantee Amount (TL)", fmt:"money"},
+      {k:"tanzim", l:"Tanzim Tarihi", lEn:"Date of Issue", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Rıza Veren (Eş)", fields:[
-      {k:"rizaIsim", l:"Adı Soyadı", req:1},
-      {k:"rizaTc", l:"T.C. Kimlik No"},
+    {t:"Rıza Veren (Eş)", tEn:"Consenting Party (Spouse)", fields:[
+      {k:"rizaIsim", l:"Adı Soyadı", lEn:"Full Name", req:1},
+      {k:"rizaTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
     ]},
   ],
   render(){ return `
     <div class="petition">
-      <div class="ptitle">EŞ RIZA BELGESİ</div>
-      <div class="clz">Kiraya Veren ${f("kvIsim",150)} ile Kiracı ${f("kcIsim",150)} arasındaki ${f("sozTarih",100)} tarihli Kira Sözleşmesi'ne ilişkin olarak; kiracı ${f("kcIsim",150)}'in ${f("lehine",130)} lehine doğmuş/doğacak borçlarına eşim ${f("kefilIsim",150)}'ın müşterek ve müteselsil kefil olmasına rıza göstermekteyim.</div>
-      <div class="prow">Kefaletin Türü : ${f("kefTur",180)}</div>
-      <div class="prow">Müşterek ve Müteselsil Kefilin Adı-Soyadı : ${f("kefilIsim",180)}</div>
-      <div class="prow">Azami Kefalet Tutarı : ${fvRaw("kefTutar")?'<span class="blank filled">'+fvRaw("kefTutar")+' TL</span>':'<span class="blank" style="min-width:140px">&nbsp;</span>'}</div>
-      <div class="prow">İşbu Rıza Belgesinin Tanzim Tarihi : ${f("tanzim",110)}</div>
+      <div class="ptitle">${L("EŞ RIZA BELGESİ","SPOUSAL CONSENT DOCUMENT")}</div>
+      <div class="clz">${Lc(`Kiraya Veren ${f("kvIsim",150)} ile Kiracı ${f("kcIsim",150)} arasındaki ${f("sozTarih",100)} tarihli Kira Sözleşmesi'ne ilişkin olarak; kiracı ${f("kcIsim",150)}'in ${f("lehine",130)} lehine doğmuş/doğacak borçlarına eşim ${f("kefilIsim",150)}'ın müşterek ve müteselsil kefil olmasına rıza göstermekteyim.`, `In connection with the Lease Agreement dated ${f("sozTarih",100)} between the Lessor ${f("kvIsim",150)} and the Tenant ${f("kcIsim",150)}, I hereby consent to my spouse ${f("kefilIsim",150)} acting as joint and several guarantor for the debts arisen/to arise of the tenant ${f("kcIsim",150)} in favour of ${f("lehine",130)}.`)}</div>
+      <div class="prow">${L("Kefaletin Türü","Type of Guarantee")} : ${f("kefTur",180)}</div>
+      <div class="prow">${L("Müşterek ve Müteselsil Kefilin Adı-Soyadı","Full Name of Joint and Several Guarantor")} : ${f("kefilIsim",180)}</div>
+      <div class="prow">${L("Azami Kefalet Tutarı","Maximum Guarantee Amount")} : ${fvRaw("kefTutar")?'<span class="blank filled">'+fvRaw("kefTutar")+' TL</span>':'<span class="blank" style="min-width:140px">&nbsp;</span>'}</div>
+      <div class="prow">${L("İşbu Rıza Belgesinin Tanzim Tarihi","Date of Issue of this Consent Document")} : ${f("tanzim",110)}</div>
       <div class="psig">
-        <div class="prow"><span class="plabel">Rıza Veren (Eş)</span></div>
-        <div class="prow">Ad-Soyad : <b>${fvRaw("rizaIsim")||""}</b>${fvRaw("rizaIsim")?"":'<span class="blank" style="min-width:150px">&nbsp;</span>'}</div>
-        <div class="prow">T.C. Kimlik No : ${f("rizaTc",150)}</div>
-        <div class="prow">İmza :</div>
+        <div class="prow"><span class="plabel">${L("Rıza Veren (Eş)","Consenting Party (Spouse)")}</span></div>
+        <div class="prow">${L("Ad-Soyad","Full Name")} : <b>${fvRaw("rizaIsim")||""}</b>${fvRaw("rizaIsim")?"":'<span class="blank" style="min-width:150px">&nbsp;</span>'}</div>
+        <div class="prow">${L("T.C. Kimlik No","National ID / Passport No")} : ${f("rizaTc",150)}</div>
+        <div class="prow">${L("İmza","Signature")} :</div>
       </div>
     </div>
   `;}
