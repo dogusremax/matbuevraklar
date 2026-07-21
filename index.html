@@ -360,7 +360,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v88</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v89</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -371,7 +371,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v88</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v89</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
@@ -654,70 +654,70 @@ const TEMPLATES = [
 
 /* ---------- 1. SATILIK YETKİ ---------- */
 {
-  id:"satilik-yetki", fileBase:"Satilik_Yetki", nameKey:"msIsim", ic:"🏷️", title:"Satılık Yetkilendirme Sözleşmesi",
+  id:"satilik-yetki", fileBase:"Satilik_Yetki", nameKey:"msIsim", ic:"🏷️", title:"Satılık Yetkilendirme Sözleşmesi", titleEn:"Exclusive Sale Authorization Agreement",
   desc:"Mal sahibinden satış için tek yetki alınmasında kullanılır. 8 madde.",
+  descEn:"Used to obtain an exclusive sale authorization from the owner. 8 articles.",
   groups:[
-    {t:"Genel", fields:[
-      {k:"imzaTarihi", l:"İmza Tarihi", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Genel", tEn:"General", fields:[
+      {k:"imzaTarihi", l:"İmza Tarihi", lEn:"Signature Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Mülk Sahibi", repeat:{base:"ms", label:"Mülk Sahibi", max:5}, fields:[
-      {k:"msIsim", l:"İsim Soyisim / Ticari Ünvan", req:1},
-      {k:"msVergi", l:"Vergi No / TC No"},
-      {k:"msAdres", l:"Adres", type:"textarea"},
-      {k:"msTel", l:"Telefon Numarası", fmt:"phone", ph:"0 (5xx) xxx xx xx"},
+    {t:"Mülk Sahibi", tEn:"Property Owner", repeat:{base:"ms", label:"Mülk Sahibi", labelEn:"Owner", max:5}, fields:[
+      {k:"msIsim", l:"İsim Soyisim / Ticari Ünvan", lEn:"Full Name / Company Title", req:1},
+      {k:"msVergi", l:"Vergi No / TC No", lEn:"Tax No / National ID"},
+      {k:"msAdres", l:"Adres", lEn:"Address", type:"textarea"},
+      {k:"msTel", l:"Telefon Numarası", lEn:"Phone Number", fmt:"phone", ph:"0 (5xx) xxx xx xx"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Açık Adres", type:"textarea", req:1},
-      {k:"mAda", l:"Ada Pafta Parsel"},
-      {k:"mIl", l:"İl / İlçe"},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Açık Adres", lEn:"Full Address", type:"textarea", req:1},
+      {k:"mAda", l:"Ada Pafta Parsel", lEn:"Block / Sheet / Parcel"},
+      {k:"mIl", l:"İl / İlçe", lEn:"Province / District"},
     ]},
-    {t:"İşlem", fields:[
-      {k:"bedel", l:"Satış Bedeli (TL)", req:1, fmt:"money"},
-      {k:"hizmet", l:"Hizmet Bedeli", def:"%2 + KDV"},
-      {k:"sure", l:"Yetki Süresi", def:"3 Ay"},
-      {k:"yetkiBas", l:"Yetki Başlangıç Tarihi", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"danisman", l:"Sorumlu Emlak Danışmanı", auto:"me"},
+    {t:"İşlem", tEn:"Transaction", fields:[
+      {k:"bedel", l:"Satış Bedeli (TL)", lEn:"Sale Price (TL)", req:1, fmt:"money"},
+      {k:"hizmet", l:"Hizmet Bedeli", lEn:"Service Fee", def:"%2 + KDV"},
+      {k:"sure", l:"Yetki Süresi", lEn:"Authorization Period", def:"3 Ay"},
+      {k:"yetkiBas", l:"Yetki Başlangıç Tarihi", lEn:"Authorization Start Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"danisman", l:"Sorumlu Emlak Danışmanı", lEn:"Responsible Real Estate Consultant", auto:"me"},
     ]},
   ],
   render(){
     const c = repCount("ms");
     const blocks = [];
     for (let i=1;i<=c;i++) blocks.push(
-      secHead(`Mülk Sahibi${c>1?" "+i:""} Bilgileri`) +
+      secHead(L(`Mülk Sahibi${c>1?" "+i:""} Bilgileri`, `Owner${c>1?" "+i:""} Details`)) +
       ftbl([
-        ["İsim ve Soyisim / Ticari Ünvan", fvi("msIsim",i)],
-        ["Vergi No / TC No", fvi("msVergi",i)],
-        ["Adres", fvi("msAdres",i), 1],
-        ["Telefon Numarası", fvi("msTel",i)],
+        [L("İsim ve Soyisim / Ticari Ünvan","Full Name / Company Title"), fvi("msIsim",i)],
+        [L("Vergi No / TC No","Tax No / National ID"), fvi("msVergi",i)],
+        [L("Adres","Address"), fvi("msAdres",i), 1],
+        [L("Telefon Numarası","Phone Number"), fvi("msTel",i)],
       ])
     );
     blocks.push(
-      secHead("Mülk Bilgileri") +
+      secHead(L("Mülk Bilgileri","Property Details")) +
       ftbl([
-        ["Açık Adres", fv("mAdres"), 1],
-        ["Ada Pafta Parsel", fv("mAda")],
-        ["İl / İlçe", fv("mIl")],
+        [L("Açık Adres","Full Address"), fv("mAdres"), 1],
+        [L("Ada Pafta Parsel","Block / Sheet / Parcel"), fv("mAda")],
+        [L("İl / İlçe","Province / District"), fv("mIl")],
       ])
     );
     blocks.push(
-      secHead("Yetkilendirilen Sorumlu Emlak Danışmanı Bilgileri") +
+      secHead(L("Yetkilendirilen Sorumlu Emlak Danışmanı Bilgileri","Authorized Responsible Real Estate Consultant Details")) +
       `<table class="ftbl">
-        <tr><td class="fl">Ticari Ünvan</td><td class="fv" colspan="3">UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İNŞ. SAN. TİC. LTD. ŞTİ.</td></tr>
-        <tr><td class="fl4">Vergi Dairesi / No</td><td class="fv4">GÖZTEPE VD. — 8920318332</td><td class="fl4">Yetki Belge No</td><td class="fv4">3402699</td></tr>
-        <tr><td class="fl4">Sorumlu Emlak Danışmanı</td><td class="fv4">${(fvRaw("danisman")? fvRaw("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">Telefon Numarası</td><td class="fv4">0216 315 15 15</td></tr>
-        <tr><td class="fl">Mail Adresi</td><td class="fv" colspan="3">info@remaxdogus.com.tr</td></tr>
-        <tr><td class="fl">İş Yeri Adresi</td><td class="fv" colspan="3">Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok Dükkan 14, Kadıköy / İstanbul</td></tr>
+        <tr><td class="fl">${L("Ticari Ünvan","Company Title")}</td><td class="fv" colspan="3">UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İNŞ. SAN. TİC. LTD. ŞTİ.</td></tr>
+        <tr><td class="fl4">${L("Vergi Dairesi / No","Tax Office / No")}</td><td class="fv4">GÖZTEPE VD. — 8920318332</td><td class="fl4">${L("Yetki Belge No","License No")}</td><td class="fv4">3402699</td></tr>
+        <tr><td class="fl4">${L("Sorumlu Emlak Danışmanı","Responsible Consultant")}</td><td class="fv4">${(fvRaw("danisman")? fvRaw("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">${L("Telefon Numarası","Phone Number")}</td><td class="fv4">0216 315 15 15</td></tr>
+        <tr><td class="fl">${L("Mail Adresi","E-mail")}</td><td class="fv" colspan="3">info@remaxdogus.com.tr</td></tr>
+        <tr><td class="fl">${L("İş Yeri Adresi","Office Address")}</td><td class="fv" colspan="3">Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok Dükkan 14, Kadıköy / İstanbul</td></tr>
       </table>`
     );
     blocks.push(
-      secHead("İşlem Bilgileri") +
+      secHead(L("İşlem Bilgileri","Transaction Details")) +
       `<table class="ftbl">
-        <tr><td class="fl4">Satış Bedeli</td><td class="fv4">${fvu("bedel","TL")}</td><td class="fl4">Hizmet Bedeli</td><td class="fv4">${(fvRaw("hizmet")? fv("hizmet") : "&nbsp;")}</td></tr>
-        <tr><td class="fl4">Yetki Süresi</td><td class="fv4">${(fvRaw("sure")? fv("sure") : "&nbsp;")}</td><td class="fl4">Yetki Başlangıç Tarihi</td><td class="fv4">${(fvRaw("yetkiBas")? fv("yetkiBas") : "&nbsp;")}</td></tr>
+        <tr><td class="fl4">${L("Satış Bedeli","Sale Price")}</td><td class="fv4">${fvu("bedel","TL")}</td><td class="fl4">${L("Hizmet Bedeli","Service Fee")}</td><td class="fv4">${(fvRaw("hizmet")? fv("hizmet") : "&nbsp;")}</td></tr>
+        <tr><td class="fl4">${L("Yetki Süresi","Authorization Period")}</td><td class="fv4">${(fvRaw("sure")? fv("sure") : "&nbsp;")}</td><td class="fl4">${L("Yetki Başlangıç Tarihi","Authorization Start Date")}</td><td class="fv4">${(fvRaw("yetkiBas")? fv("yetkiBas") : "&nbsp;")}</td></tr>
       </table>`
     );
-    // kısa tabloları ikişerli yan yana yerleştir; uzun danışman bloğu hep tam genişlik
-    const danBlock = blocks.splice(blocks.length-2, 1)[0]; // danışman bloğu (sondan ikinci)
+    const danBlock = blocks.splice(blocks.length-2, 1)[0];
     let grid = "";
     for (let i=0;i<blocks.length;i+=2){
       if (i+1 < blocks.length) grid += `<table class="pair"><tr><td>${blocks[i]}</td><td>${blocks[i+1]}</td></tr></table>`;
@@ -725,88 +725,88 @@ const TEMPLATES = [
     }
     grid += danBlock;
     return `
-    ${hdrBand("SATILIK YETKİLENDİRME SÖZLEŞMESİ")}
+    ${hdrBand(L("SATILIK YETKİLENDİRME SÖZLEŞMESİ","EXCLUSIVE SALE AUTHORIZATION AGREEMENT"))}
     ${dateLine()}
     ${grid}
     <div style="height:3mm"></div>
-    <div class="clz clzL"><b>1- KONU:</b> Mal Sahibi/Sözleşme İmzalayan ile UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. (V.D. Göztepe, V.N. 8920318332 — RE/MAX DOĞUŞ), yukarıda belirtilen Gayrimenkulün satışına aracılık etmek üzere yetkilendirilmesini, verilecek tanıtım, pazarlama ve aracılık hizmetlerini ve bunlar karşılığında Mal Sahibi'nin yükümlülükleri ile ödenecek hizmet bedelini düzenler.</div>
-    <div class="clz clzL"><b>2- TANITIM YETKİSİ:</b> RE/MAX DOĞUŞ, satış işlemi amacıyla masrafı kendisine ait olmak üzere pazarlama hakkına sahiptir. Mal Sahibi, RE/MAX DOĞUŞ'un bu sözleşmeden doğan hak ve yükümlülüklerini yerine getirebilmesi için gayrimenkule daima giriş imkânı tanımayı kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>3- MÜLK SAHİBİ YÜKÜMLÜLÜKLERİ:</b> Mal Sahibi, taşınmaza her zaman serbestçe giriş imkânı sağlamayı ve afiş/tabela yerleştirilmesine imkân tanımayı; taşınmazda hâlen veya satış sürecinde oluşabilecek hukuki ayıp/engel/hak tesislerini RE/MAX DOĞUŞ'a bildirmeyi kabul ve taahhüt eder. Mal Sahibi, gayrimenkulle ilgili kendisine gelen tüm başvuruları RE/MAX DOĞUŞ'a bildirmeyi; bu kişi ve kuruluşlara bilgi verilmeden gayrimenkulün satılması halinde hizmet bedelinin 2 (iki) katını ödemeyi kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>4- SÜRE:</b> İşbu Sözleşme belirtilen başlangıç tarihinde yürürlüğe girer ve belirlenen süre kadar devam eder. Müşteri, süre bitmeden bir ay önce RE/MAX DOĞUŞ'a yazılı olarak bildirmediği sürece sözleşme aynı şartlarla ve aynı süreyle otomatik olarak uzar.</div>
-    <div class="clz clzL"><b>5- SÜRENİN BİTİMİ:</b> Mal Sahibi, yetki süresi zarfında RE/MAX DOĞUŞ'un veya hizmet ortaklarının temsil ettiği, bulduğu, gösterdiği ya da tanıştırdığı kişi/kuruluşlarla veya bunlarla irtibatı/bağlantısı (eşleri dâhil 3. dereceye kadar kan ve sıhrî hısımlık, şirket ortaklığı, kendisine/eşine ait diğer şirketler ve çalışanları vb.) bulunan kişilerle, sözleşmenin sona erdiği tarihten itibaren 180 gün içinde, RE/MAX DOĞUŞ'un onayı olmadan satış veya satış vaadi yapmamayı kabul ve taahhüt eder. Aksi halde satış bedelinin %4 + KDV'si tutarındaki hizmet bedeli muaccel olur.</div>
-    <div class="clz clzL"><b>6- VAZGEÇME:</b> Taraflar sözleşme süresi içinde sözleşmeyi tek taraflı feshedemez. Mal Sahibi süre dolmadan tek yanlı feshederse veya RE/MAX DOĞUŞ'un sözleşmedeki şartlarla bulduğu müşteriyi kendisine önermesi halinde derhal satışı gerçekleştirmezse, satış bedelinin %4 + KDV'si oranında tellâliye (hizmet) ücretini ödemeyi kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>7- ZİLYETLİK VE SORUMLULUK:</b> Mal Sahibi, taşınmaz üzerinde zilyetliği (mülkü fiilen elinde bulundurma/kullanma hakkı) ve/veya işlem yapma yetkisi bulunmaması ya da gerçek kişinin şirket yetkilisi olmadığı halde şirket kaşesi altına imza atması halinde, RE/MAX DOĞUŞ'un uğradığı/uğrayacağı tüm zararları ve satış bedelinin %4 + KDV'si tutarındaki hizmet bedelinin tamamını bizzat tazmin etmeyi peşinen kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>8- TARAFLAR:</b> İşbu sözleşme, taraflarca kabul edilerek 8 madde ve 2 asıl nüsha olarak düzenlenmiştir; bir nüshası UMT GROUP'a, bir nüshası Mal Sahibi'ne verilecektir. Sözleşmeden doğacak ihtilaflarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.</div>
-    ${sigBlock([...Array.from({length:c},(_,x)=>({t:c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ",s:fvi("msIsim",x+1)})),...(c>=5?[]:[{t:"SORUMLU EMLAK DANIŞMANI",s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
+    <div class="clz clzL"><b>${L("1- KONU:","1- SUBJECT:")}</b> ${Lc("Mal Sahibi/Sözleşme İmzalayan ile UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. (V.D. Göztepe, V.N. 8920318332 — RE/MAX DOĞUŞ), yukarıda belirtilen Gayrimenkulün satışına aracılık etmek üzere yetkilendirilmesini, verilecek tanıtım, pazarlama ve aracılık hizmetlerini ve bunlar karşılığında Mal Sahibi'nin yükümlülükleri ile ödenecek hizmet bedelini düzenler.", "This agreement, between the Owner/Signatory and UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. (Göztepe Tax Office, Tax No. 8920318332 — RE/MAX DOĞUŞ), governs the authorization to act as intermediary for the sale of the above-mentioned Property, the promotion, marketing and brokerage services to be provided, and, in consideration thereof, the Owner's obligations and the service fee to be paid.")}</div>
+    <div class="clz clzL"><b>${L("2- TANITIM YETKİSİ:","2- PROMOTION AUTHORITY:")}</b> ${Lc("RE/MAX DOĞUŞ, satış işlemi amacıyla masrafı kendisine ait olmak üzere pazarlama hakkına sahiptir. Mal Sahibi, RE/MAX DOĞUŞ'un bu sözleşmeden doğan hak ve yükümlülüklerini yerine getirebilmesi için gayrimenkule daima giriş imkânı tanımayı kabul ve taahhüt eder.", "RE/MAX DOĞUŞ has the right to market the property for the purpose of the sale, at its own expense. The Owner agrees and undertakes to grant access to the property at all times so that RE/MAX DOĞUŞ can fulfil the rights and obligations arising from this agreement.")}</div>
+    <div class="clz clzL"><b>${L("3- MÜLK SAHİBİ YÜKÜMLÜLÜKLERİ:","3- OWNER'S OBLIGATIONS:")}</b> ${Lc("Mal Sahibi, taşınmaza her zaman serbestçe giriş imkânı sağlamayı ve afiş/tabela yerleştirilmesine imkân tanımayı; taşınmazda hâlen veya satış sürecinde oluşabilecek hukuki ayıp/engel/hak tesislerini RE/MAX DOĞUŞ'a bildirmeyi kabul ve taahhüt eder. Mal Sahibi, gayrimenkulle ilgili kendisine gelen tüm başvuruları RE/MAX DOĞUŞ'a bildirmeyi; bu kişi ve kuruluşlara bilgi verilmeden gayrimenkulün satılması halinde hizmet bedelinin 2 (iki) katını ödemeyi kabul ve taahhüt eder.", "The Owner agrees and undertakes to provide free access to the property at all times and to allow the placement of posters/signboards; and to notify RE/MAX DOĞUŞ of any legal defects, encumbrances or third-party rights existing on the property or that may arise during the sale process. The Owner agrees and undertakes to notify RE/MAX DOĞUŞ of all enquiries received regarding the property; and to pay twice (2×) the service fee if the property is sold to such persons or entities without informing RE/MAX DOĞUŞ.")}</div>
+    <div class="clz clzL"><b>${L("4- SÜRE:","4- TERM:")}</b> ${Lc("İşbu Sözleşme belirtilen başlangıç tarihinde yürürlüğe girer ve belirlenen süre kadar devam eder. Müşteri, süre bitmeden bir ay önce RE/MAX DOĞUŞ'a yazılı olarak bildirmediği sürece sözleşme aynı şartlarla ve aynı süreyle otomatik olarak uzar.", "This agreement takes effect on the specified start date and continues for the specified period. Unless the client notifies RE/MAX DOĞUŞ in writing one month before the end of the term, the agreement is automatically extended under the same conditions and for the same period.")}</div>
+    <div class="clz clzL"><b>${L("5- SÜRENİN BİTİMİ:","5- EXPIRY OF TERM:")}</b> ${Lc("Mal Sahibi, yetki süresi zarfında RE/MAX DOĞUŞ'un veya hizmet ortaklarının temsil ettiği, bulduğu, gösterdiği ya da tanıştırdığı kişi/kuruluşlarla veya bunlarla irtibatı/bağlantısı (eşleri dâhil 3. dereceye kadar kan ve sıhrî hısımlık, şirket ortaklığı, kendisine/eşine ait diğer şirketler ve çalışanları vb.) bulunan kişilerle, sözleşmenin sona erdiği tarihten itibaren 180 gün içinde, RE/MAX DOĞUŞ'un onayı olmadan satış veya satış vaadi yapmamayı kabul ve taahhüt eder. Aksi halde satış bedelinin %4 + KDV'si tutarındaki hizmet bedeli muaccel olur.", "The Owner agrees and undertakes not to make a sale or promise of sale, within 180 days from the termination date of the agreement and without RE/MAX DOĞUŞ's approval, to persons/entities represented, found, shown or introduced by RE/MAX DOĞUŞ or its service partners during the authorization period, or to persons connected/related to them (including spouses, blood and marriage relatives up to the 3rd degree, company partnerships, other companies owned by the Owner/spouse and their employees, etc.). Otherwise, a service fee equal to 4% + VAT of the sale price becomes due and payable.")}</div>
+    <div class="clz clzL"><b>${L("6- VAZGEÇME:","6- WITHDRAWAL:")}</b> ${Lc("Taraflar sözleşme süresi içinde sözleşmeyi tek taraflı feshedemez. Mal Sahibi süre dolmadan tek yanlı feshederse veya RE/MAX DOĞUŞ'un sözleşmedeki şartlarla bulduğu müşteriyi kendisine önermesi halinde derhal satışı gerçekleştirmezse, satış bedelinin %4 + KDV'si oranında tellâliye (hizmet) ücretini ödemeyi kabul ve taahhüt eder.", "The parties may not unilaterally terminate the agreement during its term. If the Owner unilaterally terminates before expiry, or fails to immediately complete the sale when RE/MAX DOĞUŞ presents a buyer found under the terms of the agreement, the Owner agrees and undertakes to pay a brokerage (service) fee equal to 4% + VAT of the sale price.")}</div>
+    <div class="clz clzL"><b>${L("7- ZİLYETLİK VE SORUMLULUK:","7- POSSESSION AND LIABILITY:")}</b> ${Lc("Mal Sahibi, taşınmaz üzerinde zilyetliği (mülkü fiilen elinde bulundurma/kullanma hakkı) ve/veya işlem yapma yetkisi bulunmaması ya da gerçek kişinin şirket yetkilisi olmadığı halde şirket kaşesi altına imza atması halinde, RE/MAX DOĞUŞ'un uğradığı/uğrayacağı tüm zararları ve satış bedelinin %4 + KDV'si tutarındaki hizmet bedelinin tamamını bizzat tazmin etmeyi peşinen kabul ve taahhüt eder.", "If the Owner does not hold possession (the right to actually hold/use the property) and/or the authority to transact on the property, or if a natural person signs under a company seal without being an authorized company officer, the Owner accepts and undertakes in advance to personally indemnify all losses incurred/to be incurred by RE/MAX DOĞUŞ and the entire service fee equal to 4% + VAT of the sale price.")}</div>
+    <div class="clz clzL"><b>${L("8- TARAFLAR:","8- PARTIES:")}</b> ${Lc("İşbu sözleşme, taraflarca kabul edilerek 8 madde ve 2 asıl nüsha olarak düzenlenmiştir; bir nüshası UMT GROUP'a, bir nüshası Mal Sahibi'ne verilecektir. Sözleşmeden doğacak ihtilaflarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.", "This agreement has been drawn up and accepted by the parties in 8 articles and 2 original copies; one copy shall be given to UMT GROUP and one copy to the Owner. Istanbul Anatolian Courts and Enforcement Offices have jurisdiction over disputes arising from the agreement.")}</div>
+    ${sigBlock([...Array.from({length:c},(_,x)=>({t:L(c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", c>1?"OWNER "+(x+1):"OWNER"),s:fvi("msIsim",x+1)})),...(c>=5?[]:[{t:L("SORUMLU EMLAK DANIŞMANI","RESPONSIBLE CONSULTANT"),s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
   `;}
 },
 
 /* ---------- 2. KİRALIK YETKİ ---------- */
 {
-  id:"kiralik-yetki", fileBase:"Kiralik_Yetki", nameKey:"msIsim", ic:"🔑", title:"Kiralık Yetkilendirme Sözleşmesi",
+  id:"kiralik-yetki", fileBase:"Kiralik_Yetki", nameKey:"msIsim", ic:"🔑", title:"Kiralık Yetkilendirme Sözleşmesi", titleEn:"Exclusive Rental Authorization Agreement",
   desc:"Mal sahibinden kiralama için tek yetki alınmasında kullanılır. 8 madde.",
+  descEn:"Used to obtain an exclusive rental authorization from the owner. 8 articles.",
   groups:[
-    {t:"Genel", fields:[
-      {k:"imzaTarihi", l:"İmza Tarihi", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    {t:"Genel", tEn:"General", fields:[
+      {k:"imzaTarihi", l:"İmza Tarihi", lEn:"Signature Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Mülk Sahibi", repeat:{base:"ms", label:"Mülk Sahibi", max:5}, fields:[
-      {k:"msIsim", l:"İsim Soyisim / Ticari Ünvan", req:1},
-      {k:"msVergi", l:"Vergi No / TC No"},
-      {k:"msAdres", l:"Adres", type:"textarea"},
-      {k:"msTel", l:"Telefon Numarası", fmt:"phone", ph:"0 (5xx) xxx xx xx"},
+    {t:"Mülk Sahibi", tEn:"Property Owner", repeat:{base:"ms", label:"Mülk Sahibi", labelEn:"Owner", max:5}, fields:[
+      {k:"msIsim", l:"İsim Soyisim / Ticari Ünvan", lEn:"Full Name / Company Title", req:1},
+      {k:"msVergi", l:"Vergi No / TC No", lEn:"Tax No / National ID"},
+      {k:"msAdres", l:"Adres", lEn:"Address", type:"textarea"},
+      {k:"msTel", l:"Telefon Numarası", lEn:"Phone Number", fmt:"phone", ph:"0 (5xx) xxx xx xx"},
     ]},
-    {t:"Mülk", fields:[
-      {k:"mAdres", l:"Açık Adres", type:"textarea", req:1},
-      {k:"mAda", l:"Ada Pafta Parsel"},
-      {k:"mIl", l:"İl / İlçe"},
+    {t:"Mülk", tEn:"Property", fields:[
+      {k:"mAdres", l:"Açık Adres", lEn:"Full Address", type:"textarea", req:1},
+      {k:"mAda", l:"Ada Pafta Parsel", lEn:"Block / Sheet / Parcel"},
+      {k:"mIl", l:"İl / İlçe", lEn:"Province / District"},
     ]},
-    {t:"İşlem", fields:[
-      {k:"bedel", l:"Kiralama Bedeli (TL)", req:1, fmt:"money"},
-      {k:"hizmet", l:"Hizmet Bedeli", def:"1 Aylık Kira Bedeli + KDV"},
-      {k:"sure", l:"Yetki Süresi", def:"3 Ay"},
-      {k:"yetkiBas", l:"Yetki Başlangıç Tarihi", ph:"GG.AA.YYYY", fmt:"date"},
-      {k:"danisman", l:"Sorumlu Emlak Danışmanı", auto:"me"},
+    {t:"İşlem", tEn:"Transaction", fields:[
+      {k:"bedel", l:"Kiralama Bedeli (TL)", lEn:"Rental Price (TL)", req:1, fmt:"money"},
+      {k:"hizmet", l:"Hizmet Bedeli", lEn:"Service Fee", def:"1 Aylık Kira Bedeli + KDV"},
+      {k:"sure", l:"Yetki Süresi", lEn:"Authorization Period", def:"3 Ay"},
+      {k:"yetkiBas", l:"Yetki Başlangıç Tarihi", lEn:"Authorization Start Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"danisman", l:"Sorumlu Emlak Danışmanı", lEn:"Responsible Real Estate Consultant", auto:"me"},
     ]},
   ],
   render(){
     const c = repCount("ms");
     const blocks = [];
     for (let i=1;i<=c;i++) blocks.push(
-      secHead(`Mülk Sahibi${c>1?" "+i:""} Bilgileri`) +
+      secHead(L(`Mülk Sahibi${c>1?" "+i:""} Bilgileri`, `Owner${c>1?" "+i:""} Details`)) +
       ftbl([
-        ["İsim ve Soyisim / Ticari Ünvan", fvi("msIsim",i)],
-        ["Vergi No / TC No", fvi("msVergi",i)],
-        ["Adres", fvi("msAdres",i), 1],
-        ["Telefon Numarası", fvi("msTel",i)],
+        [L("İsim ve Soyisim / Ticari Ünvan","Full Name / Company Title"), fvi("msIsim",i)],
+        [L("Vergi No / TC No","Tax No / National ID"), fvi("msVergi",i)],
+        [L("Adres","Address"), fvi("msAdres",i), 1],
+        [L("Telefon Numarası","Phone Number"), fvi("msTel",i)],
       ])
     );
     blocks.push(
-      secHead("Mülk Bilgileri") +
+      secHead(L("Mülk Bilgileri","Property Details")) +
       ftbl([
-        ["Açık Adres", fv("mAdres"), 1],
-        ["Ada Pafta Parsel", fv("mAda")],
-        ["İl / İlçe", fv("mIl")],
+        [L("Açık Adres","Full Address"), fv("mAdres"), 1],
+        [L("Ada Pafta Parsel","Block / Sheet / Parcel"), fv("mAda")],
+        [L("İl / İlçe","Province / District"), fv("mIl")],
       ])
     );
     blocks.push(
-      secHead("Yetkilendirilen Sorumlu Emlak Danışmanı Bilgileri") +
+      secHead(L("Yetkilendirilen Sorumlu Emlak Danışmanı Bilgileri","Authorized Responsible Real Estate Consultant Details")) +
       `<table class="ftbl">
-        <tr><td class="fl">Ticari Ünvan</td><td class="fv" colspan="3">UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İNŞ. SAN. TİC. LTD. ŞTİ.</td></tr>
-        <tr><td class="fl4">Vergi Dairesi / No</td><td class="fv4">GÖZTEPE VD. — 8920318332</td><td class="fl4">Yetki Belge No</td><td class="fv4">3402699</td></tr>
-        <tr><td class="fl4">Sorumlu Emlak Danışmanı</td><td class="fv4">${(fvRaw("danisman")? fvRaw("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">Telefon Numarası</td><td class="fv4">0216 315 15 15</td></tr>
-        <tr><td class="fl">Mail Adresi</td><td class="fv" colspan="3">info@remaxdogus.com.tr</td></tr>
-        <tr><td class="fl">İş Yeri Adresi</td><td class="fv" colspan="3">Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok Dükkan 14, Kadıköy / İstanbul</td></tr>
+        <tr><td class="fl">${L("Ticari Ünvan","Company Title")}</td><td class="fv" colspan="3">UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İNŞ. SAN. TİC. LTD. ŞTİ.</td></tr>
+        <tr><td class="fl4">${L("Vergi Dairesi / No","Tax Office / No")}</td><td class="fv4">GÖZTEPE VD. — 8920318332</td><td class="fl4">${L("Yetki Belge No","License No")}</td><td class="fv4">3402699</td></tr>
+        <tr><td class="fl4">${L("Sorumlu Emlak Danışmanı","Responsible Consultant")}</td><td class="fv4">${(fvRaw("danisman")? fvRaw("danisman")+" — " : "")}SEVİYE — 5N</td><td class="fl4">${L("Telefon Numarası","Phone Number")}</td><td class="fv4">0216 315 15 15</td></tr>
+        <tr><td class="fl">${L("Mail Adresi","E-mail")}</td><td class="fv" colspan="3">info@remaxdogus.com.tr</td></tr>
+        <tr><td class="fl">${L("İş Yeri Adresi","Office Address")}</td><td class="fv" colspan="3">Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok Dükkan 14, Kadıköy / İstanbul</td></tr>
       </table>`
     );
     blocks.push(
-      secHead("İşlem Bilgileri") +
+      secHead(L("İşlem Bilgileri","Transaction Details")) +
       `<table class="ftbl">
-        <tr><td class="fl4">Kiralama Bedeli</td><td class="fv4">${fvu("bedel","TL")}</td><td class="fl4">Hizmet Bedeli</td><td class="fv4">${(fvRaw("hizmet")? fv("hizmet") : "&nbsp;")}</td></tr>
-        <tr><td class="fl4">Yetki Süresi</td><td class="fv4">${(fvRaw("sure")? fv("sure") : "&nbsp;")}</td><td class="fl4">Yetki Başlangıç Tarihi</td><td class="fv4">${(fvRaw("yetkiBas")? fv("yetkiBas") : "&nbsp;")}</td></tr>
+        <tr><td class="fl4">${L("Kiralama Bedeli","Rental Price")}</td><td class="fv4">${fvu("bedel","TL")}</td><td class="fl4">${L("Hizmet Bedeli","Service Fee")}</td><td class="fv4">${(fvRaw("hizmet")? fv("hizmet") : "&nbsp;")}</td></tr>
+        <tr><td class="fl4">${L("Yetki Süresi","Authorization Period")}</td><td class="fv4">${(fvRaw("sure")? fv("sure") : "&nbsp;")}</td><td class="fl4">${L("Yetki Başlangıç Tarihi","Authorization Start Date")}</td><td class="fv4">${(fvRaw("yetkiBas")? fv("yetkiBas") : "&nbsp;")}</td></tr>
       </table>`
     );
-    // kısa tabloları ikişerli yan yana yerleştir; uzun danışman bloğu hep tam genişlik
-    const danBlock = blocks.splice(blocks.length-2, 1)[0]; // danışman bloğu (sondan ikinci)
+    const danBlock = blocks.splice(blocks.length-2, 1)[0];
     let grid = "";
     for (let i=0;i<blocks.length;i+=2){
       if (i+1 < blocks.length) grid += `<table class="pair"><tr><td>${blocks[i]}</td><td>${blocks[i+1]}</td></tr></table>`;
@@ -814,19 +814,19 @@ const TEMPLATES = [
     }
     grid += danBlock;
     return `
-    ${hdrBand("KİRALIK YETKİLENDİRME SÖZLEŞMESİ")}
+    ${hdrBand(L("KİRALIK YETKİLENDİRME SÖZLEŞMESİ","EXCLUSIVE RENTAL AUTHORIZATION AGREEMENT"))}
     ${dateLine()}
     ${grid}
     <div style="height:3mm"></div>
-    <div class="clz clzL"><b>1- KONU:</b> Mal Sahibi/Sözleşme İmzalayan ile UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. (V.D. Göztepe, V.N. 8920318332 — RE/MAX DOĞUŞ), yukarıda belirtilen Gayrimenkulün kiralanmasına aracılık etmek üzere yetkilendirilmesini, verilecek tanıtım, pazarlama ve aracılık hizmetlerini ve bunlar karşılığında Mal Sahibi'nin yükümlülüklerini düzenler.</div>
-    <div class="clz clzL"><b>2- TANITIM YETKİSİ:</b> RE/MAX DOĞUŞ, kiralama işlemi amacıyla masrafı kendisine ait olmak üzere pazarlama hakkına sahiptir. Mal Sahibi, RE/MAX DOĞUŞ'un bu sözleşmeden doğan hak ve yükümlülüklerini yerine getirebilmesi için gayrimenkule daima giriş imkânı tanımayı kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>3- MÜLK SAHİBİ YÜKÜMLÜLÜKLERİ:</b> Mal Sahibi, taşınmaza her zaman serbestçe giriş imkânı sağlamayı ve afiş/tabela yerleştirilmesine imkân tanımayı; taşınmazda hâlen veya kiralama sürecinde oluşabilecek hukuki ayıp/engel/hak tesislerini RE/MAX DOĞUŞ'a bildirmeyi kabul ve taahhüt eder. Mal Sahibi, kendisine gelen tüm başvuruları RE/MAX DOĞUŞ'a bildirmeyi; bilgi verilmeden gayrimenkulün kiralanması halinde hizmet bedelinin 2 (iki) katını ödemeyi kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>4- SÜRE:</b> İşbu Sözleşme belirtilen başlangıç tarihinde yürürlüğe girer ve belirlenen süre kadar devam eder. Müşteri, süre bitmeden bir ay önce RE/MAX DOĞUŞ'a yazılı olarak bildirmediği sürece sözleşme aynı şartlarla ve aynı süreyle otomatik olarak uzar.</div>
-    <div class="clz clzL"><b>5- SÜRENİN BİTİMİ:</b> Mal Sahibi, yetki süresi zarfında RE/MAX DOĞUŞ'un veya hizmet ortaklarının temsil ettiği, bulduğu, gösterdiği ya da tanıştırdığı kişi/kuruluşlarla veya bunlarla irtibatı/bağlantısı (eşleri dâhil 3. dereceye kadar kan ve sıhrî hısımlık, şirket ortaklığı, kendisine/eşine ait diğer şirketler ve çalışanları vb.) bulunan kişilerle, sözleşmenin sona erdiği tarihten itibaren 180 gün içinde, RE/MAX DOĞUŞ'un onayı olmadan kiralama veya devir işlemi yapmamayı kabul ve taahhüt eder. Aksi halde RE/MAX DOĞUŞ hizmet bedelinin 2 (iki) katına hak kazanır.</div>
-    <div class="clz clzL"><b>6- VAZGEÇME:</b> Taraflar sözleşme süresi içinde sözleşmeyi tek taraflı feshedemez. Mal Sahibi süre dolmadan tek yanlı feshederse veya RE/MAX DOĞUŞ'un sözleşmedeki şartlarla bulduğu müşteriyi kendisine önermesi halinde derhal kiralamayı gerçekleştirmezse, 2 (iki) aylık kira karşılığı + KDV oranında tellâliye ücretini ödemeyi kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>7- ZİLYETLİK VE SORUMLULUK:</b> Mal Sahibi, taşınmaz üzerinde zilyetliği (mülkü fiilen elinde bulundurma/kullanma hakkı) ve/veya işlem yapma yetkisi bulunmaması ya da gerçek kişinin şirket yetkilisi olmadığı halde şirket kaşesi altına imza atması halinde, RE/MAX DOĞUŞ'un uğradığı/uğrayacağı tüm zararları ve 2 (iki) aylık kira bedeli + KDV tutarındaki hizmet bedelinin tamamını bizzat tazmin etmeyi peşinen kabul ve taahhüt eder.</div>
-    <div class="clz clzL"><b>8- TARAFLAR:</b> İşbu sözleşme, taraflarca kabul edilerek 8 madde ve 2 asıl nüsha olarak düzenlenmiştir; bir nüshası UMT GROUP (RE/MAX DOĞUŞ)'a, bir nüshası Mal Sahibi'ne verilecektir. Sözleşmeden doğacak ihtilaflarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.</div>
-    ${sigBlock([...Array.from({length:c},(_,x)=>({t:c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ",s:fvi("msIsim",x+1)})),...(c>=5?[]:[{t:"SORUMLU EMLAK DANIŞMANI",s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
+    <div class="clz clzL"><b>${L("1- KONU:","1- SUBJECT:")}</b> ${Lc("Mal Sahibi/Sözleşme İmzalayan ile UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. (V.D. Göztepe, V.N. 8920318332 — RE/MAX DOĞUŞ), yukarıda belirtilen Gayrimenkulün kiralanmasına aracılık etmek üzere yetkilendirilmesini, verilecek tanıtım, pazarlama ve aracılık hizmetlerini ve bunlar karşılığında Mal Sahibi'nin yükümlülüklerini düzenler.", "This agreement, between the Owner/Signatory and UMT GROUP GAYRİMENKUL YATIRIM DANIŞMANLIK İnş. San. Tic. Ltd. Şti. (Göztepe Tax Office, Tax No. 8920318332 — RE/MAX DOĞUŞ), governs the authorization to act as intermediary for the rental of the above-mentioned Property, the promotion, marketing and brokerage services to be provided, and, in consideration thereof, the Owner's obligations.")}</div>
+    <div class="clz clzL"><b>${L("2- TANITIM YETKİSİ:","2- PROMOTION AUTHORITY:")}</b> ${Lc("RE/MAX DOĞUŞ, kiralama işlemi amacıyla masrafı kendisine ait olmak üzere pazarlama hakkına sahiptir. Mal Sahibi, RE/MAX DOĞUŞ'un bu sözleşmeden doğan hak ve yükümlülüklerini yerine getirebilmesi için gayrimenkule daima giriş imkânı tanımayı kabul ve taahhüt eder.", "RE/MAX DOĞUŞ has the right to market the property for the purpose of the rental, at its own expense. The Owner agrees and undertakes to grant access to the property at all times so that RE/MAX DOĞUŞ can fulfil the rights and obligations arising from this agreement.")}</div>
+    <div class="clz clzL"><b>${L("3- MÜLK SAHİBİ YÜKÜMLÜLÜKLERİ:","3- OWNER'S OBLIGATIONS:")}</b> ${Lc("Mal Sahibi, taşınmaza her zaman serbestçe giriş imkânı sağlamayı ve afiş/tabela yerleştirilmesine imkân tanımayı; taşınmazda hâlen veya kiralama sürecinde oluşabilecek hukuki ayıp/engel/hak tesislerini RE/MAX DOĞUŞ'a bildirmeyi kabul ve taahhüt eder. Mal Sahibi, kendisine gelen tüm başvuruları RE/MAX DOĞUŞ'a bildirmeyi; bilgi verilmeden gayrimenkulün kiralanması halinde hizmet bedelinin 2 (iki) katını ödemeyi kabul ve taahhüt eder.", "The Owner agrees and undertakes to provide free access to the property at all times and to allow the placement of posters/signboards; and to notify RE/MAX DOĞUŞ of any legal defects, encumbrances or third-party rights existing on the property or that may arise during the rental process. The Owner agrees and undertakes to notify RE/MAX DOĞUŞ of all enquiries received; and to pay twice (2×) the service fee if the property is rented without informing RE/MAX DOĞUŞ.")}</div>
+    <div class="clz clzL"><b>${L("4- SÜRE:","4- TERM:")}</b> ${Lc("İşbu Sözleşme belirtilen başlangıç tarihinde yürürlüğe girer ve belirlenen süre kadar devam eder. Müşteri, süre bitmeden bir ay önce RE/MAX DOĞUŞ'a yazılı olarak bildirmediği sürece sözleşme aynı şartlarla ve aynı süreyle otomatik olarak uzar.", "This agreement takes effect on the specified start date and continues for the specified period. Unless the client notifies RE/MAX DOĞUŞ in writing one month before the end of the term, the agreement is automatically extended under the same conditions and for the same period.")}</div>
+    <div class="clz clzL"><b>${L("5- SÜRENİN BİTİMİ:","5- EXPIRY OF TERM:")}</b> ${Lc("Mal Sahibi, yetki süresi zarfında RE/MAX DOĞUŞ'un veya hizmet ortaklarının temsil ettiği, bulduğu, gösterdiği ya da tanıştırdığı kişi/kuruluşlarla veya bunlarla irtibatı/bağlantısı (eşleri dâhil 3. dereceye kadar kan ve sıhrî hısımlık, şirket ortaklığı, kendisine/eşine ait diğer şirketler ve çalışanları vb.) bulunan kişilerle, sözleşmenin sona erdiği tarihten itibaren 180 gün içinde, RE/MAX DOĞUŞ'un onayı olmadan kiralama veya devir işlemi yapmamayı kabul ve taahhüt eder. Aksi halde RE/MAX DOĞUŞ hizmet bedelinin 2 (iki) katına hak kazanır.", "The Owner agrees and undertakes not to carry out a rental or transfer, within 180 days from the termination date of the agreement and without RE/MAX DOĞUŞ's approval, with persons/entities represented, found, shown or introduced by RE/MAX DOĞUŞ or its service partners during the authorization period, or with persons connected/related to them (including spouses, blood and marriage relatives up to the 3rd degree, company partnerships, other companies owned by the Owner/spouse and their employees, etc.). Otherwise, RE/MAX DOĞUŞ becomes entitled to twice (2×) the service fee.")}</div>
+    <div class="clz clzL"><b>${L("6- VAZGEÇME:","6- WITHDRAWAL:")}</b> ${Lc("Taraflar sözleşme süresi içinde sözleşmeyi tek taraflı feshedemez. Mal Sahibi süre dolmadan tek yanlı feshederse veya RE/MAX DOĞUŞ'un sözleşmedeki şartlarla bulduğu müşteriyi kendisine önermesi halinde derhal kiralamayı gerçekleştirmezse, 2 (iki) aylık kira karşılığı + KDV oranında tellâliye ücretini ödemeyi kabul ve taahhüt eder.", "The parties may not unilaterally terminate the agreement during its term. If the Owner unilaterally terminates before expiry, or fails to immediately complete the rental when RE/MAX DOĞUŞ presents a client found under the terms of the agreement, the Owner agrees and undertakes to pay a brokerage fee equal to two (2) months' rent + VAT.")}</div>
+    <div class="clz clzL"><b>${L("7- ZİLYETLİK VE SORUMLULUK:","7- POSSESSION AND LIABILITY:")}</b> ${Lc("Mal Sahibi, taşınmaz üzerinde zilyetliği (mülkü fiilen elinde bulundurma/kullanma hakkı) ve/veya işlem yapma yetkisi bulunmaması ya da gerçek kişinin şirket yetkilisi olmadığı halde şirket kaşesi altına imza atması halinde, RE/MAX DOĞUŞ'un uğradığı/uğrayacağı tüm zararları ve 2 (iki) aylık kira bedeli + KDV tutarındaki hizmet bedelinin tamamını bizzat tazmin etmeyi peşinen kabul ve taahhüt eder.", "If the Owner does not hold possession (the right to actually hold/use the property) and/or the authority to transact on the property, or if a natural person signs under a company seal without being an authorized company officer, the Owner accepts and undertakes in advance to personally indemnify all losses incurred/to be incurred by RE/MAX DOĞUŞ and the entire service fee equal to two (2) months' rent + VAT.")}</div>
+    <div class="clz clzL"><b>${L("8- TARAFLAR:","8- PARTIES:")}</b> ${Lc("İşbu sözleşme, taraflarca kabul edilerek 8 madde ve 2 asıl nüsha olarak düzenlenmiştir; bir nüshası UMT GROUP (RE/MAX DOĞUŞ)'a, bir nüshası Mal Sahibi'ne verilecektir. Sözleşmeden doğacak ihtilaflarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.", "This agreement has been drawn up and accepted by the parties in 8 articles and 2 original copies; one copy shall be given to UMT GROUP (RE/MAX DOĞUŞ) and one copy to the Owner. Istanbul Anatolian Courts and Enforcement Offices have jurisdiction over disputes arising from the agreement.")}</div>
+    ${sigBlock([...Array.from({length:c},(_,x)=>({t:L(c>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", c>1?"OWNER "+(x+1):"OWNER"),s:fvi("msIsim",x+1)})),...(c>=5?[]:[{t:L("SORUMLU EMLAK DANIŞMANI","RESPONSIBLE CONSULTANT"),s:fv("danisman")}]),{t:"RE/MAX DOĞUŞ",logo:1}])}
   `;}
 },
 
