@@ -207,6 +207,8 @@ table.ftbl .fv4{background:#fff;width:33%}
    (üst boşluk = alt boşluk, aralar her sayfada aynı) */
 .pgflex .clzwrap{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:4.5mm;padding:3mm 0}
 .pgflex .clzwrap > .clz{margin-bottom:0}
+/* madde sayfası başlıkları (HUSUSİ ŞARTLAR / Kefalet) tepede sabit dursun */
+.pgflex > .shead, .pgflex > .kefhead{flex:0 0 auto;margin-top:0}
 .pg1 .pgfill{flex:1;display:flex;flex-direction:column;min-height:0}
 .pg1 .tgrow{margin-top:3mm}
 /* kira sayfaları: referans Word belgesindeki gibi dolu sayfa tipografisi */
@@ -230,7 +232,7 @@ table.ftbl .fv4{background:#fff;width:33%}
 .pg4 table.kefal th{font-size:8.5pt;padding:7px}
 .pg4 table.kefal td{height:18mm}
 .pg2{padding-top:9mm}
-.pg2 > .shead{margin-top:14mm}
+.pg2 > .shead{margin-top:2mm}
 .pg3,.pg4{padding-top:20mm}
 table.ftbl td.tall{height:9mm}
 .pgbrk{height:0;overflow:hidden;border:none}
@@ -358,7 +360,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v87</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v88</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -369,7 +371,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v87</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v88</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w" id="langBtn" onclick="toggleLang()" title="Dil / Language">🌐 TR</button>
@@ -1728,7 +1730,7 @@ function kiraFlow(){
     const eski = sec.querySelector(":scope > .clzwrap");
     if (eski){ while (eski.firstChild) sec.insertBefore(eski.firstChild, eski); eski.remove(); }
     const pb = sec.querySelector(":scope > .pgbottom");
-    const items = Array.from(sec.querySelectorAll(":scope > .clz, :scope > table.demir, :scope > table.kefal, :scope > .shead, :scope > .kefhead"));
+    const items = Array.from(sec.querySelectorAll(":scope > .clz, :scope > table.demir, :scope > table.kefal"));
     if (items.length < 2) return;  // tek öğe varsa yayma
     const wrap = document.createElement("div");
     wrap.className = "clzwrap";
