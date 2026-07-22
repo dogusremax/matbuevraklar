@@ -86,6 +86,24 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .cell-hl{background:#FFEC9E !important;outline:2px solid #E5A800;outline-offset:-2px}
 /* el yazısı (kilitli) alan */
 .hwfld{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px;border:1.5px dashed #C9A227;border-radius:8px;background:#FFF9E6;cursor:pointer;box-sizing:border-box}
+/* kimlik fotoğrafı alanı */
+.photofld{width:100%}
+.photobtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed #1B3A6B;border-radius:8px;background:#EEF3FB;color:#1B3A6B;font-weight:600;cursor:pointer;box-sizing:border-box}
+.photobtn:active{background:#DDE7F5}
+.photoprev{position:relative;display:inline-block;border-radius:8px;overflow:hidden;border:1px solid #ccc;max-width:100%}
+.photoprev img{display:block;max-width:100%;max-height:220px;object-fit:contain}
+.photodel{position:absolute;top:6px;right:6px;width:28px;height:28px;border:none;border-radius:50%;background:rgba(200,30,30,.92);color:#fff;font-size:15px;cursor:pointer;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.photoload,.photoerr{padding:14px;text-align:center;color:#555;border:1.5px dashed #bbb;border-radius:8px;background:#f7f7f7}
+.photoerr{color:#b00;border-color:#e0a0a0;background:#fdf0f0}
+/* kimlik ekleri sayfası (baskıda) */
+.idpage{padding-top:6mm}
+.idcard{margin:0 0 8mm;page-break-inside:avoid}
+.idlbl{font-weight:bold;font-size:11pt;color:#1B3A6B;margin-bottom:2.5mm;border-bottom:1.5px solid #1B3A6B;padding-bottom:1.5mm}
+.idrow{display:flex;gap:5mm;align-items:flex-start}
+.idside{flex:1 1 0;min-width:0}
+.idcap{font-size:9pt;font-weight:600;color:#555;margin-bottom:1.5mm;text-align:center}
+.idimg{text-align:center;border:1px solid #ccc;border-radius:4px;padding:3mm;background:#fafafa}
+.idimg img{max-width:100%;max-height:80mm;object-fit:contain}
 .hwfld:active{background:#FDF2CC}
 .hwfld .hwtxt{font-size:12.5px;color:#8A6D1A;font-weight:600;line-height:1.3}
 .hwfld .hwlock{font-size:15px;opacity:.7}
@@ -383,7 +401,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v100</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v102</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -394,7 +412,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v100</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v102</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -989,6 +1007,12 @@ const TEMPLATES = [
       {k:"kefTutar", l:"Azami Kefalet Tutarı (TL)", lEn:"Maximum Guarantee Amount (TL)", fmt:"money", handwrite:1},
       {k:"kefTarih", l:"Kefalet Tarihi", lEn:"Guarantee Date", ph:"GG.AA.YYYY", fmt:"date", handwrite:1},
     ]},
+    {t:"Kimlik Fotoğrafları", tEn:"ID Photos", fields:[
+      {k:"kcFotoOn", l:"Kiracı Kimlik — Ön Yüz", lEn:"Tenant ID — Front", type:"photo"},
+      {k:"kcFotoArka", l:"Kiracı Kimlik — Arka Yüz", lEn:"Tenant ID — Back", type:"photo"},
+      {k:"kfFotoOn", l:"Kefil Kimlik — Ön Yüz", lEn:"Guarantor ID — Front", type:"photo"},
+      {k:"kfFotoArka", l:"Kefil Kimlik — Arka Yüz", lEn:"Guarantor ID — Back", type:"photo"},
+    ]},
   ],
   render(){
     const ckv = repCount("kv");
@@ -1088,6 +1112,25 @@ const TEMPLATES = [
     </table>
     <div class="pgbottom">${sigK}</div>
     </div>
+    ${(fvRaw("kcFotoOn") || fvRaw("kcFotoArka") || fvRaw("kfFotoOn") || fvRaw("kfFotoArka")) ? `
+    <div class="pgbrk"></div>
+    <div class="pgsec idpage">
+      <div class="shead" style="text-align:center;margin-bottom:5mm">${L("KİMLİK EKLERİ","ID DOCUMENTS")}</div>
+      ${(fvRaw("kcFotoOn") || fvRaw("kcFotoArka")) ? `<div class="idcard">
+        <div class="idlbl">${L("KİRACI","TENANT")}${fvRaw("kcIsim")?" — "+esc(fvRaw("kcIsim")):""}</div>
+        <div class="idrow">
+          ${fvRaw("kcFotoOn") ? `<div class="idside"><div class="idcap">${L("Ön Yüz","Front")}</div><div class="idimg"><img src="${V.kcFotoOn}" alt=""></div></div>` : ""}
+          ${fvRaw("kcFotoArka") ? `<div class="idside"><div class="idcap">${L("Arka Yüz","Back")}</div><div class="idimg"><img src="${V.kcFotoArka}" alt=""></div></div>` : ""}
+        </div>
+      </div>` : ""}
+      ${(fvRaw("kfFotoOn") || fvRaw("kfFotoArka")) ? `<div class="idcard">
+        <div class="idlbl">${L("KEFİL","GUARANTOR")}${fvRaw("kfIsim")?" — "+esc(fvRaw("kfIsim")):""}</div>
+        <div class="idrow">
+          ${fvRaw("kfFotoOn") ? `<div class="idside"><div class="idcap">${L("Ön Yüz","Front")}</div><div class="idimg"><img src="${V.kfFotoOn}" alt=""></div></div>` : ""}
+          ${fvRaw("kfFotoArka") ? `<div class="idside"><div class="idcap">${L("Arka Yüz","Back")}</div><div class="idimg"><img src="${V.kfFotoArka}" alt=""></div></div>` : ""}
+        </div>
+      </div>` : ""}
+    </div>` : ""}
   `;}
 },
 
@@ -1443,6 +1486,40 @@ function logout(){
 
 function draftKey(tid){ return `evrak_draft_${me.pin}_${tid}`; }
 
+/* ---- Kimlik fotoğrafı: seç → küçült → base64 kaydet ---- */
+function photoPick(key, input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const pf = document.getElementById("pf_"+key);
+  if (pf) pf.innerHTML = `<div class="photoload">⏳ ${L("Yükleniyor…","Loading…")}</div>`;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      // en uzun kenar 1000px'e küçült (kimlik okunur kalsın, dosya küçülsün)
+      const MAX = 1000;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX){ h = Math.round(h*MAX/w); w = MAX; }
+      else if (h >= w && h > MAX){ w = Math.round(w*MAX/h); h = MAX; }
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      V[key] = c.toDataURL("image/jpeg", 0.75);
+      try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+      buildForm(); refresh();
+    };
+    img.onerror = () => { if (pf) pf.innerHTML = `<div class="photoerr">${L("Fotoğraf okunamadı","Could not read photo")}</div>`; };
+    img.src = e.target.result;
+  };
+  reader.onerror = () => { if (pf) pf.innerHTML = `<div class="photoerr">${L("Dosya okunamadı","Could not read file")}</div>`; };
+  reader.readAsDataURL(file);
+}
+function photoDel(key){
+  delete V[key];
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  buildForm(); refresh();
+}
+
 function renderCatalog(){
   $("catalog").style.display = "block";
   $("editor").style.display = "none";
@@ -1525,6 +1602,12 @@ function buildForm(){
           ? `<textarea ${common}>${val}</textarea>`
           : fd.type==="select"
           ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||fd.def)===o?" selected":""}>${esc(fd.optsEn?fd.optsEn[oi]:o)}</option>`).join("")}</select>`
+          : fd.type==="photo"
+          ? `<div class="photofld" id="pf_${key}">
+               ${V[key]
+                 ? `<div class="photoprev"><img src="${V[key]}" alt=""><button type="button" class="photodel" onclick="photoDel('${key}')" title="${L("Kaldır","Remove")}">✕</button></div>`
+                 : `<label class="photobtn"><input type="file" accept="image/*" capture="environment" style="display:none" onchange="photoPick('${key}', this)">📷 ${L("Kimlik Fotoğrafı Ekle","Add ID Photo")}</label>`}
+             </div>`
           : `<input type="text" ${common} value="${val}">`;
         const req = fd.req && i===1;
         return `<div class="fld"><label>${L(fd.l,fd.lEn)}${req?' <span class="req">*</span>':''}</label>${input}</div>`;
