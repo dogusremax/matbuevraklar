@@ -422,7 +422,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v103</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v104</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -433,7 +433,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v103</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v104</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -538,7 +538,7 @@ let LANG = localStorage.getItem("matbuLang") || "tr";
 function L(tr, en){
   if (en==null) return tr;
   if (LANG==="en") return en;
-  if (LANG==="bi") return tr + " / " + en;
+  if (LANG==="bi") return (tr===en) ? tr : (tr + " / " + en);
   return tr;
 }
 /* madde/paragraf: bi modda TR üstte, EN altında (soluk italik) */
@@ -1695,7 +1695,7 @@ function buildForm(){
           : fd.type==="textarea"
           ? `<textarea ${common}>${val}</textarea>`
           : fd.type==="select"
-          ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||fd.def)===o?" selected":""}>${esc(fd.optsEn?fd.optsEn[oi]:o)}</option>`).join("")}</select>`
+          ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||fd.def)===o?" selected":""}>${esc(L(o, fd.optsEn?fd.optsEn[oi]:null))}</option>`).join("")}</select>`
           : fd.type==="photo"
           ? `<div class="photofld" id="pf_${key}">
                ${V[key]
