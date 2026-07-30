@@ -1511,7 +1511,6 @@ const TEMPLATES = [
     ]},
     {t:"İmzalar", tEn:"Signatures", fields:[
       {k:"musteriImza", l:"Müşteri İmzası", lEn:"Client Signature", type:"sigpad"},
-      {k:"danismanImza", l:"Danışman İmzası", lEn:"Consultant Signature", type:"sigpad"},
       {k:"paraf1", l:"1. Gayrimenkul — Müşteri Parafı", lEn:"1st Property — Client Initials", type:"sigpad_sm"},
       {k:"paraf2", l:"2. Gayrimenkul — Müşteri Parafı", lEn:"2nd Property — Client Initials", type:"sigpad_sm"},
       {k:"paraf3", l:"3. Gayrimenkul — Müşteri Parafı", lEn:"3rd Property — Client Initials", type:"sigpad_sm"},
@@ -1530,7 +1529,6 @@ const TEMPLATES = [
       </tr>`;
     };
     const mImg = V.musteriImza ? `<img src="${V.musteriImza}" style="max-height:50px;max-width:160px">` : "";
-    const dImg = V.danismanImza ? `<img src="${V.danismanImza}" style="max-height:50px;max-width:160px">` : "";
     return `
     ${hdrBand(L("TAŞINMAZ GÖSTERME BELGESİ","PROPERTY SHOWING CERTIFICATE"))}
     ${dateLine(L("TARİH","DATE"))}
@@ -1567,11 +1565,10 @@ const TEMPLATES = [
         </td>
         <td class="sigpad"></td>
         <td class="sig">
-          <div class="sh">${L("RE/MAX DOĞUŞ DANIŞMANI","RE/MAX DOĞUŞ CONSULTANT")}</div>
+          <div class="sh">${L("RE/MAX DOĞUŞ","RE/MAX DOĞUŞ")}</div>
           <div class="sb">
             <div class="sn">${L("Gayrimenkul Danışmanı","Real Estate Consultant")}: <b>${fvRaw("danisman")||""}</b></div>
-            <div class="sn">UMT GROUP Gayrimenkul Yatırım Dan. İnş. San. Tic. Ltd. Şti.</div>
-            <div style="min-height:55px;display:flex;align-items:center;justify-content:center">${dImg}</div>
+            <div class="space tall"><span><img src="${UMT_LOGO}"></span></div>
             <div class="sf">${L("İMZA","SIGNATURE")}</div>
           </div>
         </td>
