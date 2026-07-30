@@ -3075,14 +3075,20 @@ async function sendYerGostermeEmail(){
     body.append("gayrimenkuller", JSON.stringify(gayrimenkuller));
 
     const resp = await fetch(DRIVE_ENDPOINT, { method: "POST", body, redirect: "follow" });
-    const data = await resp.json();
+    const txt = await resp.text();
+    let data;
+    try { data = JSON.parse(txt); } catch(_){ 
+      alert("Apps Script yanıtı JSON değil.\n\nDoPost'a sendYerGosterme action'ı eklenmiş mi?\nYeni version deploy edilmiş mi?\n\nYanıt:\n" + txt.slice(0,300));
+      btn.disabled = false; btn.textContent = oldTxt;
+      return;
+    }
 
     if (data.ok) {
       btn.textContent = "✅ Gönderildi!";
       btn.style.background = "#0E7A3D";
       setTimeout(() => { btn.textContent = oldTxt; btn.style.background = "#C23616"; btn.disabled = false; }, 3000);
     } else {
-      alert("Gönderim başarısız: " + (data.error || "Bilinmeyen hata"));
+      alert("Gönderim başarısız:\n" + (data.error || "Apps Script 'ok:false' döndü.\n\nGmailApp izni verilmiş mi?\nsendYerGostermeEmail fonksiyonu eklenmiş mi?"));
       btn.disabled = false; btn.textContent = oldTxt;
     }
   } catch (err) {
