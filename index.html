@@ -422,7 +422,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v105</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v106</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -433,7 +433,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v105</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v106</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1416,7 +1416,7 @@ const TEMPLATES = [
       <div class="prow">${L("TAHLİYE TARİHİ","EVICTION DATE")} : ${f("tahliyeTarihi",120)}</div>
       <div class="clz">${Lc("Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim.", "I declare, accept and undertake that I shall vacate, unconditionally and without any need for notice or warning, the property at the address stated above which I currently use as a tenant, on the date specified above; that I shall deliver it to the aforementioned owner empty and in sound condition; and that I shall immediately pay, in cash and in advance, without any need for notice, warning or judgment, all costs the owner may incur through enforcement proceedings and any loss and damage the owner may suffer due to my delay in vacating.")}</div>
       <div class="psig">
-        <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${(()=>{const t=plusOneMonth(fv("tahliyeTarihi"));return t?`<span class="blank filled">${t}</span>`:`<span class="blank" style="min-width:110px">&nbsp;</span>`;})()}</div>
+        <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${(()=>{const t=plusOneMonth(fvRaw("tahliyeTarihi"));return t?`<span class="blank filled">${t}</span>`:`<span class="blank" style="min-width:110px">&nbsp;</span>`;})()}</div>
         <div class="prow">${L("Taahhüt Eden","Undertaker")} : <b>${fvRaw("kiraciIsim")||""}</b></div>
         <div class="prow">${L("İmzası","Signature")} :</div>
       </div>
