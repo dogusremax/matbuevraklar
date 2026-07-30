@@ -308,6 +308,24 @@ table.ftbl td.tall{height:9mm}
 .sheet.big1 table.sigs{margin-top:5mm}
 .sheet.big2 table.sigs{margin-top:6mm}
 .sheet.big3 table.sigs{margin-top:6mm}
+.sheet.big1 .yg table.ftbl td{font-size:11pt;padding:6px 10px}
+.sheet.big2 .yg table.ftbl td{font-size:11.5pt;padding:7px 11px}
+.sheet.big3 .yg table.ftbl td{font-size:12pt;padding:8px 12px}
+.sheet.big1 .yg .yg-legal{font-size:10pt;line-height:1.65}
+.sheet.big2 .yg .yg-legal{font-size:10.5pt;line-height:1.7}
+.sheet.big3 .yg .yg-legal{font-size:11pt;line-height:1.75}
+.sheet.big1 .yg .shead{font-size:11.5pt;padding:7px 10px}
+.sheet.big2 .yg .shead{font-size:12pt;padding:8px 10px}
+.sheet.big3 .yg .shead{font-size:12.5pt;padding:9px 10px}
+.sheet.big1 .yg .sig .sn{font-size:10pt}
+.sheet.big2 .yg .sig .sn{font-size:10.5pt}
+.sheet.big3 .yg .sig .sn{font-size:11pt}
+.sheet.big1 .yg .sig .space{height:18mm}
+.sheet.big2 .yg .sig .space{height:20mm}
+.sheet.big3 .yg .sig .space{height:22mm}
+.sheet.big1 .yg .sig .space.tall{height:23mm}
+.sheet.big2 .yg .sig .space.tall{height:25mm}
+.sheet.big3 .yg .sig .space.tall{height:27mm}
 
 /* tek sayfaya sığdırma kademeleri (taban: clz 7.8pt / ftbl 8pt) */
 .sheet.fit1 .clz{font-size:7.4pt;line-height:1.32;margin-bottom:4px}
@@ -360,6 +378,24 @@ table.ftbl td.tall{height:9mm}
 #fullPrev .fp-holder{position:relative;margin:0 auto;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.45);overflow:hidden}
 #fullPrev .pgline{position:absolute;left:0;right:0;border-top:2px dashed #D64545;opacity:.85;pointer-events:none}
 #fullPrev .pgline span{position:absolute;right:6px;top:-19px;background:#D64545;color:#fff;font-size:10px;padding:1px 7px;border-radius:4px;font-weight:700}
+
+/* ---- Yer Gösterme Belgesi: tam sayfa ---- */
+.yg table.ftbl td{font-size:10.5pt;padding:5px 10px;min-height:22px}
+.yg table.ftbl .fl{width:34%}
+.yg table.ftbl .fv.tall{min-height:26px}
+.yg table.ftbl .fl4{width:15%}
+.yg table.ftbl .fv4{font-size:10pt}
+.yg .shead{font-size:11pt;padding:6px 10px;margin-top:5mm}
+.yg .dline{font-size:10.5pt;margin:3mm 0}
+.yg table.sigs{margin-top:6mm;border-spacing:5mm 3mm}
+.yg .sig .sh{font-size:9.5pt;padding:5px 6px}
+.yg .sig .sn{font-size:9.5pt;padding:4px 2px 5px;min-height:18px}
+.yg .sig .space{height:17mm}
+.yg .sig .space.tall{height:22mm}
+.yg .sig .space img{height:17mm}
+.yg .sig .sf{font-size:8pt;padding-top:4px}
+.yg .yg-legal{font-size:9.5pt;line-height:1.6;margin-top:5mm;text-align:justify}
+.yg .yg-propaddr{min-height:28px}
 
 /* ---- Biometrik İmza Pad ---- */
 .sigpad-wrap{display:inline-block;margin:4px 0}
@@ -471,6 +507,7 @@ table.ftbl td.tall{height:9mm}
             <button class="btn btn-p" style="background:#5A4FB5" onclick="openPreview()">👁️ Önizleme</button>
             <button class="btn btn-p" onclick="printDoc()">🖨️ Yazdır</button>
             <button class="btn btn-p" style="background:#0E7A3D" onclick="kaydet(this)">💾 Kaydet</button>
+            <button class="btn btn-p" id="btnEmail" style="background:#C23616;display:none" onclick="sendYerGostermeEmail()">📧 Müşteriye Gönder</button>
           </div>
           <div class="note">Alanları doldurdukça sağdaki belge canlı olarak güncellenir. <b>Belgedeki herhangi bir maddeye dokunarak metnini bu evraka özel düzenleyebilirsiniz.</b> Boş bırakılan alanlar belgede noktalı boşluk olarak kalır. Taslak otomatik kaydedilir.</div>
           <div id="formFields"></div>
@@ -1479,7 +1516,7 @@ const TEMPLATES = [
 
 /* ---------- 11. TAŞINMAZ GÖSTERME BELGESİ ---------- */
 {
-  id:"yer-gosterme", fileBase:"Yer_Gosterme_Belgesi", nameKey:"mIsim", ic:"🏠", title:"Taşınmaz Gösterme Belgesi", titleEn:"Property Showing Certificate",
+  id:"yer-gosterme", fillPage:true, fileBase:"Yer_Gosterme_Belgesi", nameKey:"mIsim", ic:"🏠", title:"Taşınmaz Gösterme Belgesi", titleEn:"Property Showing Certificate",
   desc:"Daire gezdirmeden önce müşteriden alınan yer gösterme formu. Biometrik imza destekli.",
   descEn:"Property showing form taken from the client before viewing. Biometric signature supported.",
   groups:[
@@ -1495,41 +1532,40 @@ const TEMPLATES = [
       {k:"mAdres", l:"İletişim Adresi", lEn:"Contact Address", type:"textarea"},
     ]},
     {t:"1. Gayrimenkul", tEn:"1st Property", fields:[
-      {k:"g1Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea"},
+      {k:"g1Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea", req:1},
       {k:"g1Fiyat", l:"Fiyatı (Rakam ile)", lEn:"Price (Numeric)", fmt:"money"},
       {k:"g1FiyatY", l:"Fiyatı (Yazı ile)", lEn:"Price (Written)"},
     ]},
     {t:"2. Gayrimenkul", tEn:"2nd Property", fields:[
+      {k:"g2Var", l:"2. Gayrimenkul Var mı?", lEn:"2nd Property?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
       {k:"g2Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea"},
       {k:"g2Fiyat", l:"Fiyatı (Rakam ile)", lEn:"Price (Numeric)", fmt:"money"},
       {k:"g2FiyatY", l:"Fiyatı (Yazı ile)", lEn:"Price (Written)"},
     ]},
     {t:"3. Gayrimenkul", tEn:"3rd Property", fields:[
+      {k:"g3Var", l:"3. Gayrimenkul Var mı?", lEn:"3rd Property?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
       {k:"g3Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea"},
       {k:"g3Fiyat", l:"Fiyatı (Rakam ile)", lEn:"Price (Numeric)", fmt:"money"},
       {k:"g3FiyatY", l:"Fiyatı (Yazı ile)", lEn:"Price (Written)"},
     ]},
     {t:"İmzalar", tEn:"Signatures", fields:[
       {k:"musteriImza", l:"Müşteri İmzası", lEn:"Client Signature", type:"sigpad"},
-      {k:"paraf1", l:"1. Gayrimenkul — Müşteri Parafı", lEn:"1st Property — Client Initials", type:"sigpad_sm"},
-      {k:"paraf2", l:"2. Gayrimenkul — Müşteri Parafı", lEn:"2nd Property — Client Initials", type:"sigpad_sm"},
-      {k:"paraf3", l:"3. Gayrimenkul — Müşteri Parafı", lEn:"3rd Property — Client Initials", type:"sigpad_sm"},
     ]},
   ],
   render(){
+    const g2On = V.g2Var === "Var";
+    const g3On = V.g3Var === "Var";
     const propRow = (n) => {
-      const parafImg = V["paraf"+n] ? `<img src="${V["paraf"+n]}" style="height:28px">` : "";
       return `
-      <tr><td class="fl" style="font-weight:700;vertical-align:top">${n}) ${L("Gayrimenkul Adresi","Property Address")}</td><td class="fv tall" colspan="3">${fv("g"+n+"Adres")}</td></tr>
+      <tr><td class="fl" style="font-weight:700;vertical-align:top">${n}) ${L("Gayrimenkul Adresi","Property Address")}</td><td class="fv tall yg-propaddr" colspan="3">${fv("g"+n+"Adres")}</td></tr>
       <tr>
         <td class="fl4">${L("Fiyatı","Price")}</td>
         <td class="fv4">${L("Rakam İle","Numeric")}: ${fvu("g"+n+"Fiyat","TL")}</td>
-        <td class="fv4">${L("Yazı İle","Written")}: ${fv("g"+n+"FiyatY")}</td>
-        <td class="fv4" style="text-align:right;font-size:8px;line-height:1.3;vertical-align:middle">${L("Müşteri Gördü<br>Parafı","Client Viewed<br>Initials")}<br>${parafImg}</td>
+        <td class="fv4" colspan="2">${L("Yazı İle","Written")}: ${fv("g"+n+"FiyatY")}</td>
       </tr>`;
     };
-    const mImg = V.musteriImza ? `<img src="${V.musteriImza}" style="max-height:50px;max-width:160px">` : "";
-    return `
+    const mImg = V.musteriImza ? `<img src="${V.musteriImza}" style="max-height:60px;max-width:180px">` : "";
+    return `<div class="yg">
     ${hdrBand(L("TAŞINMAZ GÖSTERME BELGESİ","PROPERTY SHOWING CERTIFICATE"))}
     ${dateLine(L("TARİH","DATE"))}
     ${secHead(L("Alıcı / Kiracı Adayı Bilgileri","Buyer / Tenant Candidate Details"))}
@@ -1543,23 +1579,23 @@ const TEMPLATES = [
     ${secHead(L("Görülen Gayrimenkul Aşağıdadır.","Properties Shown Are Listed Below."))}
     <table class="ftbl">
       ${propRow(1)}
-      ${propRow(2)}
-      ${propRow(3)}
+      ${g2On ? propRow(2) : ""}
+      ${g3On ? propRow(3) : ""}
     </table>
-    <div class="clz" style="font-size:8.5px;line-height:1.55;margin-top:8px;text-align:justify">
+    <div class="yg-legal">
       ${Lc(
         `Yukarıda adresi bulunan gayrimenkul, ${fvRaw("imzaTarihi")||"……/……/……………"} tarihinde satın almak/kiralamak amacıyla ilk defa Müşteri'ye gösterilmiştir. RE/MAX Doğuş'un bilgisi olmaksızın söz konusu yerin 1 yıl içerisinde; Müşteri'nin kendisi, eşi, ortağı ve çalışanı bulunduğu şirket, şirket ortakları, şirketin ortak olduğu kuruluşlar ya da kan ve sıhri hısımları tarafından satın alındığı takdirde RE/MAX Doğuş gayrimenkulün satış bedelinin %4 + KDV'si; kiralandığı takdirde bir aylık kira bedeli + KDV'si tutarında hizmet bedeline hak kazanır. Müşteri bu maddede belirtilen şartı kabul ve taahhüt etmektedir. İşbu sözleşme 1 sayfadan oluşmaktadır ve 2 nüsha olarak düzenlenmiştir. Sözleşmeden doğan ihtilaflarda İstanbul Mahkeme ve İcra Daireleri yetkilidir.`,
         `The property listed above has been shown to the Client for the first time on ${fvRaw("imzaTarihi")||"……/……/……………"} for the purpose of purchasing/renting. In the event that the aforementioned property is purchased within 1 year without the knowledge of RE/MAX Doğuş by the Client, their spouse, partners, employees of their company, company partners, associated organizations, or blood and in-law relatives, RE/MAX Doğuş shall be entitled to a service fee of 4% + VAT of the sale price; in case of rental, one month's rent + VAT. The Client accepts and undertakes the conditions stated herein. This agreement consists of 1 page and has been drawn up in 2 copies. Istanbul Courts and Execution Offices have jurisdiction over disputes arising from this agreement.`
       )}
     </div>
-    <table class="sigs" style="margin-top:10px">
+    <table class="sigs">
       <tr>
         <td class="sig">
           <div class="sh">${L("GAYRİMENKULÜ GÖREN KİŞİ","PROPERTY VIEWER")}</div>
           <div class="sb">
             <div class="sn">${L("İsim/Soyisim","Full Name")}: <b>${fvRaw("mIsim")||""}</b></div>
             <div class="sn">${L("T.C. No","ID No")}: <b>${fvRaw("mTc")||""}</b></div>
-            <div style="min-height:55px;display:flex;align-items:center;justify-content:center">${mImg}</div>
+            <div style="min-height:60px;display:flex;align-items:center;justify-content:center">${mImg}</div>
             <div class="sf">${L("İMZA","SIGNATURE")}</div>
           </div>
         </td>
@@ -1567,14 +1603,15 @@ const TEMPLATES = [
         <td class="sig">
           <div class="sh">${L("RE/MAX DOĞUŞ","RE/MAX DOĞUŞ")}</div>
           <div class="sb">
-            <div class="sn">${L("Gayrimenkul Danışmanı","Real Estate Consultant")}: <b>${fvRaw("danisman")||""}</b></div>
+            <div class="sn">${L("Gayrimenkul Danışmanı","Real Estate Consultant")}</div>
+            <div class="sn"><b>${fvRaw("danisman")||""}</b></div>
             <div class="space tall"><span><img src="${UMT_LOGO}"></span></div>
             <div class="sf">${L("İMZA","SIGNATURE")}</div>
           </div>
         </td>
       </tr>
     </table>
-    `;
+    </div>`;
   }
 },
 ];
@@ -1759,10 +1796,23 @@ function openTpl(tid){
   $("catalog").style.display = "none";
   $("editor").style.display = "block";
   refresh();
+  updateEmailBtn();
   window.scrollTo(0,0);
 }
 
 /* Demirbaş: Yok ise satırlar gizli; Var ise dolu satırlar + ilk boş satır görünür */
+/* Yer Gösterme: 2./3. gayrimenkul Var/Yok toggle */
+function updateYGProps(){
+  [2,3].forEach(n => {
+    const sel = $("in_g"+n+"Var");
+    if (!sel) return;
+    const yok = (V["g"+n+"Var"] || sel.value || "Yok") === "Yok";
+    ["g"+n+"Adres","g"+n+"Fiyat","g"+n+"FiyatY"].forEach(k => {
+      const el = $("in_"+k);
+      if (el) { const row = el.closest(".fld"); if(row) row.style.display = yok ? "none" : ""; }
+    });
+  });
+}
 function updateDemirbas(){
   const sel = $("in_demirbasVar");
   if (!sel || !sel.closest) return;
@@ -1827,11 +1877,10 @@ function buildForm(){
               return `<div class="sigpad-wrap ${hasSaved?"saved has-ink":""}" id="spw_${key}" style="position:relative">
                 <canvas id="sp_${key}" width="${w*2}" height="${h*2}" style="width:${w}px;height:${h}px"></canvas>
                 <div class="sp-hint">✍️ ${L("Buraya imzalayın","Sign here")}</div>
-                <div class="sp-badge">✓ ${L("Kaydedildi","Saved")}</div>
+                <div class="sp-badge">✓</div>
               </div>
               <div class="sigpad-btns">
-                <button type="button" onclick="spClear('${key}')">Temizle</button>
-                <button type="button" class="sp-ok" id="spok_${key}" onclick="spSave('${key}')" style="${hasSaved?"display:none":""}">Onayla</button>
+                <button type="button" onclick="spClear('${key}')">${L("Temizle","Clear")}</button>
               </div>`;
             })()
           : `<input type="text" ${common} value="${val}">`;
@@ -1893,28 +1942,27 @@ function spInit(key){
   c.width = w * dpr; c.height = h * dpr;
   ctx.scale(dpr, dpr);
   ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#111";
-  const st = { ready:true, drawing:false, hasInk:false, saved:!!V[key], lx:0, ly:0 };
+  const st = { ready:true, drawing:false, hasInk:!!V[key], lx:0, ly:0, timer:null };
   _spState[key] = st;
   if (V[key]) {
     const img = new Image();
-    img.onload = () => { ctx.drawImage(img, 0, 0, w, h); st.hasInk = true; };
+    img.onload = () => { ctx.drawImage(img, 0, 0, w, h); };
     img.src = V[key];
+    const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("has-ink","saved");
   }
   const pos = e => { const r = c.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top }; };
-  const dn = e => { e.preventDefault(); if (st.saved) return; st.drawing = true; const p = pos(e); st.lx = p.x; st.ly = p.y; };
-  const mv = e => { e.preventDefault(); if (!st.drawing || st.saved) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(st.lx, st.ly); ctx.lineTo(p.x, p.y); const sp = Math.sqrt((p.x-st.lx)**2 + (p.y-st.ly)**2); ctx.lineWidth = Math.max(1, 3.2 - sp*0.04); ctx.stroke(); st.lx = p.x; st.ly = p.y; st.hasInk = true; const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("has-ink"); const ok = document.getElementById("spok_"+key); if(ok) ok.style.display = ""; };
-  const up = () => { st.drawing = false; };
+  const dn = e => { e.preventDefault(); st.drawing = true; const p = pos(e); st.lx = p.x; st.ly = p.y; if(st.timer){ clearTimeout(st.timer); st.timer=null; } };
+  const mv = e => { e.preventDefault(); if (!st.drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(st.lx, st.ly); ctx.lineTo(p.x, p.y); const sp = Math.sqrt((p.x-st.lx)**2 + (p.y-st.ly)**2); ctx.lineWidth = Math.max(1, 3.2 - sp*0.04); ctx.stroke(); st.lx = p.x; st.ly = p.y; st.hasInk = true; const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("has-ink"); };
+  const up = () => { if(!st.drawing) return; st.drawing = false; if(st.hasInk){ if(st.timer) clearTimeout(st.timer); st.timer = setTimeout(()=>{ spAutoSave(key); }, 400); } };
   c.addEventListener("mousedown", dn); c.addEventListener("mousemove", mv); c.addEventListener("mouseup", up); c.addEventListener("mouseleave", up);
   c.addEventListener("touchstart", dn, {passive:false}); c.addEventListener("touchmove", mv, {passive:false}); c.addEventListener("touchend", up);
 }
-function spSave(key){
+function spAutoSave(key){
   const c = document.getElementById("sp_"+key);
   if (!c) return;
   const st = _spState[key]; if (!st || !st.hasInk) return;
   V[key] = c.toDataURL("image/png");
-  st.saved = true;
   const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("saved");
-  const ok = document.getElementById("spok_"+key); if(ok) ok.style.display = "none";
   try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(e){}
   refresh();
 }
@@ -1925,9 +1973,8 @@ function spClear(key){
   const dpr = window.devicePixelRatio || 1;
   ctx.clearRect(0, 0, c.width/dpr, c.height/dpr);
   delete V[key];
-  const st = _spState[key]; if(st){ st.hasInk = false; st.saved = false; }
+  const st = _spState[key]; if(st){ st.hasInk = false; if(st.timer){ clearTimeout(st.timer); st.timer=null; } }
   const wr = document.getElementById("spw_"+key); if(wr){ wr.classList.remove("saved","has-ink"); }
-  const ok = document.getElementById("spok_"+key); if(ok) ok.style.display = "none";
   try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(e){}
   refresh();
 }
@@ -1998,6 +2045,7 @@ function removeRep(base){
 
 function refresh(){
   updateDemirbas();
+  updateYGProps();
   $("preview").innerHTML = currentTpl.render();
   $("preview").classList.toggle("bilingual", LANG==="bi");
   bindClauses();
@@ -2284,7 +2332,7 @@ function clearForm(){
   openTpl(currentTpl.id);
 }
 
-function backToCatalog(){ renderCatalog(); }
+function backToCatalog(){ updateEmailBtn(); renderCatalog(); }
 
 function checkMissing(){
   const missing = [];
@@ -2971,6 +3019,75 @@ async function savePdf(btn){
     alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\nAlternatif: 🖨️ Yazdır deneyin.\n\nDetay: " + e.message);
   }finally{
     btn.disabled = false; btn.textContent = old;
+  }
+}
+
+/* =================== YER GÖSTERME — MÜŞTERİYE E-POSTA =================== */
+function updateEmailBtn(){
+  const btn = $("btnEmail");
+  if (!btn) return;
+  btn.style.display = (currentTpl && currentTpl.id === "yer-gosterme") ? "" : "none";
+}
+
+async function sendYerGostermeEmail(){
+  const email = (V.mEmail || "").trim();
+  if (!email || !email.includes("@")){
+    alert("Müşteri e-posta adresi boş veya geçersiz.\nLütfen E-Posta alanını doldurun.");
+    return;
+  }
+  if (!V.mIsim || !V.mIsim.trim()){
+    alert("Müşteri adı soyadı gerekli.");
+    return;
+  }
+  if (!(V.g1Adres || "").trim()){
+    alert("En az 1 gayrimenkul adresi gerekli.");
+    return;
+  }
+  if (!confirm(
+    "Taşınmaz Gösterme Belgesi e-posta ile gönderilecek:\n\n" +
+    "Alıcı: " + email + "\n" +
+    "Müşteri: " + V.mIsim + "\n" +
+    "Danışman: " + (V.danisman || me.name) + "\n\n" +
+    "Göndermek istiyor musunuz?"
+  )) return;
+
+  const btn = $("btnEmail");
+  const oldTxt = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "⏳ Gönderiliyor…";
+
+  // Gayrimenkul verileri topla
+  const gayrimenkuller = [];
+  if ((V.g1Adres || "").trim()) gayrimenkuller.push({ adres: V.g1Adres, fiyat: V.g1Fiyat || "", fiyatYazi: V.g1FiyatY || "" });
+  if (V.g2Var === "Var" && (V.g2Adres || "").trim()) gayrimenkuller.push({ adres: V.g2Adres, fiyat: V.g2Fiyat || "", fiyatYazi: V.g2FiyatY || "" });
+  if (V.g3Var === "Var" && (V.g3Adres || "").trim()) gayrimenkuller.push({ adres: V.g3Adres, fiyat: V.g3Fiyat || "", fiyatYazi: V.g3FiyatY || "" });
+
+  try {
+    const body = new URLSearchParams();
+    body.append("action", "sendYerGosterme");
+    body.append("musteriEmail", email);
+    body.append("musteriIsim", V.mIsim || "");
+    body.append("musteriTc", V.mTc || "");
+    body.append("musteriTel", V.mTel || "");
+    body.append("danisman", V.danisman || me.name);
+    body.append("tarih", V.imzaTarihi || "");
+    body.append("imza", V.musteriImza || "");
+    body.append("gayrimenkuller", JSON.stringify(gayrimenkuller));
+
+    const resp = await fetch(DRIVE_ENDPOINT, { method: "POST", body, redirect: "follow" });
+    const data = await resp.json();
+
+    if (data.ok) {
+      btn.textContent = "✅ Gönderildi!";
+      btn.style.background = "#0E7A3D";
+      setTimeout(() => { btn.textContent = oldTxt; btn.style.background = "#C23616"; btn.disabled = false; }, 3000);
+    } else {
+      alert("Gönderim başarısız: " + (data.error || "Bilinmeyen hata"));
+      btn.disabled = false; btn.textContent = oldTxt;
+    }
+  } catch (err) {
+    alert("Bağlantı hatası: " + err.message);
+    btn.disabled = false; btn.textContent = oldTxt;
   }
 }
 </script>
