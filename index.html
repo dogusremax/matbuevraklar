@@ -433,7 +433,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v107</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v108</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -444,7 +444,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v107</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v108</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1999,7 +1999,19 @@ function kiraFlow(){
       flow[i+1].insertBefore(cls[cls.length-1], flow[i+1].firstElementChild);
     }
   }
-  // b) boşluk kalan bölümler: sonraki bölümün ilk maddesini yukarı çek
+  // b) boşluk kalan bölümler: sonraki bölümün ilk maddesini yukarı çek.
+  //    Çektikten sonra sayfanın GERÇEK içerik yüksekliği A4 sınırını aşarsa geri al.
+  //    (scrollHeight, min-height:1047 flex kutularında güvenilmez; gerçek içerik
+  //     = en alttaki çocuğun altı − bölümün üstü, ölçülür.)
+  const PAGE_LIMIT = 1100;   // güvenli A4 içerik sınırı (1123px - küçük pay)
+  const realH = (sec) => {
+    const kids = [...sec.children];
+    if (!kids.length) return 0;
+    const top = sec.getBoundingClientRect().top;
+    let bottom = top;
+    kids.forEach(k => { const b = k.getBoundingClientRect().bottom; if (b > bottom) bottom = b; });
+    return (bottom - top) / (sc || 1);
+  };
   for (let i = 0; i < flow.length - 1; i++){
     let g = 0;
     while (g++ < 40){
@@ -2010,8 +2022,13 @@ function kiraFlow(){
       if (!prev) break;
       const gap  = (pb.getBoundingClientRect().top - prev.getBoundingClientRect().bottom) / (sc || 1);
       const need = nxt.getBoundingClientRect().height / (sc || 1) + 12;
-      if (gap >= need + 6) flow[i].insertBefore(nxt, pb);
-      else break;
+      if (gap < need + 6) break;
+      // deneme: maddeyi yukarı al, GERÇEK içerik taşarsa geri gönder
+      flow[i].insertBefore(nxt, pb);
+      if (realH(flow[i]) > PAGE_LIMIT){
+        flow[i+1].insertBefore(nxt, flow[i+1].firstElementChild);
+        break;
+      }
     }
   }
   // c) SON bölüm hâlâ taşıyorsa: yeni sayfa(lar) aç, taşan maddeleri oraya aktar
