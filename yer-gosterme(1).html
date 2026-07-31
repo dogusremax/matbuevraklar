@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Taşınmaz Gösterme Belgesi — RE/MAX Doğuş</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:#F4F6FA;color:#1a1a1a;-webkit-text-size-adjust:100%}
+.header{background:#003DA5;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:22px;font-weight:800;letter-spacing:1px;margin:0}
+.header .sub{font-size:12px;opacity:.7}
+.header .tarih{font-size:16px;font-weight:600;opacity:.8}
+.toolbar{max-width:600px;width:100%;margin:0 auto;padding:12px 20px 0;display:flex;gap:8px;flex-wrap:wrap}
+.toolbar .tb{flex:1;min-width:100px;padding:12px 8px;font-size:14px;font-weight:600;border-radius:10px;cursor:pointer;border:2px solid #ddd;background:#fff;color:#555}
+.toolbar .tb-p{border:none;color:#fff}
+.body{flex:1;max-width:600px;width:100%;margin:0 auto;padding:24px 20px}
+.steps{display:flex;align-items:center;gap:0;margin:0 auto 24px;max-width:500px}
+.steps .dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;transition:all .3s}
+.steps .line{flex:1;height:3px;transition:background .3s}
+h2.stitle{font-size:22px;color:#003DA5;margin:0 0 20px}
+.fld{margin-bottom:18px}
+.fld label{font-size:14px;font-weight:700;color:#555;margin-bottom:6px;display:block}
+.fld label .req{color:#DC1C2E}
+.fld input{width:100%;padding:14px 16px;font-size:18px;font-weight:500;border:2px solid #e0e0e0;border-radius:12px;outline:none;box-sizing:border-box;transition:border-color .2s}
+.fld input:focus{border-color:#003DA5}
+.fld input.upper{text-transform:uppercase}
+.consGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.consBtn{padding:18px 12px;font-size:16px;font-weight:600;border-radius:14px;border:2px solid #e0e0e0;background:#fff;color:#333;cursor:pointer;transition:all .15s}
+.consBtn.sel{border:3px solid #003DA5;background:#e8eeff;color:#003DA5}
+.sigWrap{position:relative}
+.sigWrap canvas{width:100%;height:260px;display:block;touch-action:none;cursor:crosshair;border:3px dashed #bbb;border-radius:16px;background:#fff;transition:border-color .3s}
+.sigWrap.done canvas{border:3px solid #003DA5;background:#f0f4ff}
+.sigWrap .badge{position:absolute;top:12px;right:14px;background:#0E7A3D;color:#fff;font-size:13px;font-weight:700;padding:3px 12px;border-radius:8px;display:none}
+.sigWrap.done .badge{display:block}
+.sigHint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;color:#bbb;pointer-events:none;text-align:center}
+.sigWrap.ink .sigHint{display:none}
+.clearBtn{margin-top:10px;padding:8px 24px;font-size:15px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer}
+.togRow{display:flex;align-items:center;justify-content:space-between;margin-top:20px;border-top:2px solid #e0e0e0;padding-top:16px}
+.togBtn{padding:8px 20px;font-size:15px;font-weight:700;border-radius:10px;cursor:pointer}
+.bottomNav{padding:16px 20px;background:#fff;border-top:1px solid #e8e8e8;display:flex;gap:12px;justify-content:center;max-width:600px;width:100%;margin:0 auto;box-sizing:border-box;flex-wrap:wrap}
+.bottomNav button{padding:16px;font-size:17px;font-weight:700;border-radius:14px;cursor:pointer;border:none}
+/* Preview (belge) */
+.prev{background:#fff;border:1px solid #ccc;padding:10mm;font-family:'Times New Roman',Times,serif;color:#1a1a1a;font-size:10.5pt;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+.prev table{width:100%;border-collapse:collapse;table-layout:fixed}
+.prev .hdr td{background:#21237B;padding:6px 14px;vertical-align:middle}
+.prev .fl{background:#DCE6F4;border:1px solid #BBB;padding:5px 10px;font-size:10.5pt}
+.prev .fv{background:#fff;border:1px solid #BBB;padding:5px 10px;font-size:10.5pt}
+.prev .sigBox{border:1.2px solid #21237B;background:#fff;padding:0;vertical-align:top}
+.prev .sh{background:#21237B;color:#fff;font-size:9.5pt;font-weight:700;text-align:center;padding:5px 6px;letter-spacing:.4px;text-transform:uppercase}
+.prev .sn{font-size:9.5pt;border-bottom:1px dotted #777;padding:4px 2px 5px;min-height:18px;line-height:1.3}
+.prev .sf{font-size:8pt;color:#595959;text-align:center;border-top:1px solid #ddd;padding-top:4px;font-weight:700;letter-spacing:.6px}
+.done-screen{min-height:100vh;background:#F4F6FA;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const ENDPOINT='https://script.google.com/macros/s/AKfycby3N2cq5LI99_UgjzlxIjZr7looJz88Rft-BJ9E5ZgP9-ZmUEmoXARoIm717JAmTGuD/exec';
+const CONSULTANTS=["Ayşegül Alpay","Aysun Yılmaz","Evşen Özazman","Gamze Yetkin","Gizem Gök","İrem Aleyna Tetik","Orhan Özazman","Özlem Varol","Umut Tokkuş"];
+const BLUE="#003DA5",RED="#DC1C2E",GREEN="#0E7A3D";
+const $ = id => document.getElementById(id);
+const todayStr=()=>{const d=new Date();return `${String(d.getDate()).padStart(2,"0")}.${String(d.getMonth()+1).padStart(2,"0")}.${d.getFullYear()}`};
+const fmtTL=v=>{const d=(v||"").replace(/\D/g,"");return d?d.replace(/\B(?=(\d{3})+(?!\d))/g,".")+" TL":""};
+const rawTL=v=>(v||"").replace(/[^0-9]/g,"");
+const toUpper=s=>(s||"").replace(/i/g,"İ").replace(/ı/g,"I").replace(/ö/g,"Ö").replace(/ü/g,"Ü").replace(/ş/g,"Ş").replace(/ç/g,"Ç").replace(/ğ/g,"Ğ").toUpperCase();
+const YASAL=`Yukarıda adresi bulunan gayrimenkul, ##TARIH## tarihinde satın almak/kiralamak amacıyla ilk defa Müşteri'ye gösterilmiştir. RE/MAX Doğuş'un bilgisi olmaksızın söz konusu yerin 1 yıl içerisinde; Müşteri'nin kendisi, eşi, ortağı ve çalışanı bulunduğu şirket, şirket ortakları, şirketin ortak olduğu kuruluşlar ya da kan ve sıhri hısımları tarafından satın alındığı takdirde RE/MAX Doğuş gayrimenkulün satış bedelinin %4 + KDV'si; kiralandığı takdirde bir aylık kira bedeli + KDV'si tutarında hizmet bedeline hak kazanır. Müşteri bu maddede belirtilen şartı kabul ve taahhüt etmektedir. İşbu sözleşme 1 sayfadan oluşmaktadır ve 2 nüsha olarak düzenlenmiştir. Sözleşmeden doğan ihtilaflarda İstanbul Mahkeme ve İcra Daireleri yetkilidir.`;
+
+let step=0, tarih=todayStr(), danisman="", imzaData=null;
+let c={isim:"",tc:"",tel:"",email:""};
+let g1={adres:"",fiyat:"",fiyatY:""}, g2={adres:"",fiyat:"",fiyatY:""}, g3={adres:"",fiyat:"",fiyatY:""};
+let g2on=false, g3on=false;
+let sigState={drawing:false,hasInk:false,lx:0,ly:0,timer:null};
+
+function canNext(){
+  if(step===0) return !!danisman;
+  if(step===1) return c.isim.trim()&&c.tel.trim();
+  if(step===2) return g1.adres.trim();
+  if(step===3) return !!imzaData;
+  return true;
+}
+function reset(){step=0;danisman="";c={isim:"",tc:"",tel:"",email:""};g1={adres:"",fiyat:"",fiyatY:""};g2={adres:"",fiyat:"",fiyatY:""};g3={adres:"",fiyat:"",fiyatY:""};g2on=false;g3on=false;imzaData=null;sigState.hasInk=false;render();}
+
+function mkInput(id,label,val,opts){
+  opts=opts||{};
+  const req=opts.req?` <span class="req">*</span>`:"";
+  const cls=opts.currency||opts.email?"":"upper";
+  const ph=opts.ph||"";
+  const tp=opts.tel?"tel":opts.email?"email":"text";
+  const im=opts.currency?` inputmode="numeric"`:"";
+  const dv=opts.currency?fmtTL(val):val;
+  return `<div class="fld"><label>${label}${req}</label><input id="${id}" class="${cls}" type="${tp}" value="${dv}" placeholder="${ph}"${im}></div>`;
+}
+function bindInput(id,obj,key,opts){
+  opts=opts||{};
+  const el=$(id); if(!el)return;
+  el.addEventListener("input",function(){
+    let v=this.value;
+    if(opts.currency){obj[key]=rawTL(v);this.value=fmtTL(obj[key]);}
+    else if(!opts.email&&!opts.tel){obj[key]=toUpper(v);}
+    else{obj[key]=v;}
+    if(step===4) render();
+  });
+}
+
+function propRow(n,gx){
+  return `<tr><td class="fl" style="font-weight:700;width:34%;vertical-align:top">${n}) Gayrimenkul Adresi</td><td class="fv" colspan="3" style="min-height:28px">${gx.adres}</td></tr>
+  <tr><td class="fl" style="width:15%">Fiyatı</td><td class="fv">Rakam İle: ${fmtTL(gx.fiyat)}</td><td class="fv" colspan="2">Yazı İle: ${gx.fiyatY}</td></tr>`;
+}
+
+function renderPreview(){
+  let props=propRow(1,g1);
+  if(g2on&&g2.adres) props+=propRow(2,g2);
+  if(g3on&&g3.adres) props+=propRow(3,g3);
+  const imzaImg=imzaData?`<img src="${imzaData}" style="max-height:60px;max-width:90%">`:"";
+  return `<div class="prev" id="ygPreview">
+  <table><tr class="hdr"><td style="width:80px"><div style="color:#fff;font-size:13pt;font-weight:700;letter-spacing:1px">RE/MAX<br>DOĞUŞ</div></td><td style="text-align:right;color:#fff;font-weight:700;font-size:12.5pt;letter-spacing:.4px">TAŞINMAZ GÖSTERME BELGESİ</td></tr></table>
+  <div style="text-align:right;font-size:10.5pt;font-weight:700;margin:7px 0 3px">TARİH: <span style="font-weight:400">${tarih}</span></div>
+  <div style="font-weight:700;font-size:11pt;margin:8px 0 3px;padding:6px 10px">Alıcı / Kiracı Adayı Bilgileri</div>
+  <table>
+    <tr><td class="fl" style="width:34%">Ad Soyad / Ticari Unvan</td><td class="fv">${c.isim}</td></tr>
+    <tr><td class="fl">TC Kimlik No / Vergi No – VD</td><td class="fv">${c.tc}</td></tr>
+    <tr><td class="fl">Telefon</td><td class="fv">${c.tel}</td></tr>
+    <tr><td class="fl">E-Posta</td><td class="fv">${c.email}</td></tr>
+  </table>
+  <div style="font-weight:700;font-size:11pt;margin:5mm 0 3px;padding:6px 10px">Görülen Gayrimenkul Aşağıdadır.</div>
+  <table>${props}</table>
+  <div style="font-size:9.5pt;line-height:1.6;margin-top:5mm;text-align:justify">${YASAL.replace("##TARIH##",tarih)}</div>
+  <table style="border-collapse:separate;border-spacing:5mm 3mm;margin-top:6mm"><tr>
+    <td class="sigBox"><div class="sh">Gayrimenkulü Gören Kişi</div><div style="padding:5px 7px">
+      <div class="sn">İsim/Soyisim: <b>${c.isim}</b></div>
+      <div class="sn">T.C. No: <b>${c.tc}</b></div>
+      <div style="min-height:60px;display:flex;align-items:center;justify-content:center">${imzaImg}</div>
+      <div class="sf">İMZA</div></div></td>
+    <td style="border:none;background:none;width:4mm"></td>
+    <td class="sigBox"><div class="sh">RE/MAX DOĞUŞ</div><div style="padding:5px 7px">
+      <div class="sn">Gayrimenkul Danışmanı</div>
+      <div class="sn"><b>${danisman}</b></div>
+      <div style="height:22mm"></div>
+      <div class="sf">İMZA</div></div></td>
+  </tr></table></div>`;
+}
+
+function openPrint(title){
+  if(step!==4){step=4;render();}
+  setTimeout(()=>{
+    const el=$("ygPreview");if(!el)return;
+    const w=window.open("","_blank");
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title||"Taşınmaz Gösterme Belgesi"}</title><style>@page{size:A4;margin:12mm}body{margin:0;font-family:'Times New Roman',Times,serif;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}*{box-sizing:border-box}table{width:100%;border-collapse:collapse;table-layout:fixed}.fl{background:#DCE6F4;border:1px solid #BBB;padding:5px 10px;font-size:10.5pt}.fv{background:#fff;border:1px solid #BBB;padding:5px 10px;font-size:10.5pt}.hdr td{background:#21237B;padding:6px 14px}.sigBox{border:1.2px solid #21237B;background:#fff;padding:0;vertical-align:top}.sh{background:#21237B;color:#fff;font-size:9.5pt;font-weight:700;text-align:center;padding:5px 6px;letter-spacing:.4px;text-transform:uppercase}.sn{font-size:9.5pt;border-bottom:1px dotted #777;padding:4px 2px 5px;min-height:18px;line-height:1.3}.sf{font-size:8pt;color:#595959;text-align:center;border-top:1px solid #ddd;padding-top:4px;font-weight:700;letter-spacing:.6px}</style></head><body>${el.innerHTML}</body></html>`);
+    w.document.close();setTimeout(()=>w.print(),400);
+  },100);
+}
+
+async function sendEmail(){
+  if(!c.email||!c.email.includes("@")){alert("Müşteri e-posta adresi boş veya geçersiz.");return;}
+  if(!c.isim.trim()){alert("Müşteri adı soyadı gerekli.");return;}
+  if(!g1.adres.trim()){alert("Gayrimenkul adresi gerekli.");return;}
+  if(!confirm("Taşınmaz Gösterme Belgesi e-posta ile gönderilecek:\n\nAlıcı: "+c.email+"\nMüşteri: "+c.isim+"\nDanışman: "+danisman+"\n\nGöndermek istiyor musunuz?"))return;
+  const gayrimenkuller=[];
+  if(g1.adres.trim()) gayrimenkuller.push({adres:g1.adres,fiyat:g1.fiyat,fiyatYazi:g1.fiyatY});
+  if(g2on&&g2.adres.trim()) gayrimenkuller.push({adres:g2.adres,fiyat:g2.fiyat,fiyatYazi:g2.fiyatY});
+  if(g3on&&g3.adres.trim()) gayrimenkuller.push({adres:g3.adres,fiyat:g3.fiyat,fiyatYazi:g3.fiyatY});
+  try{
+    const body=new URLSearchParams();
+    body.append("action","sendYerGosterme");
+    body.append("musteriEmail",c.email);body.append("musteriIsim",c.isim);
+    body.append("musteriTc",c.tc);body.append("musteriTel",c.tel);
+    body.append("danisman",danisman);body.append("tarih",tarih);
+    body.append("imza",imzaData||"");body.append("gayrimenkuller",JSON.stringify(gayrimenkuller));
+    const resp=await fetch(ENDPOINT,{method:"POST",body,redirect:"follow"});
+    const txt=await resp.text();
+    let data;try{data=JSON.parse(txt);}catch(_){alert("Apps Script yanıtı JSON değil:\n"+txt.slice(0,300));return;}
+    if(data.ok){step=99;render();}
+    else alert("Gönderim başarısız:\n"+(data.error||"Bilinmeyen hata"));
+  }catch(err){alert("Bağlantı hatası: "+err.message);}
+}
+
+/* ─── İmza Canvas ─── */
+function initSig(){
+  const cv=$("sigCanvas");if(!cv)return;
+  const ctx=cv.getContext("2d");
+  const dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth,h=cv.clientHeight;
+  cv.width=w*dpr;cv.height=h*dpr;
+  ctx.scale(dpr,dpr);ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#111";
+  sigState={drawing:false,hasInk:!!imzaData,lx:0,ly:0,timer:null};
+  if(imzaData){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,w,h);img.src=imzaData;$("sigWrap").classList.add("ink","done");}
+  const pos=e=>{const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top}};
+  const dn=e=>{e.preventDefault();sigState.drawing=true;const p=pos(e);sigState.lx=p.x;sigState.ly=p.y;if(sigState.timer)clearTimeout(sigState.timer);};
+  const mv=e=>{e.preventDefault();if(!sigState.drawing)return;const p=pos(e);ctx.beginPath();ctx.moveTo(sigState.lx,sigState.ly);ctx.lineTo(p.x,p.y);const sp=Math.sqrt((p.x-sigState.lx)**2+(p.y-sigState.ly)**2);ctx.lineWidth=Math.max(1.5,4-sp*0.03);ctx.stroke();sigState.lx=p.x;sigState.ly=p.y;sigState.hasInk=true;$("sigWrap").classList.add("ink");};
+  const up=()=>{if(!sigState.drawing)return;sigState.drawing=false;if(sigState.hasInk){if(sigState.timer)clearTimeout(sigState.timer);sigState.timer=setTimeout(()=>{imzaData=cv.toDataURL("image/png");$("sigWrap").classList.add("done");},300);}};
+  cv.addEventListener("mousedown",dn);cv.addEventListener("mousemove",mv);cv.addEventListener("mouseup",up);cv.addEventListener("mouseleave",up);
+  cv.addEventListener("touchstart",dn,{passive:false});cv.addEventListener("touchmove",mv,{passive:false});cv.addEventListener("touchend",up);
+}
+function clearSig(){
+  const cv=$("sigCanvas");if(!cv)return;
+  const ctx=cv.getContext("2d");const dpr=window.devicePixelRatio||1;
+  ctx.clearRect(0,0,cv.width/dpr,cv.height/dpr);
+  sigState.hasInk=false;imzaData=null;
+  $("sigWrap").classList.remove("ink","done");
+}
+
+function propFields(n,gx,prefix){
+  return mkInput(prefix+"_adres","Gayrimenkul Adresi",gx.adres,{ph:"MAHALLE, SOKAK, BİNA, DAİRE"})
+    +mkInput(prefix+"_fiyat","Fiyatı (Rakam)",gx.fiyat,{currency:true,ph:"1.500.000 TL"})
+    +mkInput(prefix+"_fiyatY","Fiyatı (Yazı ile)",gx.fiyatY,{ph:"BİRMİLYONBEŞYÜZBİN"});
+}
+
+/* ─── RENDER ─── */
+function render(){
+  const app=$("app");
+  if(step===99){
+    app.innerHTML=`<div class="done-screen"><div><div style="font-size:72px;margin-bottom:16px">✅</div><h1 style="color:${BLUE};font-size:28px;margin:0 0 8px">Belge Gönderildi</h1><p style="font-size:18px;color:#666;line-height:1.6"><b>${c.isim}</b> adresine e-posta gönderildi.<br>Danışman: ${danisman} — ${tarih}</p><button onclick="reset()" style="margin-top:28px;padding:16px 48px;font-size:18px;font-weight:700;background:${BLUE};color:#fff;border:none;border-radius:14px;cursor:pointer">Yeni Form</button></div></div>`;
+    return;
+  }
+  const LABELS=["Danışman","Müşteri","Mülk","İmza","Önizleme"];
+  let stepsH='<div class="steps">';
+  LABELS.forEach((l,i)=>{
+    const bg=i<step?GREEN:i===step?BLUE:"#e0e0e0";
+    const col=i<=step?"#fff":"#999";
+    const txt=i<step?"✓":(i+1);
+    stepsH+=`<div style="flex:1;display:flex;align-items:center"><div class="dot" style="background:${bg};color:${col}">${txt}</div>`;
+    if(i<LABELS.length-1) stepsH+=`<div class="line" style="background:${i<step?GREEN:'#e0e0e0'}"></div>`;
+    stepsH+=`</div>`;
+  });
+  stepsH+='</div>';
+
+  let content="";
+  if(step===0){
+    let btns="";CONSULTANTS.forEach(n=>{btns+=`<button class="consBtn ${danisman===n?"sel":""}" onclick="danisman='${n}';render()">${n}</button>`;});
+    content=`<h2 class="stitle">Danışman Seçin</h2><div class="consGrid">${btns}</div>`;
+  }else if(step===1){
+    content=`<h2 class="stitle">Müşteri Bilgileri</h2>`
+      +mkInput("c_isim","Ad Soyad",c.isim,{req:true,ph:"AD SOYAD"})
+      +mkInput("c_tc","TC Kimlik No",c.tc,{ph:"11111111111"})
+      +mkInput("c_tel","Telefon",c.tel,{tel:true,req:true,ph:"0 (5xx) xxx xx xx"})
+      +mkInput("c_email","E-Posta",c.email,{email:true,ph:"ornek@mail.com"});
+  }else if(step===2){
+    content=`<h2 class="stitle">1. Gayrimenkul</h2>`+propFields(1,g1,"g1");
+    // 2. gayrimenkul
+    const g2style=g2on?`border:2px solid ${RED};background:#fff5f5;color:${RED}`:`border:2px solid ${GREEN};background:#f0fff4;color:${GREEN}`;
+    content+=`<div class="togRow"><h2 style="font-size:20px;color:${BLUE};margin:0">2. Gayrimenkul</h2><button class="togBtn" style="${g2style}" onclick="g2on=!g2on;render()">${g2on?"Kaldır ✕":"Ekle +"}</button></div>`;
+    if(g2on) content+=`<div style="margin-top:16px">`+propFields(2,g2,"g2")+`</div>`;
+    // 3. gayrimenkul
+    const g3style=g3on?`border:2px solid ${RED};background:#fff5f5;color:${RED}`:`border:2px solid ${GREEN};background:#f0fff4;color:${GREEN}`;
+    content+=`<div class="togRow"><h2 style="font-size:20px;color:${BLUE};margin:0">3. Gayrimenkul</h2><button class="togBtn" style="${g3style}" onclick="g3on=!g3on;render()">${g3on?"Kaldır ✕":"Ekle +"}</button></div>`;
+    if(g3on) content+=`<div style="margin-top:16px">`+propFields(3,g3,"g3")+`</div>`;
+  }else if(step===3){
+    content=`<h2 class="stitle" style="margin-bottom:6px">Müşteri İmzası</h2><p style="font-size:14px;color:#888;margin:0 0 16px">Aşağıdaki alana parmağınızla imzanızı atın.</p>
+    <div class="sigWrap" id="sigWrap"><canvas id="sigCanvas"></canvas><div class="sigHint">✍️ Parmağınızla imzalayın</div><div class="badge">✓ İmza alındı</div></div>
+    <button class="clearBtn" onclick="clearSig()">Temizle</button>`;
+  }else if(step===4){
+    content=`<h2 class="stitle">Belge Önizleme</h2>`+renderPreview();
+  }
+
+  // Bottom nav
+  let nav="";
+  if(step>0) nav+=`<button style="flex:1;border:2px solid #ddd;background:#fff;color:#666" onclick="step--;render()">← Geri</button>`;
+  if(step<4){
+    const ok=canNext();
+    nav+=`<button style="flex:2;background:${ok?BLUE:'#ccc'};color:#fff" onclick="if(canNext()){step++;render()}">${step===3?"Önizleme →":"Devam →"}</button>`;
+  }else{
+    nav+=`<button style="flex:1;background:#5A4FB5;color:#fff" onclick="openPrint()">🖨️ Yazdır</button>`;
+    nav+=`<button style="flex:1;background:#E67E22;color:#fff" onclick="openPrint('Yer_Gosterme_${(c.isim||"").replace(/\\s+/g,"_")}_${tarih.replace(/\\./g,"")}')">💾 PDF</button>`;
+    nav+=`<button style="flex:1;background:${GREEN};color:#fff" onclick="sendEmail()">📧 Gönder</button>`;
+  }
+
+  app.innerHTML=`
+  <div class="header"><div><h1>RE/MAX DOĞUŞ</h1><div class="sub">Taşınmaz Gösterme Belgesi</div></div><div class="tarih">${tarih}</div></div>
+  <div class="toolbar">
+    <button class="tb" onclick="reset()">← Evraklar</button>
+    <button class="tb" onclick="if(confirm('Formu temizlemek istediğinize emin misiniz?'))reset()">Temizle</button>
+    <button class="tb tb-p" style="background:#5A4FB5" onclick="if(canNext()||step>=3){step=4;render()}">👁️ Önizleme</button>
+    <button class="tb tb-p" style="background:${BLUE}" onclick="openPrint()">🖨️ Yazdır</button>
+    <button class="tb tb-p" style="flex:1 1 100%;background:${GREEN}" onclick="openPrint('Yer_Gosterme_${(c.isim||"").replace(/\\s+/g,"_")}_${tarih.replace(/\\./g,"")}')">💾 Kaydet</button>
+    <button class="tb tb-p" style="flex:1 1 100%;background:#C23616" onclick="sendEmail()">📧 Müşteriye Gönder</button>
+  </div>
+  <div class="body">${stepsH}${content}</div>
+  <div class="bottomNav">${nav}</div>`;
+
+  // Bind inputs after render
+  if(step===1){
+    bindInput("c_isim",c,"isim");bindInput("c_tc",c,"tc");
+    bindInput("c_tel",c,"tel",{tel:true});bindInput("c_email",c,"email",{email:true});
+  }else if(step===2){
+    bindInput("g1_adres",g1,"adres");bindInput("g1_fiyat",g1,"fiyat",{currency:true});bindInput("g1_fiyatY",g1,"fiyatY");
+    if(g2on){bindInput("g2_adres",g2,"adres");bindInput("g2_fiyat",g2,"fiyat",{currency:true});bindInput("g2_fiyatY",g2,"fiyatY");}
+    if(g3on){bindInput("g3_adres",g3,"adres");bindInput("g3_fiyat",g3,"fiyat",{currency:true});bindInput("g3_fiyatY",g3,"fiyatY");}
+  }else if(step===3){
+    setTimeout(initSig,50);
+  }
+}
+render();
+</script>
+</body>
+</html>
