@@ -83,6 +83,17 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .pv:empty{display:inline}
 /* önizleme odak vurgusu: alanı komple kaplar, odaktan çıkana kadar kalır */
 .pv-hl{background:#FFEC9E;border-radius:2px}
+/* madde kaldırma butonu (önizlemede, PDF'e girmez) */
+.clz{position:relative}
+.mdel{position:absolute;left:-7px;top:-7px;width:22px;height:22px;border:none;border-radius:50%;background:#C0392B;color:#fff;font-size:12px;line-height:1;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3);opacity:.55;transition:opacity .15s;z-index:5;padding:0}
+.clz:hover .mdel{opacity:1}
+@media (pointer:coarse){ .mdel{opacity:.9;width:24px;height:24px} }
+/* kaldırılan maddeler paneli (form üstünde) */
+#silinenPanel{margin-bottom:12px}
+.silbar{background:#FFF3F0;border:1px solid #E8B4AC;border-radius:8px;padding:9px 11px;font-size:13px;color:#7a2318;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.silchip{background:#fff;border:1px solid #d88;border-radius:14px;padding:3px 10px;font-size:12px;color:#a3301f;cursor:pointer}
+.silchip:active{background:#f7e0da}
+.silall{margin-left:auto;background:#1B3A6B;color:#fff;border:none;border-radius:14px;padding:4px 12px;font-size:12px;cursor:pointer}
 .cell-hl{background:#FFEC9E !important;outline:2px solid #E5A800;outline-offset:-2px}
 /* el yazısı (kilitli) alan */
 .hwfld{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px;border:1.5px dashed #C9A227;border-radius:8px;background:#FFF9E6;cursor:pointer;box-sizing:border-box}
@@ -308,24 +319,6 @@ table.ftbl td.tall{height:9mm}
 .sheet.big1 table.sigs{margin-top:5mm}
 .sheet.big2 table.sigs{margin-top:6mm}
 .sheet.big3 table.sigs{margin-top:6mm}
-.sheet.big1 .yg table.ftbl td{font-size:11pt;padding:6px 10px}
-.sheet.big2 .yg table.ftbl td{font-size:11.5pt;padding:7px 11px}
-.sheet.big3 .yg table.ftbl td{font-size:12pt;padding:8px 12px}
-.sheet.big1 .yg .yg-legal{font-size:10pt;line-height:1.65}
-.sheet.big2 .yg .yg-legal{font-size:10.5pt;line-height:1.7}
-.sheet.big3 .yg .yg-legal{font-size:11pt;line-height:1.75}
-.sheet.big1 .yg .shead{font-size:11.5pt;padding:7px 10px}
-.sheet.big2 .yg .shead{font-size:12pt;padding:8px 10px}
-.sheet.big3 .yg .shead{font-size:12.5pt;padding:9px 10px}
-.sheet.big1 .yg .sig .sn{font-size:10pt}
-.sheet.big2 .yg .sig .sn{font-size:10.5pt}
-.sheet.big3 .yg .sig .sn{font-size:11pt}
-.sheet.big1 .yg .sig .space{height:18mm}
-.sheet.big2 .yg .sig .space{height:20mm}
-.sheet.big3 .yg .sig .space{height:22mm}
-.sheet.big1 .yg .sig .space.tall{height:23mm}
-.sheet.big2 .yg .sig .space.tall{height:25mm}
-.sheet.big3 .yg .sig .space.tall{height:27mm}
 
 /* tek sayfaya sığdırma kademeleri (taban: clz 7.8pt / ftbl 8pt) */
 .sheet.fit1 .clz{font-size:7.4pt;line-height:1.32;margin-bottom:4px}
@@ -378,36 +371,6 @@ table.ftbl td.tall{height:9mm}
 #fullPrev .fp-holder{position:relative;margin:0 auto;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.45);overflow:hidden}
 #fullPrev .pgline{position:absolute;left:0;right:0;border-top:2px dashed #D64545;opacity:.85;pointer-events:none}
 #fullPrev .pgline span{position:absolute;right:6px;top:-19px;background:#D64545;color:#fff;font-size:10px;padding:1px 7px;border-radius:4px;font-weight:700}
-
-/* ---- Yer Gösterme Belgesi: tam sayfa ---- */
-.yg table.ftbl td{font-size:10.5pt;padding:5px 10px;min-height:22px}
-.yg table.ftbl .fl{width:34%}
-.yg table.ftbl .fv.tall{min-height:26px}
-.yg table.ftbl .fl4{width:15%}
-.yg table.ftbl .fv4{font-size:10pt}
-.yg .shead{font-size:11pt;padding:6px 10px;margin-top:5mm}
-.yg .dline{font-size:10.5pt;margin:3mm 0}
-.yg table.sigs{margin-top:6mm;border-spacing:5mm 3mm}
-.yg .sig .sh{font-size:9.5pt;padding:5px 6px}
-.yg .sig .sn{font-size:9.5pt;padding:4px 2px 5px;min-height:18px}
-.yg .sig .space{height:17mm}
-.yg .sig .space.tall{height:22mm}
-.yg .sig .space img{height:17mm}
-.yg .sig .sf{font-size:8pt;padding-top:4px}
-.yg .yg-legal{font-size:9.5pt;line-height:1.6;margin-top:5mm;text-align:justify}
-.yg .yg-propaddr{min-height:28px}
-
-/* ---- Biometrik İmza Pad ---- */
-.sigpad-wrap{display:inline-block;margin:4px 0}
-.sigpad-wrap canvas{display:block;border:2px dashed #adb5bd;border-radius:6px;cursor:crosshair;touch-action:none;background:#fff}
-.sigpad-wrap.saved canvas{border:2px solid var(--primary);cursor:default;background:#f0f4ff}
-.sigpad-wrap .sp-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#adb5bd;font-size:13px;pointer-events:none}
-.sigpad-wrap.has-ink .sp-hint{display:none}
-.sigpad-wrap .sp-badge{position:absolute;top:4px;right:6px;background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;display:none}
-.sigpad-wrap.saved .sp-badge{display:block}
-.sigpad-btns{margin-top:4px;display:flex;gap:6px}
-.sigpad-btns button{font-size:12px;padding:3px 12px;border-radius:5px;cursor:pointer;border:1px solid #ddd;background:#fff;color:#666}
-.sigpad-btns .sp-ok{background:var(--primary);color:#fff;border:none;font-weight:600}
 
 /* görüntüyle yazdırma (piksel piksel, baskı tuhaflıkları imkansız) */
 #printPages{display:none}
@@ -470,7 +433,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v107</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v109</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -481,7 +444,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v107</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v109</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -493,10 +456,7 @@ table.ftbl td.tall{height:9mm}
   <div class="wrap">
     <!-- CATALOG -->
     <div id="catalog">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px">
-        <h2 class="sec" style="margin:0">Evrak Seçin</h2>
-        <a href="yer-gosterme.html" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#C23616;color:#fff;font-weight:700;font-size:14px;border-radius:10px;text-decoration:none;letter-spacing:.3px">📱 Yer Gösterme — Tablet Modu</a>
-      </div>
+      <h2 class="sec">Evrak Seçin</h2>
       <div class="grid" id="cards"></div>
     </div>
 
@@ -510,7 +470,6 @@ table.ftbl td.tall{height:9mm}
             <button class="btn btn-p" style="background:#5A4FB5" onclick="openPreview()">👁️ Önizleme</button>
             <button class="btn btn-p" onclick="printDoc()">🖨️ Yazdır</button>
             <button class="btn btn-p" style="background:#0E7A3D" onclick="kaydet(this)">💾 Kaydet</button>
-            <button class="btn btn-p" id="btnEmail" style="background:#C23616;display:none" onclick="sendYerGostermeEmail()">📧 Müşteriye Gönder</button>
           </div>
           <div class="note">Alanları doldurdukça sağdaki belge canlı olarak güncellenir. <b>Belgedeki herhangi bir maddeye dokunarak metnini bu evraka özel düzenleyebilirsiniz.</b> Boş bırakılan alanlar belgede noktalı boşluk olarak kalır. Taslak otomatik kaydedilir.</div>
           <div id="formFields"></div>
@@ -1041,6 +1000,8 @@ const TEMPLATES = [
       {k:"kvTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
       {k:"kvAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
       {k:"kvTel", l:"Telefon Numarası", lEn:"Phone Number", fmt:"phone"},
+      {k:"kvIban", l:"Ödeme Yapılacak Hesap / IBAN", lEn:"Payment Account / IBAN", fmt:"raw"},
+      {k:"kvHesapAdi", l:"Hesap Sahibi Adı", lEn:"Account Holder Name"},
     ]},
     {t:"Kiracı", tEn:"Tenant (Lessee)", fields:[
       {k:"kcIsim", l:"Adı ve Soyadı", lEn:"Full Name", req:1},
@@ -1062,8 +1023,6 @@ const TEMPLATES = [
       {k:"stopaj", l:"Stopaj Var mı?", lEn:"Withholding Tax?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
       {k:"aylikYazi", l:"Aylık Kira (Yazıyla)", lEn:"Monthly Rent (in Words)"},
       {k:"odemeGun", l:"Ödeme Şekli", lEn:"Payment Days", type:"dayrange", pre:"Her ayın", preEn:"Between the", post:"arasında", postEn:"of each month"},
-      {k:"iban", l:"Ödeme Yapılacak Hesap / IBAN", lEn:"Payment Account / IBAN", fmt:"raw"},
-      {k:"hesapAdi", l:"Hesap Sahibi Adı", lEn:"Account Holder Name"},
       {k:"muddet", l:"Kira Müddeti", lEn:"Lease Duration", def:"1 Yıl"},
       {k:"baslangic", l:"Kira Başlangıcı", lEn:"Lease Start Date", ph:"GG.AA.YYYY", fmt:"date"},
       {k:"bitis", l:"Kira Bitişi", lEn:"Lease End Date", ph:"GG.AA.YYYY", fmt:"date"},
@@ -1098,8 +1057,26 @@ const TEMPLATES = [
       kvRows.push([L(`Kiraya Veren${n} İkamet Adresi`,`Lessor${nEn} Residential Address`), fvi("kvAdres",i)]);
       kvRows.push([L(`Kiraya Veren${n} Telefon Numarası`,`Lessor${nEn} Phone Number`), fvi("kvTel",i)]);
       kvRows.push([L(`Kiraya Veren${n} Türkiye Cumhuriyeti Kimlik Numarası`,`Lessor${nEn} National ID / Passport No`), fvi("kvTc",i)]);
+      if ((V[kfor("kvIban",i)]||"").trim() || (V[kfor("kvHesapAdi",i)]||"").trim()){
+        kvRows.push([L(`Kiraya Veren${n} Ödeme Hesabı / IBAN`,`Lessor${nEn} Payment Account / IBAN`), fvi("kvIban",i)]);
+        kvRows.push([L(`Kiraya Veren${n} Hesap Sahibi Adı`,`Lessor${nEn} Account Holder Name`), fvi("kvHesapAdi",i)]);
+      }
     }
     const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},{t:L("KİRACI","TENANT"),s:fv("kcIsim"),tc:fvRaw("kcTc")}], true);
+    // Ödeme cümlesi: mal sahibi sayısına göre her birinin hesabı ayrı yazılır.
+    let odemeTr, odemeEn;
+    if (ckv > 1){
+      const parcaTr = [], parcaEn = [];
+      for (let i=1;i<=ckv;i++){
+        parcaTr.push(`${f(kfor("kvIsim",i),130)} adına ${f(kfor("kvIban",i),170)} Nolu hesaba (Hesap Sahibi: ${f(kfor("kvHesapAdi",i),110)})`);
+        parcaEn.push(`to the account No. ${f(kfor("kvIban",i),170)} in the name of ${f(kfor("kvIsim",i),130)} (Account Holder: ${f(kfor("kvHesapAdi",i),110)})`);
+      }
+      odemeTr = `kiraya veren mal sahiplerinin şu hesaplarına ödenecektir: ${parcaTr.join("; ")}. Ödemenin mal sahipleri arasında paylaşımı kendi aralarında kararlaştırdıkları oranda yapılacak olup, kiracı her bir hesaba ilgili payı yatırmakla yükümlüdür`;
+      odemeEn = `to the lessor owners as follows: ${parcaEn.join("; ")}. The distribution of the payment among the owners shall be as agreed among themselves, and the tenant is obliged to deposit the relevant share to each account`;
+    } else {
+      odemeTr = `kiraya veren mal sahibinin ${f("kvIban",170)} Nolu hesabına ${f("kvHesapAdi",110)} adına ödenecektir`;
+      odemeEn = `to the account No. ${f("kvIban",170)} of the lessor owner, in the name of ${f("kvHesapAdi",110)}`;
+    }
     return `
     <div class="pgsec pg1 pgflex">
     <div class="pgfill">
@@ -1141,7 +1118,7 @@ const TEMPLATES = [
     <div class="clz"><b>2.</b> ${Lc("Mecur kira süresi içinde Kiracının kullanımına tahsis edilmiştir. Kiracı, mecuru tahsis amacının dışında başka bir amaçla kullanamaz/kullandıramaz, üçüncü şahıslara kiralayamaz, devir ve temlik edemez, başkasının istifade ve işgaline terk ve tahsis edemez. Aksi durum mal sahibi için sözleşme fesih sebebidir.", "The property is allocated for the Tenant's use during the lease term. The Tenant may not use or allow the use of the property for any purpose other than that allocated, may not sublease it to third parties, may not assign or transfer it, and may not surrender or allocate it to the benefit or occupation of others. Any breach constitutes grounds for termination by the Owner.")}</div>
     <div class="clz"><b>3.</b> ${Lc("Kiracı, Kiralanana ait bina aidat, yakıt, su, elektrik, doğalgaz, telefon, internet, TV gibi kendi kullanımından doğan giderleri ilgili kurumlara zamanında ödeyeceğini kabul ve taahhüt eder; site/apartman yönetiminin alacağı kararlara ve ödeme planlarına uyacaktır. Kiracı her türlü aboneliğini 1 ay içerisinde kendi adına yaptıracak, depozitoları kendi adına yatıracaktır. Tahliye halinde ilgili idarelerle ilişkisini kesecek, birikmiş tüm borçlarını ödeyecek, depozitolarını geri alacak ve borcu yoktur yazısını mal sahibine ibraz edecektir.", "The Tenant agrees and undertakes to pay on time to the relevant institutions all charges arising from their own use, such as building dues, fuel, water, electricity, natural gas, telephone, internet and TV, and shall comply with the decisions and payment plans of the site/apartment management. The Tenant shall register all utility subscriptions in their own name within 1 month and pay the relevant deposits in their own name. Upon vacating, the Tenant shall terminate their relationship with the relevant authorities, pay all accrued debts, reclaim their deposits, and submit a clearance (no-debt) letter to the Owner.")}</div>
     <div class="clz"><b>4.</b> ${Lc("Kiralananda deprem, yangın ve doğal afet hasar sigortası Mal Sahibi tarafından yaptırılmış olup, kira süresince (yenileme dönemleri dâhil) Mal Sahibi tarafından geçerli tutulacaktır. Kiracı kendi eşya sigortasını yaptırmakla sorumludur.", "Earthquake, fire and natural disaster damage insurance for the property has been arranged by the Owner and shall be kept in force by the Owner throughout the lease term (including renewal periods). The Tenant is responsible for arranging insurance for their own belongings.")}</div>
-    <div class="clz"><b>5.</b> ${Lc(`AYLIK kira bedeli <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL'dir. Ödemeler kontrat süresince her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile, kiraya veren mal sahibinin ${f("iban",170)} Nolu hesabına ${f("hesapAdi",110)} adına ödenecektir. Kira bedeli, ilk kira yılının sonunda ve gelen yıllarda Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan tüketici fiyat endeksi (TÜFE) on iki aylık ortalaması oranında arttırılacaktır. Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir. Türk Borçlar Kanunu'na göre kontrat tarihinden itibaren 5. yılın sonunda yeni kira belirlenirken mal sahibinin emsal kira rayiçlerine göre kira bedeli isteme hakkı olduğundan, 5. yıl bitiminde yeni kira bedeli mal sahibi ile kiracı emsal kira rayiçlerine göre anlaşarak belirlenecektir.${fvRaw("stopaj")==="Var" ? " Kira bedeli üzerinden hesaplanacak stopaj (gelir vergisi tevkifatı) kiracıya aittir ve kiracı tarafından ilgili vergi dairesine beyan edilip ödenecektir." : ""}`, `The MONTHLY rent is <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL. Throughout the contract term, payments shall be made by bank transfer between the ${(fvRaw("odemeGunBas")||"1")}${ordEn(fvRaw("odemeGunBas")||"1")} and ${(fvRaw("odemeGunBit")||"5")}${ordEn(fvRaw("odemeGunBit")||"5")} of each month, to the account No. ${f("iban",170)} of the lessor owner, in the name of ${f("hesapAdi",110)}. The rent shall be increased at the end of the first lease year and in subsequent years at the rate of the twelve-month average of the consumer price index (CPI) announced by the Turkish Statistical Institute (TÜİK). If the rent and site dues are not paid for two consecutive months and/or for any two months during the lease period, and payments are not made within 2 business days from the service of the written notice by the Lessor, the entire rent until the end of that lease period shall become due and payable. This also constitutes indisputable grounds for eviction. Pursuant to the Turkish Code of Obligations, since the owner has the right to request rent based on comparable rental values at the end of the 5th year from the contract date, at the end of the 5th year the new rent shall be determined by agreement between owner and tenant according to comparable rental values.${fvRaw("stopaj")==="Var" ? " The withholding tax (income tax deduction) to be calculated on the rent shall be borne by the tenant and shall be declared and paid to the relevant tax office by the tenant." : ""}`)}</div>
+    <div class="clz"><b>5.</b> ${Lc(`AYLIK kira bedeli <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL'dir. Ödemeler kontrat süresince her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile, ${odemeTr}. Kira bedeli, ilk kira yılının sonunda ve gelen yıllarda Türkiye İstatistik Kurumu (TÜİK) tarafından açıklanan tüketici fiyat endeksi (TÜFE) on iki aylık ortalaması oranında arttırılacaktır. Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir. Türk Borçlar Kanunu'na göre kontrat tarihinden itibaren 5. yılın sonunda yeni kira belirlenirken mal sahibinin emsal kira rayiçlerine göre kira bedeli isteme hakkı olduğundan, 5. yıl bitiminde yeni kira bedeli mal sahibi ile kiracı emsal kira rayiçlerine göre anlaşarak belirlenecektir.${fvRaw("stopaj")==="Var" ? " Kira bedeli üzerinden hesaplanacak stopaj (gelir vergisi tevkifatı) kiracıya aittir ve kiracı tarafından ilgili vergi dairesine beyan edilip ödenecektir." : ""}`, `The MONTHLY rent is <b>#</b>${fnum("aylik",80)}<b>#</b> (${f("aylikYazi",130)}) TL. Throughout the contract term, payments shall be made by bank transfer between the ${(fvRaw("odemeGunBas")||"1")}${ordEn(fvRaw("odemeGunBas")||"1")} and ${(fvRaw("odemeGunBit")||"5")}${ordEn(fvRaw("odemeGunBit")||"5")} of each month, ${odemeEn}. The rent shall be increased at the end of the first lease year and in subsequent years at the rate of the twelve-month average of the consumer price index (CPI) announced by the Turkish Statistical Institute (TÜİK). If the rent and site dues are not paid for two consecutive months and/or for any two months during the lease period, and payments are not made within 2 business days from the service of the written notice by the Lessor, the entire rent until the end of that lease period shall become due and payable. This also constitutes indisputable grounds for eviction. Pursuant to the Turkish Code of Obligations, since the owner has the right to request rent based on comparable rental values at the end of the 5th year from the contract date, at the end of the 5th year the new rent shall be determined by agreement between owner and tenant according to comparable rental values.${fvRaw("stopaj")==="Var" ? " The withholding tax (income tax deduction) to be calculated on the rent shall be borne by the tenant and shall be declared and paid to the relevant tax office by the tenant." : ""}`)}</div>
     <div class="clz"><b>6.</b> ${Lc(`Kira akdi 1 yıllıktır, ${f("baslangic",80)} tarihinde başlayıp ${f("bitis",80)} tarihinde sona erecektir. Kiracı veya mal sahibi bu sözleşme süresinin bitiminden en az 60 gün önce bildirimde bulunmadıkça sözleşme aynı koşullarla ve belirtilen kira artışı uygulanarak 1 yıl uzatılmış sayılır. Taraflardan biri 60 gün öncesinde bildirim yaparsa sözleşme bitiş tarihinde sonlanır.`, `The lease is for 1 year, commencing on ${f("baslangic",80)} and ending on ${f("bitis",80)}. Unless the tenant or owner gives notice at least 60 days before the end of this term, the agreement shall be deemed extended for 1 year under the same conditions with the specified rent increase applied. If either party gives notice 60 days in advance, the agreement terminates on the end date.`)}</div>
     <div class="clz"><b>7.</b> ${Lc("İşbu kira sözleşmesine ait ödenmesi gereken damga vergisi ile doğabilecek diğer bedel ve harçları ödeme borcu kiracıya aittir. Kiraya veren herhangi bir sebeple bunları ödemek zorunda kaldığında bu bedel kiracıya rücu edilerek tahsil edilecektir.", "The obligation to pay the stamp tax due on this lease agreement and any other fees and charges that may arise belongs to the tenant. If the lessor is for any reason obliged to pay these, such amounts shall be collected from the tenant by way of recourse.")}</div>
     <div class="clz"><b>8.</b> ${Lc("Mecur, kiralama döneminin başlamasından önce Kiracı'ya temiz, bakımlı, gereken tamirler yapılmış durumda ve bütün alet, edevat ve beyaz eşyalar çalışır halde teslim edilmiştir. Bunların durumunu gösteren ve taraflarca imzalanmış eşya listesi Ek-A'da yer alır. Günlük yaşamın olağan değişiklikleri (tablo asmak için çivi çakmak vb.) haricinde Kiracı, Mal Sahibi'nin önceden yazılı izni olmaksızın Kiralanan üzerinde değişiklik, tamirat ve tadilat yapamaz; yazılı izinle yapsa dahi masraflarını talep edemez. Sözleşme sonunda Kiracı, Kiralanan'ı (normal aşınma ve yıpranmalar hariç) ilk teslim aldığı koşullarda teslim edecektir.", "The property was delivered to the Tenant before the start of the lease period clean, well-maintained, with necessary repairs completed, and with all appliances and white goods in working order. The itemized list showing their condition, signed by the parties, is set out in Annex-A. Except for ordinary changes of daily life (such as driving a nail to hang a picture), the Tenant may not make alterations, repairs or modifications to the Property without the prior written consent of the Owner; even if made with written consent, the Tenant may not claim the costs. At the end of the agreement, the Tenant shall deliver the Property in the condition first received (excluding normal wear and tear).")}</div>
@@ -1516,107 +1493,6 @@ const TEMPLATES = [
     </div>
   `;}
 },
-
-/* ---------- 11. TAŞINMAZ GÖSTERME BELGESİ ---------- */
-{
-  id:"yer-gosterme", fillPage:true, fileBase:"Yer_Gosterme_Belgesi", nameKey:"mIsim", ic:"🏠", title:"Taşınmaz Gösterme Belgesi", titleEn:"Property Showing Certificate",
-  desc:"Daire gezdirmeden önce müşteriden alınan yer gösterme formu. Biometrik imza destekli.",
-  descEn:"Property showing form taken from the client before viewing. Biometric signature supported.",
-  groups:[
-    {t:"Genel", tEn:"General", fields:[
-      {k:"imzaTarihi", l:"Tarih", lEn:"Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
-      {k:"danisman", l:"Sorumlu Emlak Danışmanı", lEn:"Responsible Consultant", auto:"me"},
-    ]},
-    {t:"Alıcı / Kiracı Adayı", tEn:"Buyer / Tenant Candidate", fields:[
-      {k:"mIsim", l:"Ad Soyad / Ticari Unvan", lEn:"Full Name / Company Title", req:1},
-      {k:"mTc", l:"TC Kimlik No / Vergi No – VD", lEn:"National ID / Tax No"},
-      {k:"mTel", l:"Telefon", lEn:"Phone", fmt:"phone", ph:"0 (5xx) xxx xx xx"},
-      {k:"mEmail", l:"E-Posta", lEn:"E-mail", fmt:"raw"},
-      {k:"mAdres", l:"İletişim Adresi", lEn:"Contact Address", type:"textarea"},
-    ]},
-    {t:"1. Gayrimenkul", tEn:"1st Property", fields:[
-      {k:"g1Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea", req:1},
-      {k:"g1Fiyat", l:"Fiyatı (Rakam ile)", lEn:"Price (Numeric)", fmt:"money"},
-      {k:"g1FiyatY", l:"Fiyatı (Yazı ile)", lEn:"Price (Written)"},
-    ]},
-    {t:"2. Gayrimenkul", tEn:"2nd Property", fields:[
-      {k:"g2Var", l:"2. Gayrimenkul Var mı?", lEn:"2nd Property?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
-      {k:"g2Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea"},
-      {k:"g2Fiyat", l:"Fiyatı (Rakam ile)", lEn:"Price (Numeric)", fmt:"money"},
-      {k:"g2FiyatY", l:"Fiyatı (Yazı ile)", lEn:"Price (Written)"},
-    ]},
-    {t:"3. Gayrimenkul", tEn:"3rd Property", fields:[
-      {k:"g3Var", l:"3. Gayrimenkul Var mı?", lEn:"3rd Property?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
-      {k:"g3Adres", l:"Gayrimenkul Adresi", lEn:"Property Address", type:"textarea"},
-      {k:"g3Fiyat", l:"Fiyatı (Rakam ile)", lEn:"Price (Numeric)", fmt:"money"},
-      {k:"g3FiyatY", l:"Fiyatı (Yazı ile)", lEn:"Price (Written)"},
-    ]},
-    {t:"İmzalar", tEn:"Signatures", fields:[
-      {k:"musteriImza", l:"Müşteri İmzası", lEn:"Client Signature", type:"sigpad"},
-    ]},
-  ],
-  render(){
-    const g2On = V.g2Var === "Var";
-    const g3On = V.g3Var === "Var";
-    const propRow = (n) => {
-      return `
-      <tr><td class="fl" style="font-weight:700;vertical-align:top">${n}) ${L("Gayrimenkul Adresi","Property Address")}</td><td class="fv tall yg-propaddr" colspan="3">${fv("g"+n+"Adres")}</td></tr>
-      <tr>
-        <td class="fl4">${L("Fiyatı","Price")}</td>
-        <td class="fv4">${L("Rakam İle","Numeric")}: ${fvu("g"+n+"Fiyat","TL")}</td>
-        <td class="fv4" colspan="2">${L("Yazı İle","Written")}: ${fv("g"+n+"FiyatY")}</td>
-      </tr>`;
-    };
-    const mImg = V.musteriImza ? `<img src="${V.musteriImza}" style="max-height:60px;max-width:180px">` : "";
-    return `<div class="yg">
-    ${hdrBand(L("TAŞINMAZ GÖSTERME BELGESİ","PROPERTY SHOWING CERTIFICATE"))}
-    ${dateLine(L("TARİH","DATE"))}
-    ${secHead(L("Alıcı / Kiracı Adayı Bilgileri","Buyer / Tenant Candidate Details"))}
-    ${ftbl([
-      [L("Ad Soyad / Ticari Unvan","Full Name / Company Title"), fv("mIsim")],
-      [L("TC Kimlik No / Vergi No – VD","National ID / Tax No"), fv("mTc")],
-      [L("Telefon","Phone"), fv("mTel")],
-      [L("E-Posta","E-mail"), fv("mEmail")],
-      [L("İletişim Adresi","Contact Address"), fv("mAdres"), 1],
-    ])}
-    ${secHead(L("Görülen Gayrimenkul Aşağıdadır.","Properties Shown Are Listed Below."))}
-    <table class="ftbl">
-      ${propRow(1)}
-      ${g2On ? propRow(2) : ""}
-      ${g3On ? propRow(3) : ""}
-    </table>
-    <div class="yg-legal">
-      ${Lc(
-        `Yukarıda adresi bulunan gayrimenkul, ${fvRaw("imzaTarihi")||"……/……/……………"} tarihinde satın almak/kiralamak amacıyla ilk defa Müşteri'ye gösterilmiştir. RE/MAX Doğuş'un bilgisi olmaksızın söz konusu yerin 1 yıl içerisinde; Müşteri'nin kendisi, eşi, ortağı ve çalışanı bulunduğu şirket, şirket ortakları, şirketin ortak olduğu kuruluşlar ya da kan ve sıhri hısımları tarafından satın alındığı takdirde RE/MAX Doğuş gayrimenkulün satış bedelinin %4 + KDV'si; kiralandığı takdirde bir aylık kira bedeli + KDV'si tutarında hizmet bedeline hak kazanır. Müşteri bu maddede belirtilen şartı kabul ve taahhüt etmektedir. İşbu sözleşme 1 sayfadan oluşmaktadır ve 2 nüsha olarak düzenlenmiştir. Sözleşmeden doğan ihtilaflarda İstanbul Mahkeme ve İcra Daireleri yetkilidir.`,
-        `The property listed above has been shown to the Client for the first time on ${fvRaw("imzaTarihi")||"……/……/……………"} for the purpose of purchasing/renting. In the event that the aforementioned property is purchased within 1 year without the knowledge of RE/MAX Doğuş by the Client, their spouse, partners, employees of their company, company partners, associated organizations, or blood and in-law relatives, RE/MAX Doğuş shall be entitled to a service fee of 4% + VAT of the sale price; in case of rental, one month's rent + VAT. The Client accepts and undertakes the conditions stated herein. This agreement consists of 1 page and has been drawn up in 2 copies. Istanbul Courts and Execution Offices have jurisdiction over disputes arising from this agreement.`
-      )}
-    </div>
-    <table class="sigs">
-      <tr>
-        <td class="sig">
-          <div class="sh">${L("GAYRİMENKULÜ GÖREN KİŞİ","PROPERTY VIEWER")}</div>
-          <div class="sb">
-            <div class="sn">${L("İsim/Soyisim","Full Name")}: <b>${fvRaw("mIsim")||""}</b></div>
-            <div class="sn">${L("T.C. No","ID No")}: <b>${fvRaw("mTc")||""}</b></div>
-            <div style="min-height:60px;display:flex;align-items:center;justify-content:center">${mImg}</div>
-            <div class="sf">${L("İMZA","SIGNATURE")}</div>
-          </div>
-        </td>
-        <td class="sigpad"></td>
-        <td class="sig">
-          <div class="sh">${L("RE/MAX DOĞUŞ","RE/MAX DOĞUŞ")}</div>
-          <div class="sb">
-            <div class="sn">${L("Gayrimenkul Danışmanı","Real Estate Consultant")}</div>
-            <div class="sn"><b>${fvRaw("danisman")||""}</b></div>
-            <div class="space tall"><span><img src="${UMT_LOGO}"></span></div>
-            <div class="sf">${L("İMZA","SIGNATURE")}</div>
-          </div>
-        </td>
-      </tr>
-    </table>
-    </div>`;
-  }
-},
 ];
 
 /* =================== UYGULAMA AKIŞI =================== */
@@ -1660,6 +1536,92 @@ function logout(){
 }
 
 function draftKey(tid){ return `evrak_draft_${me.pin}_${tid}`; }
+
+/* ---- Madde kaldırma + otomatik yeniden numaralama (Kira) ---- */
+// Kira'nın numaralı maddeleri: 1. sayfadaki değil, HUSUSİ ŞARTLAR maddeleri.
+// Her madde başında <b>N.</b> (madde 1 hariç: <b>1. Konu.</b>) var.
+function processMaddeler(){
+  if (!currentTpl || currentTpl.id !== "kira") return;
+  const sil = V._silinenMaddeler || [];
+  const prev = $("preview");
+  // HUSUSİ ŞARTLAR'dan sonraki, madde numarası (başında "N." kalıbı) taşıyan .clz'ler
+  const clzs = Array.from(prev.querySelectorAll(".clz")).filter(el=>{
+    const b = el.querySelector(":scope > b");
+    if (!b) return false;
+    const t = b.textContent.trim();
+    // gerçek madde numarası: "5." veya "1. Konu." — tarih (23.07.2026) veya
+    // para (#50.000#) DEĞİL. Nokta/tireden sonra rakam gelirse madde değildir.
+    return /^\d{1,2}[.\-](?!\d)/.test(t);
+  });
+  let no = 0;
+  clzs.forEach((el, i)=>{
+    const mid = "m" + (i+1);           // orijinal sıraya göre sabit id (m1..m22)
+    el.dataset.mid = mid;
+    if (sil.includes(mid)){ el.remove(); return; }
+    no++;
+    const b = el.querySelector(":scope > b");
+    // "1. Konu." gibi başlıklarda numarayı, "1." kısmını güncelle, kelimeyi koru
+    const txt = b.textContent.trim();
+    const m = txt.match(/^\d+([.\-])(.*)$/);
+    const sep = m ? m[1] : ".";
+    const rest = m ? m[2] : "";
+    b.textContent = no + sep + rest;
+    // kaldır butonu (önizlemede; PDF klonunda .noprint ile çıkarılır)
+    if (!el.querySelector(":scope > .mdel")){
+      const btn = document.createElement("button");
+      btn.className = "mdel noprint";
+      btn.type = "button";
+      btn.title = L("Bu maddeyi kaldır","Remove this clause");
+      btn.textContent = "✕";
+      btn.onclick = (e)=>{ e.stopPropagation(); maddeSil(mid); };
+      el.insertBefore(btn, el.firstChild);
+    }
+  });
+  // kapanış metnindeki toplam madde sayısını güncelle ("22 maddelik" / "22 special")
+  const toplam = no;
+  Array.from(prev.querySelectorAll(".clz")).forEach(el=>{
+    if (/maddelik özel şartlar|special conditions and Annex/i.test(el.innerHTML)){
+      el.innerHTML = el.innerHTML
+        .replace(/\b\d+\s*maddelik özel şartlar/g, toplam + " maddelik özel şartlar")
+        .replace(/\b\d+\s*special conditions/g, toplam + " special conditions");
+    }
+  });
+  renderSilinenPanel(sil);
+}
+function maddeSil(mid){
+  if (!V._silinenMaddeler) V._silinenMaddeler = [];
+  if (!V._silinenMaddeler.includes(mid)) V._silinenMaddeler.push(mid);
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  refresh();
+}
+function maddeGeri(mid){
+  V._silinenMaddeler = (V._silinenMaddeler || []).filter(x=>x!==mid);
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  refresh();
+}
+// kaldırılan maddeler için form üstünde bir "geri getir" paneli
+function renderSilinenPanel(sil){
+  let panel = document.getElementById("silinenPanel");
+  if (!sil || !sil.length){ if (panel) panel.remove(); return; }
+  if (!panel){
+    panel = document.createElement("div");
+    panel.id = "silinenPanel";
+    const ff = $("formFields");
+    if (ff && ff.parentNode) ff.parentNode.insertBefore(panel, ff);
+  }
+  // silinen id'leri orijinal numara sırasına göre göster
+  const nums = sil.map(m=>+m.replace("m","")).sort((a,b)=>a-b);
+  panel.innerHTML = `<div class="silbar">
+    <b>🗑️ ${L("Kaldırılan maddeler","Removed clauses")}:</b>
+    ${nums.map(n=>`<button type="button" class="silchip" onclick="maddeGeri('m${n}')">${L("Madde","Clause")} ${n} ↩</button>`).join(" ")}
+    <button type="button" class="silall" onclick="maddeHepsiGeri()">${L("Tümünü geri getir","Restore all")}</button>
+  </div>`;
+}
+function maddeHepsiGeri(){
+  V._silinenMaddeler = [];
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  refresh();
+}
 
 /* ---- Kimlik fotoğrafı: seç → küçült → base64 kaydet ---- */
 function photoPick(key, input){
@@ -1799,23 +1761,10 @@ function openTpl(tid){
   $("catalog").style.display = "none";
   $("editor").style.display = "block";
   refresh();
-  updateEmailBtn();
   window.scrollTo(0,0);
 }
 
 /* Demirbaş: Yok ise satırlar gizli; Var ise dolu satırlar + ilk boş satır görünür */
-/* Yer Gösterme: 2./3. gayrimenkul Var/Yok toggle */
-function updateYGProps(){
-  [2,3].forEach(n => {
-    const sel = $("in_g"+n+"Var");
-    if (!sel) return;
-    const yok = (V["g"+n+"Var"] || sel.value || "Yok") === "Yok";
-    ["g"+n+"Adres","g"+n+"Fiyat","g"+n+"FiyatY"].forEach(k => {
-      const el = $("in_"+k);
-      if (el) { const row = el.closest(".fld"); if(row) row.style.display = yok ? "none" : ""; }
-    });
-  });
-}
 function updateDemirbas(){
   const sel = $("in_demirbasVar");
   if (!sel || !sel.closest) return;
@@ -1872,20 +1821,6 @@ function buildForm(){
                       <label class="photobtn photogal"><input type="file" accept="image/*" style="display:none" onchange="photoPick('${key}', this)">🖼️ ${L("Galeriden","Gallery")}</label>
                     </div>`}
              </div>`
-          : (fd.type==="sigpad" || fd.type==="sigpad_sm")
-          ? (() => {
-              const w = fd.type==="sigpad_sm" ? 200 : 300;
-              const h = fd.type==="sigpad_sm" ? 70 : 120;
-              const hasSaved = !!V[key];
-              return `<div class="sigpad-wrap ${hasSaved?"saved has-ink":""}" id="spw_${key}" style="position:relative">
-                <canvas id="sp_${key}" width="${w*2}" height="${h*2}" style="width:${w}px;height:${h}px"></canvas>
-                <div class="sp-hint">✍️ ${L("Buraya imzalayın","Sign here")}</div>
-                <div class="sp-badge">✓</div>
-              </div>
-              <div class="sigpad-btns">
-                <button type="button" onclick="spClear('${key}')">${L("Temizle","Clear")}</button>
-              </div>`;
-            })()
           : `<input type="text" ${common} value="${val}">`;
         const req = fd.req && i===1;
         return `<div class="fld"><label>${L(fd.l,fd.lEn)}${req?' <span class="req">*</span>':''}</label>${input}</div>`;
@@ -1922,8 +1857,6 @@ function buildForm(){
       el.addEventListener("blur", clearHighlight);
     }
   });
-  /* sigpad canvaslarını DOM'a yazıldıktan sonra init et */
-  setTimeout(spInitAll, 60);
 }
 
 /* önizlemede eşleşen alanı kaydır + kalıcı vurgula (odaktan çıkana kadar) */
@@ -1933,62 +1866,6 @@ function clearHighlight(){
   prev.querySelectorAll(".pv.pv-hl").forEach(e=> e.classList.remove("pv-hl"));
   prev.querySelectorAll(".cell-hl").forEach(e=> e.classList.remove("cell-hl"));
 }
-/* ---- Biometrik İmza Pad (Canvas) ---- */
-const _spState = {};
-function spInit(key){
-  const c = document.getElementById("sp_"+key);
-  if (!c) return;
-  if (_spState[key] && _spState[key].ready) return;
-  const ctx = c.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  const w = c.clientWidth, h = c.clientHeight;
-  c.width = w * dpr; c.height = h * dpr;
-  ctx.scale(dpr, dpr);
-  ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#111";
-  const st = { ready:true, drawing:false, hasInk:!!V[key], lx:0, ly:0, timer:null };
-  _spState[key] = st;
-  if (V[key]) {
-    const img = new Image();
-    img.onload = () => { ctx.drawImage(img, 0, 0, w, h); };
-    img.src = V[key];
-    const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("has-ink","saved");
-  }
-  const pos = e => { const r = c.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e; return { x: t.clientX - r.left, y: t.clientY - r.top }; };
-  const dn = e => { e.preventDefault(); st.drawing = true; const p = pos(e); st.lx = p.x; st.ly = p.y; if(st.timer){ clearTimeout(st.timer); st.timer=null; } };
-  const mv = e => { e.preventDefault(); if (!st.drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(st.lx, st.ly); ctx.lineTo(p.x, p.y); const sp = Math.sqrt((p.x-st.lx)**2 + (p.y-st.ly)**2); ctx.lineWidth = Math.max(1, 3.2 - sp*0.04); ctx.stroke(); st.lx = p.x; st.ly = p.y; st.hasInk = true; const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("has-ink"); };
-  const up = () => { if(!st.drawing) return; st.drawing = false; if(st.hasInk){ if(st.timer) clearTimeout(st.timer); st.timer = setTimeout(()=>{ spAutoSave(key); }, 400); } };
-  c.addEventListener("mousedown", dn); c.addEventListener("mousemove", mv); c.addEventListener("mouseup", up); c.addEventListener("mouseleave", up);
-  c.addEventListener("touchstart", dn, {passive:false}); c.addEventListener("touchmove", mv, {passive:false}); c.addEventListener("touchend", up);
-}
-function spAutoSave(key){
-  const c = document.getElementById("sp_"+key);
-  if (!c) return;
-  const st = _spState[key]; if (!st || !st.hasInk) return;
-  V[key] = c.toDataURL("image/png");
-  const wr = document.getElementById("spw_"+key); if(wr) wr.classList.add("saved");
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(e){}
-  refresh();
-}
-function spClear(key){
-  const c = document.getElementById("sp_"+key);
-  if (!c) return;
-  const ctx = c.getContext("2d");
-  const dpr = window.devicePixelRatio || 1;
-  ctx.clearRect(0, 0, c.width/dpr, c.height/dpr);
-  delete V[key];
-  const st = _spState[key]; if(st){ st.hasInk = false; if(st.timer){ clearTimeout(st.timer); st.timer=null; } }
-  const wr = document.getElementById("spw_"+key); if(wr){ wr.classList.remove("saved","has-ink"); }
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(e){}
-  refresh();
-}
-/* sigpad'leri buildForm'dan sonra init et */
-function spInitAll(){
-  if (!currentTpl) return;
-  currentTpl.groups.forEach(g => g.fields.forEach(fd => {
-    if (fd.type === "sigpad" || fd.type === "sigpad_sm") spInit(fd.k);
-  }));
-}
-
 function highlightPreview(key){
   if (!key) return;
   const prev = $("preview");
@@ -2048,9 +1925,9 @@ function removeRep(base){
 
 function refresh(){
   updateDemirbas();
-  updateYGProps();
   $("preview").innerHTML = currentTpl.render();
   $("preview").classList.toggle("bilingual", LANG==="bi");
+  processMaddeler();
   bindClauses();
   kiraFlow();
   autoFit();
@@ -2140,7 +2017,19 @@ function kiraFlow(){
       flow[i+1].insertBefore(cls[cls.length-1], flow[i+1].firstElementChild);
     }
   }
-  // b) boşluk kalan bölümler: sonraki bölümün ilk maddesini yukarı çek
+  // b) boşluk kalan bölümler: sonraki bölümün ilk maddesini yukarı çek.
+  //    Çektikten sonra sayfanın GERÇEK içerik yüksekliği A4 sınırını aşarsa geri al.
+  //    (scrollHeight, min-height:1047 flex kutularında güvenilmez; gerçek içerik
+  //     = en alttaki çocuğun altı − bölümün üstü, ölçülür.)
+  const PAGE_LIMIT = 1100;   // güvenli A4 içerik sınırı (1123px - küçük pay)
+  const realH = (sec) => {
+    const kids = [...sec.children];
+    if (!kids.length) return 0;
+    const top = sec.getBoundingClientRect().top;
+    let bottom = top;
+    kids.forEach(k => { const b = k.getBoundingClientRect().bottom; if (b > bottom) bottom = b; });
+    return (bottom - top) / (sc || 1);
+  };
   for (let i = 0; i < flow.length - 1; i++){
     let g = 0;
     while (g++ < 40){
@@ -2151,8 +2040,13 @@ function kiraFlow(){
       if (!prev) break;
       const gap  = (pb.getBoundingClientRect().top - prev.getBoundingClientRect().bottom) / (sc || 1);
       const need = nxt.getBoundingClientRect().height / (sc || 1) + 12;
-      if (gap >= need + 6) flow[i].insertBefore(nxt, pb);
-      else break;
+      if (gap < need + 6) break;
+      // deneme: maddeyi yukarı al, GERÇEK içerik taşarsa geri gönder
+      flow[i].insertBefore(nxt, pb);
+      if (realH(flow[i]) > PAGE_LIMIT){
+        flow[i+1].insertBefore(nxt, flow[i+1].firstElementChild);
+        break;
+      }
     }
   }
   // c) SON bölüm hâlâ taşıyorsa: yeni sayfa(lar) aç, taşan maddeleri oraya aktar
@@ -2221,6 +2115,7 @@ function openPreview(){
   holder.className = "fp-holder";
   const clone = src.cloneNode(true);
   clone.removeAttribute("id");
+  if (clone.querySelectorAll) clone.querySelectorAll(".noprint").forEach(e=> e.remove());
   clone.style.transform = "none";
   clone.style.margin = "0";
   clone.style.boxShadow = "none";
@@ -2335,7 +2230,7 @@ function clearForm(){
   openTpl(currentTpl.id);
 }
 
-function backToCatalog(){ updateEmailBtn(); renderCatalog(); }
+function backToCatalog(){ renderCatalog(); }
 
 function checkMissing(){
   const missing = [];
@@ -2458,6 +2353,7 @@ async function buildPageImages(){
     // önizleme vurgusu PDF'e sızmasın
     clone.querySelectorAll(".pv-hl").forEach(e=> e.classList.remove("pv-hl"));
     clone.querySelectorAll(".cell-hl").forEach(e=> e.classList.remove("cell-hl"));
+    clone.querySelectorAll(".noprint").forEach(e=> e.remove());
     clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
@@ -3022,81 +2918,6 @@ async function savePdf(btn){
     alert("PDF oluşturulamadı (ilk kullanımda internet bağlantısı gerekir).\nAlternatif: 🖨️ Yazdır deneyin.\n\nDetay: " + e.message);
   }finally{
     btn.disabled = false; btn.textContent = old;
-  }
-}
-
-/* =================== YER GÖSTERME — MÜŞTERİYE E-POSTA =================== */
-function updateEmailBtn(){
-  const btn = $("btnEmail");
-  if (!btn) return;
-  btn.style.display = (currentTpl && currentTpl.id === "yer-gosterme") ? "" : "none";
-}
-
-async function sendYerGostermeEmail(){
-  const email = (V.mEmail || "").trim();
-  if (!email || !email.includes("@")){
-    alert("Müşteri e-posta adresi boş veya geçersiz.\nLütfen E-Posta alanını doldurun.");
-    return;
-  }
-  if (!V.mIsim || !V.mIsim.trim()){
-    alert("Müşteri adı soyadı gerekli.");
-    return;
-  }
-  if (!(V.g1Adres || "").trim()){
-    alert("En az 1 gayrimenkul adresi gerekli.");
-    return;
-  }
-  if (!confirm(
-    "Taşınmaz Gösterme Belgesi e-posta ile gönderilecek:\n\n" +
-    "Alıcı: " + email + "\n" +
-    "Müşteri: " + V.mIsim + "\n" +
-    "Danışman: " + (V.danisman || me.name) + "\n\n" +
-    "Göndermek istiyor musunuz?"
-  )) return;
-
-  const btn = $("btnEmail");
-  const oldTxt = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "⏳ Gönderiliyor…";
-
-  // Gayrimenkul verileri topla
-  const gayrimenkuller = [];
-  if ((V.g1Adres || "").trim()) gayrimenkuller.push({ adres: V.g1Adres, fiyat: V.g1Fiyat || "", fiyatYazi: V.g1FiyatY || "" });
-  if (V.g2Var === "Var" && (V.g2Adres || "").trim()) gayrimenkuller.push({ adres: V.g2Adres, fiyat: V.g2Fiyat || "", fiyatYazi: V.g2FiyatY || "" });
-  if (V.g3Var === "Var" && (V.g3Adres || "").trim()) gayrimenkuller.push({ adres: V.g3Adres, fiyat: V.g3Fiyat || "", fiyatYazi: V.g3FiyatY || "" });
-
-  try {
-    const body = new URLSearchParams();
-    body.append("action", "sendYerGosterme");
-    body.append("musteriEmail", email);
-    body.append("musteriIsim", V.mIsim || "");
-    body.append("musteriTc", V.mTc || "");
-    body.append("musteriTel", V.mTel || "");
-    body.append("danisman", V.danisman || me.name);
-    body.append("tarih", V.imzaTarihi || "");
-    body.append("imza", V.musteriImza || "");
-    body.append("gayrimenkuller", JSON.stringify(gayrimenkuller));
-
-    const resp = await fetch(DRIVE_ENDPOINT, { method: "POST", body, redirect: "follow" });
-    const txt = await resp.text();
-    let data;
-    try { data = JSON.parse(txt); } catch(_){ 
-      alert("Apps Script yanıtı JSON değil.\n\nDoPost'a sendYerGosterme action'ı eklenmiş mi?\nYeni version deploy edilmiş mi?\n\nYanıt:\n" + txt.slice(0,300));
-      btn.disabled = false; btn.textContent = oldTxt;
-      return;
-    }
-
-    if (data.ok) {
-      btn.textContent = "✅ Gönderildi!";
-      btn.style.background = "#0E7A3D";
-      setTimeout(() => { btn.textContent = oldTxt; btn.style.background = "#C23616"; btn.disabled = false; }, 3000);
-    } else {
-      alert("Gönderim başarısız:\n" + (data.error || "Apps Script 'ok:false' döndü.\n\nGmailApp izni verilmiş mi?\nsendYerGostermeEmail fonksiyonu eklenmiş mi?"));
-      btn.disabled = false; btn.textContent = oldTxt;
-    }
-  } catch (err) {
-    alert("Bağlantı hatası: " + err.message);
-    btn.disabled = false; btn.textContent = oldTxt;
   }
 }
 </script>
