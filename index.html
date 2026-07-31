@@ -444,7 +444,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v110</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v111</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -455,7 +455,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v110</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v111</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2015,20 +2015,9 @@ function kiraFlow(){
   const sc = sheet.offsetWidth ? (sheet.getBoundingClientRect().width / sheet.offsetWidth) : 1;
   const flow = secs.slice(1);              // madde taşıyan bölümler (2..son)
   const FLOOR = 1047;                      // bölüm hedef yüksekliği (border-box)
-  // a) taşan bölümler: son maddeyi sonraki bölümün başına it
-  for (let i = 0; i < flow.length - 1; i++){
-    let g = 0;
-    while (flow[i].scrollHeight > FLOOR + 20 && g++ < 40){
-      const cls = flow[i].querySelectorAll(":scope > .clz");
-      if (!cls.length) break;
-      flow[i+1].insertBefore(cls[cls.length-1], flow[i+1].firstElementChild);
-    }
-  }
-  // b) boşluk kalan bölümler: sonraki bölümün ilk maddesini yukarı çek.
-  //    Çektikten sonra sayfanın GERÇEK içerik yüksekliği A4 sınırını aşarsa geri al.
-  //    (scrollHeight, min-height:1047 flex kutularında güvenilmez; gerçek içerik
-  //     = en alttaki çocuğun altı − bölümün üstü, ölçülür.)
-  const PAGE_LIMIT = 1100;   // güvenli A4 içerik sınırı (1123px - küçük pay)
+  const PAGE_LIMIT = 1100;                 // güvenli A4 içerik sınırı (1123 - pay)
+  // GERÇEK içerik yüksekliği: scrollHeight, min-height:1047 flex kutularında
+  // güvenilmez; gerçek içerik = en alttaki çocuğun altı − bölümün üstü.
   const realH = (sec) => {
     const kids = [...sec.children];
     if (!kids.length) return 0;
@@ -2037,6 +2026,17 @@ function kiraFlow(){
     kids.forEach(k => { const b = k.getBoundingClientRect().bottom; if (b > bottom) bottom = b; });
     return (bottom - top) / (sc || 1);
   };
+  // a) taşan bölümler: son maddeyi sonraki bölümün başına it
+  for (let i = 0; i < flow.length - 1; i++){
+    let g = 0;
+    while (realH(flow[i]) > PAGE_LIMIT && g++ < 40){
+      const cls = flow[i].querySelectorAll(":scope > .clz");
+      if (!cls.length) break;
+      flow[i+1].insertBefore(cls[cls.length-1], flow[i+1].firstElementChild);
+    }
+  }
+  // b) boşluk kalan bölümler: sonraki bölümün ilk maddesini yukarı çek.
+  //    Çektikten sonra sayfanın GERÇEK içerik yüksekliği A4 sınırını aşarsa geri al.
   for (let i = 0; i < flow.length - 1; i++){
     let g = 0;
     while (g++ < 40){
@@ -2057,12 +2057,12 @@ function kiraFlow(){
     }
   }
   // c) SON bölüm hâlâ taşıyorsa: yeni sayfa(lar) aç, taşan maddeleri oraya aktar
-  //    (çift dil modunda metinler uzayınca gerekli)
+  //    (çift dil modunda metinler uzayınca gerekli). GERÇEK yükseklik ölçülür.
   let guard = 0;
   while (guard++ < 8){
     const secsNow = Array.from(sheet.querySelectorAll(".pgsec"));
     const last = secsNow[secsNow.length - 1];
-    if (!last || last.scrollHeight <= FLOOR + 20) break;
+    if (!last || realH(last) <= PAGE_LIMIT) break;
     const cls = last.querySelectorAll(":scope > .clz");
     if (cls.length < 2) break; // tek madde kaldıysa bölme
     const pgbrk = document.createElement("div");
@@ -2072,13 +2072,15 @@ function kiraFlow(){
     const pb = last.querySelector(":scope > .pgbottom");
     const moved = [];
     let g2 = 0;
-    while (last.scrollHeight > FLOOR + 20 && g2++ < 40){
+    while (realH(last) > PAGE_LIMIT && g2++ < 40){
       const items = last.querySelectorAll(":scope > .clz, :scope > table.demir, :scope > table.kefal, :scope > .shead, :scope > .kefhead");
       if (items.length < 2) break;
       moved.unshift(items[items.length - 1]);
       yeni.insertBefore(items[items.length - 1], yeni.firstElementChild);
     }
     if (!moved.length) break;
+    // imza bloğunu KLONLA: eski sayfada da kalsın, yeni sayfada da olsun
+    // (her sayfada imza tasarımı). Son sayfa düzeltmesi step e/g'de yapılır.
     if (pb){ yeni.appendChild(pb.cloneNode(true)); }
     last.after(pgbrk); pgbrk.after(yeni);
   }
@@ -2087,11 +2089,11 @@ function kiraFlow(){
   //    üst boşluk = alt boşluk, maddeler arası orantılı. İmza yine dibe oturur.
   const allFlow = Array.from(sheet.querySelectorAll(".pgsec")).slice(1);
   allFlow.forEach(sec=>{
-    // zaten sarılıysa çöz (tekrar refresh'te)
+    // önceki sarma/lastpage izlerini temizle (tekrar refresh'te)
     const eski = sec.querySelector(":scope > .clzwrap");
     if (eski){ while (eski.firstChild) sec.insertBefore(eski.firstChild, eski); eski.remove(); }
+    sec.classList.remove("lastpage");
     // Baştaki HUSUSİ ŞARTLAR başlığını (varsa) atla, sonraki ARDIŞIK maddeleri sar.
-    // Böylece madde grubu dikeyde ortalanır; başlık üstte, EK-A/tablo altta doğal kalır.
     const kids = Array.from(sec.children);
     let idx0 = 0;
     if (kids[0] && kids[0].classList.contains("shead")) idx0 = 1; // baştaki başlık dışarıda
@@ -2100,18 +2102,102 @@ function kiraFlow(){
       if (kids[j].classList.contains("clz")) clzGroup.push(kids[j]);
       else break;
     }
+    // Bu sayfada EK-A/kefalet tablosu varsa SON içerik sayfasıdır: maddeler üstte
+    // doğal sırada dursun (ortalanmasın), tablolar+imza altta doğal aksın.
+    const hasTable = !!sec.querySelector(":scope > table.demir, :scope > table.kefal");
+    if (hasTable){
+      sec.classList.add("lastpage");
+      if (clzGroup.length >= 1){
+        const wrap = document.createElement("div");
+        wrap.className = "clzwrap clzwrap-top";
+        sec.insertBefore(wrap, clzGroup[0]);
+        clzGroup.forEach(it=> wrap.appendChild(it));
+      }
+      return;
+    }
+    // Normal madde sayfası: maddeleri dikeyde ortala.
     if (clzGroup.length < 2) return;
     const wrap = document.createElement("div");
     wrap.className = "clzwrap";
-    // Bu bölümde EK-A/kefalet tablosu da varsa (son sayfa), maddeleri ORTALAMA;
-    // üstte doğal sırada dursunlar ki imza kutusu margin-top:auto ile dibe insin.
-    if (sec.querySelector(":scope > table.demir, :scope > table.kefal")){
-      wrap.classList.add("clzwrap-top");
-      sec.classList.add("lastpage");
-    }
     sec.insertBefore(wrap, clzGroup[0]);
     clzGroup.forEach(it=> wrap.appendChild(it));
   });
+
+  // e) SON SAYFA DÜZELTMESİ: EK-A/kefalet ile imza farklı sayfalara bölünmüşse,
+  //    imza bloğunun bulunduğu GERÇEK son sayfayı "lastpage" yap; ondan önceki
+  //    (tablo olan ama imzasız) sayfada maddeler normal ortalansın.
+  const secsFin = Array.from(sheet.querySelectorAll(".pgsec")).slice(1);
+  secsFin.forEach((sec, i)=>{
+    const isFin = (i === secsFin.length - 1);
+    const hasSig = !!sec.querySelector(":scope > .pgbottom");
+    const hasTable = !!sec.querySelector(":scope > table.demir, :scope > table.kefal");
+    if (isFin && hasSig){
+      // gerçek son sayfa: içerik ortalansın, imza hemen altına gelsin
+      sec.classList.add("lastpage");
+    } else if (!isFin && hasTable && !hasSig){
+      // tablo var ama imza bir sonraki sayfada: bu sayfa lastpage OLMASIN
+      sec.classList.remove("lastpage");
+      const tw = sec.querySelector(":scope > .clzwrap.clzwrap-top");
+      if (tw) tw.classList.remove("clzwrap-top");
+    }
+  });
+
+  // f) SON TAŞMA TEMİZLİĞİ: step d'nin eklediği clzwrap gap/padding'i sayfayı
+  //    büyütmüş olabilir. Hâlâ taşan ara sayfanın son maddesini bir sonrakine it.
+  let fguard = 0, tekrar = false;
+  do {
+    tekrar = false;
+    const secsF = Array.from(sheet.querySelectorAll(".pgsec")).slice(1);
+    for (let i = 0; i < secsF.length - 1; i++){
+      const sec = secsF[i];
+      if (realH(sec) <= 1123) continue;
+      const wrap = sec.querySelector(":scope > .clzwrap, :scope > .clzwrap-top");
+      const clzList = wrap ? [...wrap.querySelectorAll(":scope > .clz")]
+                           : [...sec.querySelectorAll(":scope > .clz")];
+      if (clzList.length < 2) continue;
+      const son = clzList[clzList.length - 1];
+      const nextSec = secsF[i+1];
+      const nextWrap = nextSec.querySelector(":scope > .clzwrap, :scope > .clzwrap-top");
+      if (nextWrap){ nextWrap.insertBefore(son, nextWrap.firstElementChild); }
+      else {
+        const nf = nextSec.querySelector(":scope > .clz");
+        nextSec.insertBefore(son, nf || nextSec.firstElementChild);
+      }
+      tekrar = true;
+    }
+  } while (tekrar && fguard++ < 20);
+
+  // g) SON SAYFA taşıyorsa (EK-A/kefalet/imza + fazla madde): yeni son sayfa aç,
+  //    fazla maddeleri oraya al, tabloları+imzayı onunla taşı, lastpage'i güncelle.
+  let gguard = 0;
+  while (gguard++ < 6){
+    const secsG = Array.from(sheet.querySelectorAll(".pgsec")).slice(1);
+    const last = secsG[secsG.length - 1];
+    if (!last || realH(last) <= 1123) break;
+    const wrap = last.querySelector(":scope > .clzwrap, :scope > .clzwrap-top");
+    const clzList = wrap ? [...wrap.querySelectorAll(":scope > .clz")]
+                         : [...last.querySelectorAll(":scope > .clz")];
+    if (clzList.length < 1) break;
+    // yeni ara sayfa: taşan madde(ler)i buraya al (imza YOK, ortalanır)
+    const prevBrk = document.createElement("div"); prevBrk.className = "pgbrk";
+    const ara = document.createElement("div"); ara.className = "pgsec pgflex";
+    const araWrap = document.createElement("div"); araWrap.className = "clzwrap";
+    ara.appendChild(araWrap);
+    // son sayfadaki İLK maddeleri ara sayfaya taşı, son sayfada tablo+imza+az madde kalsın
+    let g2 = 0;
+    while (realH(last) > 1123 && g2++ < 30){
+      const w2 = last.querySelector(":scope > .clzwrap, :scope > .clzwrap-top");
+      const list = w2 ? [...w2.querySelectorAll(":scope > .clz")] : [...last.querySelectorAll(":scope > .clz")];
+      if (list.length < 1) break;
+      araWrap.appendChild(list[0]); // ilk maddeyi ara sayfaya
+    }
+    if (!araWrap.children.length) break;
+    // ara sayfaya da imza bloğu ekle (her sayfada imza tasarımı)
+    const sonPb = last.querySelector(":scope > .pgbottom");
+    if (sonPb){ ara.appendChild(sonPb.cloneNode(true)); }
+    last.before(prevBrk); prevBrk.before(ara);
+    // ara sayfadan sonra son sayfa hâlâ taşıyorsa döngü devam eder
+  }
 }
 function openPreview(){
   refresh(); // en güncel hal + autoFit
