@@ -338,35 +338,72 @@ async function sendEmail(){
   const btnEl=document.querySelector(".tb-r");
   if(btnEl){btnEl.disabled=true;btnEl.textContent="⏳ PDF oluşturuluyor…";}
 
-  // Hide interactive elements before capture
-  sheet.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.style.display="none");
-  sheet.querySelectorAll(".tv").forEach(el=>{el.dataset.oldBorder=el.style.borderBottom;el.style.borderBottom="none";});
-
   try{
-    // Capture as high-res canvas
-    const canvas=await html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});
+    // Create a clean clone - exactly like print output
+    const clone=sheet.cloneNode(true);
+    // Remove all interactive/no-print elements
+    clone.querySelectorAll(".add-btn,.no-print,.sigpad,.sigpad canvas,.hint").forEach(el=>el.remove());
+    // Remove dotted borders from tappable fields
+    clone.querySelectorAll(".tv").forEach(el=>{
+      el.style.borderBottom="none";
+      el.style.cursor="default";
+      el.removeAttribute("onclick");
+    });
+    // Remove legal click handler
+    clone.querySelectorAll(".legal").forEach(el=>{
+      el.style.border="none";
+      el.style.background="none";
+      el.removeAttribute("onclick");
+      el.removeAttribute("title");
+    });
 
-    // Restore interactive elements
-    sheet.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.style.display="");
-    sheet.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom=el.dataset.oldBorder||"";});
+    // Style the clone as A4
+    clone.style.width="210mm";
+    clone.style.minHeight="297mm";
+    clone.style.padding="10mm";
+    clone.style.background="#fff";
+    clone.style.position="fixed";
+    clone.style.top="0";
+    clone.style.left="0";
+    clone.style.zIndex="-9999";
+    clone.style.fontFamily="'Times New Roman',Times,serif";
+    clone.style.fontSize="10pt";
+    clone.style.color="#1a1a1a";
 
-    // Create PDF from canvas
+    document.body.appendChild(clone);
+
+    // Wait for images to load
+    await new Promise(r=>setTimeout(r,500));
+
+    // Capture with html2canvas
+    const canvas=await html2canvas(clone,{
+      scale:2,
+      useCORS:true,
+      allowTaint:true,
+      backgroundColor:"#ffffff",
+      logging:false,
+      width:clone.scrollWidth,
+      height:clone.scrollHeight
+    });
+
+    // Remove clone
+    document.body.removeChild(clone);
+
+    // Create PDF
     const {jsPDF}=window.jspdf;
     const pdf=new jsPDF("p","mm","a4");
     const pageW=210, pageH=297;
-    const imgW=pageW-16, imgH=(canvas.height*imgW)/canvas.width;
-    const imgData=canvas.toDataURL("image/jpeg",0.92);
+    const imgW=pageW, imgH=(canvas.height*imgW)/canvas.width;
+    const imgData=canvas.toDataURL("image/jpeg",0.95);
 
-    // If content fits one page
-    if(imgH<=pageH-16){
-      pdf.addImage(imgData,"JPEG",8,8,imgW,imgH);
+    if(imgH<=pageH){
+      pdf.addImage(imgData,"JPEG",0,0,imgW,imgH);
     }else{
-      // Multi-page
       let y=0;
       while(y<imgH){
         if(y>0)pdf.addPage();
-        pdf.addImage(imgData,"JPEG",8,8-y,imgW,imgH);
-        y+=pageH-16;
+        pdf.addImage(imgData,"JPEG",0,-y,imgW,imgH);
+        y+=pageH;
       }
     }
 
@@ -393,9 +430,6 @@ async function sendEmail(){
       if(btnEl){btnEl.disabled=false;btnEl.textContent="📧 Gönder";}
     }
   }catch(e){
-    // Restore on error
-    sheet.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.style.display="");
-    sheet.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom=el.dataset.oldBorder||"";});
     alert("Hata: "+e.message);
     if(btnEl){btnEl.disabled=false;btnEl.textContent="📧 Gönder";}
   }
