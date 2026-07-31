@@ -298,6 +298,17 @@ table.ftbl .fv4{background:#fff;width:33%}
 .pg1 .tgrow > table.ftbl,
 .pg1 .kfgrow > table.ftbl{height:100%}
 .pg1 .pgbottom{margin-top:7mm}
+/* birden fazla mal sahibi: tablo satırları artar, taşmayı önlemek için sıkıştır */
+.pg1.kv-tight table.ftbl td{font-size:8.7pt;padding:1.8px 9px;line-height:1.25}
+.pg1.kv-tight .tcenter{font-size:14pt;margin:5mm 0 3mm}
+.pg1.kv-tight .shead{margin:2.5mm 0 1.5mm}
+.pg1.kv-tight2 table.ftbl td{font-size:7.9pt;padding:1.1px 8px;line-height:1.2}
+.pg1.kv-tight2 .tcenter{font-size:13pt;margin:3.5mm 0 2.5mm}
+.pg1.kv-tight2 .shead{font-size:11pt;margin:2mm 0 1mm}
+.pg1.kv-tight2 .pgbottom{margin-top:4mm}
+/* çift dil + çok mal sahibi: en sıkı */
+.sheet.bilingual .pg1.kv-tight table.ftbl td{font-size:7.6pt;padding:1px 8px;line-height:1.18}
+.sheet.bilingual .pg1.kv-tight2 table.ftbl td{font-size:6.9pt;padding:.6px 7px;line-height:1.15}
 .pg2 .clz,.pg3 .clz,.pg4 .clz{font-size:9pt;line-height:1.48;margin-bottom:7px;}
 .pg2 .shead,.pg3 .shead,.pg4 .shead{font-size:12pt;margin-bottom:3mm}
 .pg4 table.demir td{padding:8px 10px;font-size:9.5pt}
@@ -433,7 +444,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v109</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v110</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -444,7 +455,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v109</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v110</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1057,10 +1068,6 @@ const TEMPLATES = [
       kvRows.push([L(`Kiraya Veren${n} İkamet Adresi`,`Lessor${nEn} Residential Address`), fvi("kvAdres",i)]);
       kvRows.push([L(`Kiraya Veren${n} Telefon Numarası`,`Lessor${nEn} Phone Number`), fvi("kvTel",i)]);
       kvRows.push([L(`Kiraya Veren${n} Türkiye Cumhuriyeti Kimlik Numarası`,`Lessor${nEn} National ID / Passport No`), fvi("kvTc",i)]);
-      if ((V[kfor("kvIban",i)]||"").trim() || (V[kfor("kvHesapAdi",i)]||"").trim()){
-        kvRows.push([L(`Kiraya Veren${n} Ödeme Hesabı / IBAN`,`Lessor${nEn} Payment Account / IBAN`), fvi("kvIban",i)]);
-        kvRows.push([L(`Kiraya Veren${n} Hesap Sahibi Adı`,`Lessor${nEn} Account Holder Name`), fvi("kvHesapAdi",i)]);
-      }
     }
     const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},{t:L("KİRACI","TENANT"),s:fv("kcIsim"),tc:fvRaw("kcTc")}], true);
     // Ödeme cümlesi: mal sahibi sayısına göre her birinin hesabı ayrı yazılır.
@@ -1078,7 +1085,7 @@ const TEMPLATES = [
       odemeEn = `to the account No. ${f("kvIban",170)} of the lessor owner, in the name of ${f("kvHesapAdi",110)}`;
     }
     return `
-    <div class="pgsec pg1 pgflex">
+    <div class="pgsec pg1 pgflex${ckv>=3?" kv-tight2":ckv>=2?" kv-tight":""}">
     <div class="pgfill">
     <div class="tcenter">${L("KİRA SÖZLEŞMESİ","RESIDENTIAL LEASE AGREEMENT")}</div>
     <div class="tgrow">${ftbl([
