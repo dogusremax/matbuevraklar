@@ -87,6 +87,8 @@ table{width:100%;border-collapse:collapse;table-layout:fixed}
 
 /* Print */
 @media print{.toolbar,.add-btn,.sigpad .hint,.no-print{display:none!important}.sheet{box-shadow:none;border:none;padding:8mm;min-height:auto}body{background:#fff;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.sheet-wrap{margin:0;padding:0;max-width:none}.tv{border-bottom:none}.legal{border:none!important;background:none!important}.hdr td{background:#21237B!important}.fl{background:#DCE6F4!important}.sh{background:#21237B!important}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </style>
 </head>
 <body>
@@ -327,14 +329,76 @@ async function showKayitlar(){
 /* ─── SEND ─── */
 async function sendEmail(){
   if(!V.email||!V.email.includes("@")){alert("Müşteri e-posta adresi gerekli.");return;}
-  if(!confirm("E-posta gönderilsin mi?\nAlıcı: "+V.email)){return;}
-  const glist=props.filter(p=>p.adres).map(p=>({adres:p.adres,fiyat:p.fiyat,fiyatYazi:p.fiyatY}));
-  const body=new URLSearchParams();
-  body.append("action","sendYerGosterme");body.append("musteriEmail",V.email);body.append("musteriIsim",V.isim);
-  body.append("musteriTc",V.tc);body.append("musteriTel",V.tel);body.append("danisman",me.name);
-  body.append("tarih",tarih);body.append("imza",imzaData||"");body.append("gayrimenkuller",JSON.stringify(glist));
-  try{const r=await fetch(ENDPOINT,{method:"POST",body,redirect:"follow"});const t=await r.text();let d;try{d=JSON.parse(t);}catch(_){alert("Hata: "+t.slice(0,200));return;}
-  if(d.ok)alert("✅ Gönderildi!");else alert("Hata: "+(d.error||"Bilinmeyen"));}catch(e){alert("Bağlantı: "+e.message);}
+  if(!V.isim.trim()){alert("Müşteri adı gerekli.");return;}
+  if(!confirm("PDF olarak e-posta gönderilsin mi?\nAlıcı: "+V.email)){return;}
+
+  const sheet=document.querySelector(".sheet");
+  if(!sheet)return;
+
+  const btnEl=document.querySelector(".tb-r");
+  if(btnEl){btnEl.disabled=true;btnEl.textContent="⏳ PDF oluşturuluyor…";}
+
+  // Hide interactive elements before capture
+  sheet.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.style.display="none");
+  sheet.querySelectorAll(".tv").forEach(el=>{el.dataset.oldBorder=el.style.borderBottom;el.style.borderBottom="none";});
+
+  try{
+    // Capture as high-res canvas
+    const canvas=await html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:"#ffffff",logging:false});
+
+    // Restore interactive elements
+    sheet.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.style.display="");
+    sheet.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom=el.dataset.oldBorder||"";});
+
+    // Create PDF from canvas
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF("p","mm","a4");
+    const pageW=210, pageH=297;
+    const imgW=pageW-16, imgH=(canvas.height*imgW)/canvas.width;
+    const imgData=canvas.toDataURL("image/jpeg",0.92);
+
+    // If content fits one page
+    if(imgH<=pageH-16){
+      pdf.addImage(imgData,"JPEG",8,8,imgW,imgH);
+    }else{
+      // Multi-page
+      let y=0;
+      while(y<imgH){
+        if(y>0)pdf.addPage();
+        pdf.addImage(imgData,"JPEG",8,8-y,imgW,imgH);
+        y+=pageH-16;
+      }
+    }
+
+    const pdfBase64=pdf.output("datauristring").split(",")[1];
+
+    if(btnEl)btnEl.textContent="⏳ Gönderiliyor…";
+
+    const body=new URLSearchParams();
+    body.append("action","sendYerGostermePdfBlob");
+    body.append("musteriEmail",V.email);
+    body.append("musteriIsim",V.isim);
+    body.append("danisman",me.name);
+    body.append("tarih",tarih);
+    body.append("pdfData",pdfBase64);
+
+    const r=await fetch(ENDPOINT,{method:"POST",body,redirect:"follow"});
+    const t=await r.text();
+    let d;try{d=JSON.parse(t);}catch(_){alert("Hata: "+t.slice(0,200));if(btnEl){btnEl.disabled=false;btnEl.textContent="📧 Gönder";}return;}
+    if(d.ok){
+      alert("✅ PDF olarak gönderildi!");
+      if(btnEl){btnEl.textContent="✅ Gönderildi!";setTimeout(()=>{btnEl.textContent="📧 Gönder";btnEl.disabled=false;},2000);}
+    }else{
+      alert("Hata: "+(d.error||"Bilinmeyen"));
+      if(btnEl){btnEl.disabled=false;btnEl.textContent="📧 Gönder";}
+    }
+  }catch(e){
+    // Restore on error
+    sheet.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.style.display="");
+    sheet.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom=el.dataset.oldBorder||"";});
+    alert("Hata: "+e.message);
+    if(btnEl){btnEl.disabled=false;btnEl.textContent="📧 Gönder";}
+  }
 }
 
 /* ─── RENDER ─── */
