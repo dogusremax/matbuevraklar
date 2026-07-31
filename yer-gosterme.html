@@ -181,7 +181,7 @@ function saveField(key,propIdx,isMoney,isEmail,isTel){
     props[propIdx][key]=val;
     // Rakam girilince yazıyı otomatik doldur
     if(key==="fiyat"&&val){
-      props[propIdx].fiyatY=sayiyiYaziyaCevir(val)+" TL";
+      props[propIdx].fiyatY=sayiyiYaziyaCevir(val)+"TÜRKLIRASI";
     }
   }
   else V[key]=val;
