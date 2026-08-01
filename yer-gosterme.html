@@ -464,7 +464,7 @@ async function kaydetDrive(){
     clone.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom="none";el.style.cursor="default";el.removeAttribute("onclick");});
     clone.querySelectorAll(".legal").forEach(el=>{el.style.border="none";el.style.background="none";el.removeAttribute("onclick");el.removeAttribute("title");});
     clone.style.width="210mm";
-    clone.style.minHeight="297mm";
+    clone.style.minHeight="auto";
     clone.style.padding="10mm";
     clone.style.background="#fff";
     clone.style.position="fixed";
@@ -486,8 +486,9 @@ async function kaydetDrive(){
     const pageW=210,pageH=297;
     const imgW=pageW,imgH=(canvas.height*imgW)/canvas.width;
     const imgData=canvas.toDataURL("image/jpeg",0.95);
+    // Tek sayfaya sığdır: içerik A4'ten uzunsa ölçekle
     if(imgH<=pageH){pdf.addImage(imgData,"JPEG",0,0,imgW,imgH);}
-    else{let y=0;while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(imgData,"JPEG",0,-y,imgW,imgH);y+=pageH;}}
+    else{pdf.addImage(imgData,"JPEG",0,0,imgW,pageH);}
 
     const pdfBase64=pdf.output("datauristring").split(",")[1];
 
@@ -580,7 +581,7 @@ async function sendEmail(){
 
     // Style the clone as A4
     clone.style.width="210mm";
-    clone.style.minHeight="297mm";
+    clone.style.minHeight="auto";
     clone.style.padding="10mm";
     clone.style.background="#fff";
     clone.style.position="fixed";
@@ -617,15 +618,11 @@ async function sendEmail(){
     const imgW=pageW, imgH=(canvas.height*imgW)/canvas.width;
     const imgData=canvas.toDataURL("image/jpeg",0.95);
 
+    // Tek sayfaya sığdır
     if(imgH<=pageH){
       pdf.addImage(imgData,"JPEG",0,0,imgW,imgH);
     }else{
-      let y=0;
-      while(y<imgH){
-        if(y>0)pdf.addPage();
-        pdf.addImage(imgData,"JPEG",0,-y,imgW,imgH);
-        y+=pageH;
-      }
+      pdf.addImage(imgData,"JPEG",0,0,imgW,pageH);
     }
 
     const pdfBase64=pdf.output("datauristring").split(",")[1];
