@@ -329,7 +329,7 @@ function openField(label,key,opts){
   const m=$("mval");m.focus();
   if(isMoney)m.addEventListener("input",function(){const r=this.value.replace(/[^0-9]/g,"");this.value=r?r.replace(/\B(?=(\d{3})+(?!\d))/g,".")+" TL":"";});
   if(isTel)m.addEventListener("input",function(){this.value=fmtTel(this.value);});
-  if(!opts.email&&!isTel&&!isMoney&&!isArea)m.addEventListener("input",function(){this.value=toUpper(this.value);});
+  if(!opts.email&&!isTel&&!isMoney)m.addEventListener("input",function(){this.value=toUpper(this.value);});
   bg.addEventListener("click",function(e){if(e.target===bg)closeModal();});
 }
 function saveField(key,propIdx,isMoney,isEmail,isTel){
