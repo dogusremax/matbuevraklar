@@ -291,44 +291,77 @@ async function kaydetDrive(){
   const kayitAdi=V.isim+" — "+props[0].adres.slice(0,40);
   if(!confirm("Drive'a kaydedilsin mi?\n\n"+kayitAdi))return;
 
-  // Capture document as HTML string
   const sheet=document.querySelector(".sheet");
   if(!sheet)return;
-  const printCSS=`<style>*{box-sizing:border-box}body{margin:0;padding:10mm;font-family:'Times New Roman',Times,serif;color:#1a1a1a;font-size:10pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}table{width:100%;border-collapse:collapse;table-layout:fixed}.hdr td{background:#21237B!important;padding:5px 10px;vertical-align:middle;color:#fff;font-weight:700;font-size:11pt}.fl{background:#DCE6F4!important;border:1px solid #BBB;padding:5px 10px;font-size:10pt}.fv{background:#fff;border:1px solid #BBB;padding:5px 10px;font-size:10pt}.sigBox{border:1.2px solid #21237B;background:#fff;padding:0;vertical-align:top}.sh{background:#21237B!important;color:#fff;font-size:9pt;font-weight:700;text-align:center;padding:4px 6px;letter-spacing:.4px;text-transform:uppercase}.sn{font-size:9pt;border-bottom:1px dotted #777;padding:3px 2px 4px;min-height:16px;line-height:1.3}.sf{font-size:7.5pt;color:#595959;text-align:center;border-top:1px solid #ddd;padding-top:3px;font-weight:700}.shead{font-weight:700;font-size:10pt;margin:4mm 0 2px;padding:5px 10px}.legal{font-size:9pt;line-height:1.5;text-align:justify;padding:4px}.tv{border-bottom:none}.add-btn,.no-print{display:none}img{max-width:100%}</style>`;
-  let cleanHTML=sheet.innerHTML;
-  // Remove interactive elements
-  const temp=document.createElement("div");temp.innerHTML=cleanHTML;
-  temp.querySelectorAll(".add-btn,.no-print,.sigpad").forEach(el=>el.remove());
-  temp.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom="none";});
-  const fullHTML=`<!DOCTYPE html><html><head><meta charset="UTF-8">${printCSS}</head><body>${temp.innerHTML}</body></html>`;
-  const base64HTML=btoa(unescape(encodeURIComponent(fullHTML)));
-
-  const formVeri=JSON.stringify({musteri:V,gayrimenkuller:props.filter(p=>p.adres),danisman:me.name,tarih:tarih});
-
-  const body=new URLSearchParams();
-  body.append("action","saveEvrak");
-  body.append("danisman",me.name);
-  body.append("evrak","Yer Gösterme Belgesi");
-  body.append("kayitAdi",kayitAdi);
-  body.append("dosyaAdi","Yer_Gosterme_"+V.isim.replace(/\s+/g,"_")+"_"+tarih.replace(/\./g,"")+".html");
-  body.append("mime","text/html");
-  body.append("veri",base64HTML);
-  body.append("tplId","yer-gosterme");
-  body.append("formVeri",formVeri);
 
   const btn=document.querySelector(".tb-g");
-  if(btn){btn.disabled=true;btn.textContent="⏳ Kaydediliyor…";}
+  if(btn){btn.disabled=true;btn.textContent="⏳ PDF oluşturuluyor…";}
+
   try{
+    // Create clean clone - same as print/preview
+    const clone=sheet.cloneNode(true);
+    clone.querySelectorAll(".add-btn,.no-print,.sigpad,.sigpad canvas,.hint").forEach(el=>el.remove());
+    clone.querySelectorAll(".tv").forEach(el=>{el.style.borderBottom="none";el.style.cursor="default";el.removeAttribute("onclick");});
+    clone.querySelectorAll(".legal").forEach(el=>{el.style.border="none";el.style.background="none";el.removeAttribute("onclick");el.removeAttribute("title");});
+    clone.style.width="210mm";
+    clone.style.minHeight="297mm";
+    clone.style.padding="10mm";
+    clone.style.background="#fff";
+    clone.style.position="fixed";
+    clone.style.top="0";
+    clone.style.left="0";
+    clone.style.zIndex="-9999";
+    clone.style.fontFamily="'Times New Roman',Times,serif";
+    clone.style.fontSize="10pt";
+    clone.style.color="#1a1a1a";
+    document.body.appendChild(clone);
+
+    await new Promise(r=>setTimeout(r,500));
+
+    const canvas=await html2canvas(clone,{scale:2,useCORS:true,allowTaint:true,backgroundColor:"#ffffff",logging:false,width:clone.scrollWidth,height:clone.scrollHeight});
+    document.body.removeChild(clone);
+
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF("p","mm","a4");
+    const pageW=210,pageH=297;
+    const imgW=pageW,imgH=(canvas.height*imgW)/canvas.width;
+    const imgData=canvas.toDataURL("image/jpeg",0.95);
+    if(imgH<=pageH){pdf.addImage(imgData,"JPEG",0,0,imgW,imgH);}
+    else{let y=0;while(y<imgH){if(y>0)pdf.addPage();pdf.addImage(imgData,"JPEG",0,-y,imgW,imgH);y+=pageH;}}
+
+    const pdfBase64=pdf.output("datauristring").split(",")[1];
+
+    if(btn)btn.textContent="⏳ Kaydediliyor…";
+
+    const dosyaAdi="Yer_Gosterme_"+V.isim.replace(/\s+/g,"_")+"_"+tarih.replace(/\./g,"")+".pdf";
+    const formVeri=JSON.stringify({musteri:V,gayrimenkuller:props.filter(p=>p.adres),danisman:me.name,tarih:tarih});
+
+    const body=new URLSearchParams();
+    body.append("action","saveEvrak");
+    body.append("danisman",me.name);
+    body.append("evrak","Yer Gösterme Belgesi");
+    body.append("kayitAdi",kayitAdi);
+    body.append("dosyaAdi",dosyaAdi);
+    body.append("mime","application/pdf");
+    body.append("veri",pdfBase64);
+    body.append("tplId","yer-gosterme");
+    body.append("formVeri",formVeri);
+
     const r=await fetch(ENDPOINT,{method:"POST",body,redirect:"follow"});
     const t=await r.text();
-    let d;try{d=JSON.parse(t);}catch(_){alert("Hata: "+t.slice(0,200));return;}
+    let d;try{d=JSON.parse(t);}catch(_){alert("Hata: "+t.slice(0,200));if(btn){btn.disabled=false;btn.textContent="💾 Kaydet";}return;}
     if(d.ok){
-      alert("✅ Kaydedildi!\n\n"+d.dosya+"\n"+d.link);
+      alert("✅ Kaydedildi!\n\n"+d.dosya);
       if(btn){btn.textContent="✅ Kaydedildi!";setTimeout(()=>{btn.textContent="💾 Kaydet";btn.disabled=false;},2000);}
     }else{
       alert("Hata: "+(d.error||"Bilinmeyen"));
       if(btn){btn.disabled=false;btn.textContent="💾 Kaydet";}
     }
+  }catch(e){
+    alert("Hata: "+e.message);
+    if(btn){btn.disabled=false;btn.textContent="💾 Kaydet";}
+  }
+}
   }catch(e){alert("Bağlantı: "+e.message);if(btn){btn.disabled=false;btn.textContent="💾 Kaydet";}}
 }
 
@@ -506,7 +539,7 @@ function render(){
     </table>
     <div class="shead">Görülen Gayrimenkul Aşağıdadır.</div>
     <table>${propRows}</table>
-    ${props.length<3?`<button class="add-btn no-print" onclick="props.push({adres:'',fiyat:'',fiyatY:''});render();">+ ${props.length+1}. Gayrimenkul Ekle</button>`:""}
+    ${`<button class="add-btn no-print" onclick="props.push({adres:'',fiyat:'',fiyatY:''});render();">+ ${props.length+1}. Gayrimenkul Ekle</button>`}
     <div class="legal" onclick="editLegal()" title="Düzenlemek için dokunun">${yasal.replace("##TARIH##",tarih)}</div>
     <table style="border-collapse:separate;border-spacing:3mm 2mm;margin-top:3mm"><tr>
       <td class="sigBox"><div class="sh">Gayrimenkulü Gören Kişi</div><div style="padding:4px 6px">
