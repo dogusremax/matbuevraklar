@@ -1014,7 +1014,7 @@ const TEMPLATES = [
       {k:"kvIban", l:"Ödeme Yapılacak Hesap / IBAN", lEn:"Payment Account / IBAN", fmt:"raw"},
       {k:"kvHesapAdi", l:"Hesap Sahibi Adı", lEn:"Account Holder Name"},
     ]},
-    {t:"Kiracı", tEn:"Tenant (Lessee)", fields:[
+    {t:"Kiracı", tEn:"Tenant (Lessee)", repeat:{base:"kc", label:"Kiracı", labelEn:"Tenant", max:3}, fields:[
       {k:"kcIsim", l:"Adı ve Soyadı", lEn:"Full Name", req:1},
       {k:"kcTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
       {k:"kcAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
@@ -1060,6 +1060,7 @@ const TEMPLATES = [
   ],
   render(){
     const ckv = repCount("kv");
+    const ckc = repCount("kc");
     const kvRows = [];
     for (let i=1;i<=ckv;i++){
       const n = ckv>1 ? ` ${i}'in` : "in";
@@ -1069,7 +1070,18 @@ const TEMPLATES = [
       kvRows.push([L(`Kiraya Veren${n} Telefon Numarası`,`Lessor${nEn} Phone Number`), fvi("kvTel",i)]);
       kvRows.push([L(`Kiraya Veren${n} Türkiye Cumhuriyeti Kimlik Numarası`,`Lessor${nEn} National ID / Passport No`), fvi("kvTc",i)]);
     }
-    const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},{t:L("KİRACI","TENANT"),s:fv("kcIsim"),tc:fvRaw("kcTc")}], true);
+    // Kiracı satırları: birden fazla kiracı varsa her biri numaralı yazılır
+    const kcRows = [];
+    for (let i=1;i<=ckc;i++){
+      const n   = ckc>1 ? " "+i : "";
+      const nEn = ckc>1 ? " "+i : "";
+      kcRows.push([L(`Kiracı${n} Adı Ve Soyadı`,`Tenant${nEn} Full Name`), fvi("kcIsim",i)]);
+      kcRows.push([L(`Kiracı${n} Türkiye Cumhuriyeti Kimlik Numarası`,`Tenant${nEn} National ID / Passport No`), fvi("kcTc",i)]);
+      kcRows.push([L(`Kiracı${n} İkamet Adresi`,`Tenant${nEn} Residential Address`), fvi("kcAdres",i)]);
+      kcRows.push([L(`Kiracı${n} İş Adresi`,`Tenant${nEn} Work Address`), fvi("kcIs",i)]);
+      kcRows.push([L(`Kiracı${n} Telefon Numarası`,`Tenant${nEn} Phone Number`), fvi("kcTel",i)]);
+    }
+    const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},...Array.from({length:ckc},(_,x)=>({t:L(ckc>1?"KİRACI "+(x+1):"KİRACI", ckc>1?"TENANT "+(x+1):"TENANT"),s:fvi("kcIsim",x+1),tc:fvRaw(kfor("kcTc",x+1))}))], true);
     // Ödeme cümlesi: mal sahibi sayısına göre her birinin hesabı ayrı yazılır.
     let odemeTr, odemeEn;
     if (ckv > 1){
@@ -1094,11 +1106,7 @@ const TEMPLATES = [
       [L("Adres","Address"), fv("mAdres")],
       [L("Kiralanan Şeyin Cinsi","Type of Property"), fv("cins")],
       ...kvRows,
-      [L("Kiracının Adı Ve Soyadı","Tenant Full Name"), fv("kcIsim")],
-      [L("Kiracının Türkiye Cumhuriyeti Kimlik Numarası","Tenant National ID / Passport No"), fv("kcTc")],
-      [L("Kiracının İkamet Adresi","Tenant Residential Address"), fv("kcAdres")],
-      [L("Kiracının İş Adresi","Tenant Work Address"), fv("kcIs")],
-      [L("Kiracının Telefon Numarası","Tenant Phone Number"), fv("kcTel")],
+      ...kcRows,
       [L("Bir Senelik Kira Karşılığı","Annual Rent"), fvu("yillik","TL","")],
       [L("Bir Aylık Kira Karşılığı","Monthly Rent"), fvu("aylik","TL","") + (fvRaw("stopaj")==="Var" ? ` <b>${L("(Kira + Stopaj)","(Rent + Withholding Tax)")}</b>` : "")],
       [L("Kira Karşılığının Ne Şekilde Ödeneceği","Method of Rent Payment"), L(`Her ayın ${(fvRaw("odemeGunBas")||"1")+ekIHali(fvRaw("odemeGunBas")||"1")} - ${(fvRaw("odemeGunBit")||"5")+ekIHali(fvRaw("odemeGunBit")||"5")} arasında banka havalesi ile`, `By bank transfer between the ${(fvRaw("odemeGunBas")||"1")}${ordEn(fvRaw("odemeGunBas")||"1")} and ${(fvRaw("odemeGunBit")||"5")}${ordEn(fvRaw("odemeGunBit")||"5")} of each month`)],
