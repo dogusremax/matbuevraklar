@@ -1452,7 +1452,7 @@ const TEMPLATES = [
       {k:"esIsim", l:"Eşin Adı Soyadı", lEn:"Spouse Full Name"},
       {k:"esTc", l:"Eşin T.C. Kimlik No", lEn:"Spouse National ID / Passport No"},
     ]},
-    {t:"Mal Sahibi (Kiralayan)", tEn:"Owner (Lessor)", fields:[
+    {t:"Mal Sahibi (Kiralayan)", tEn:"Owner (Lessor)", repeat:{base:"mal", label:"Mal Sahibi", labelEn:"Owner", max:3}, fields:[
       {k:"malIsim", l:"Adı Soyadı", lEn:"Full Name", req:1},
       {k:"malTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
     ]},
@@ -1472,16 +1472,17 @@ const TEMPLATES = [
       <div class="prow" style="margin-top:6mm"><span class="plabel">${L("TAAHHÜT EDENİN EŞİ","SPOUSE OF UNDERTAKER")}</span></div>
       <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("esIsim",180)}</div>
       <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("esTc",160)}</div>` : ""}
-      <div class="prow" style="margin-top:8mm"><span class="plabel">${L("MAL SAHİBİ (KİRALAYAN)","OWNER (LESSOR)")}</span></div>
-      <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("malIsim",180)}</div>
-      <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("malTc",160)}</div>
+      <div class="prow" style="margin-top:8mm"><span class="plabel">${L(repCount("mal")>1?"MAL SAHİPLERİ (KİRALAYAN)":"MAL SAHİBİ (KİRALAYAN)", repCount("mal")>1?"OWNERS (LESSORS)":"OWNER (LESSOR)")}</span></div>
+      ${Array.from({length:repCount("mal")},(_,x)=>{const i=x+1; const n=repCount("mal")>1?" "+i:"";
+        return `<div class="prow">${L("ADI SOYADI","FULL NAME")}${n} : ${f(kfor("malIsim",i),180)}</div>
+      <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")}${n} : ${f(kfor("malTc",i),160)}</div>`;}).join("")}
       <div class="prow" style="margin-top:8mm">${L("TAHLİYE EDİLECEK TAŞINMAZIN ADRESİ","ADDRESS OF PROPERTY TO BE VACATED")} : ${f("adres",300)}</div>
       <div class="prow">${L("TAHLİYE TARİHİ","EVICTION DATE")} : ${f("tahliyeTarihi",120)}</div>
       <div class="clz">${Lc("Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim." + (fvRaw("medeni")==="Evli" ? " Aile konutu niteliğindeki taşınmaza ilişkin işbu taahhüde, Türk Medeni Kanunu'nun 194. maddesi uyarınca eş olarak açık rızam ve muvafakatim bulunmaktadır." : ""), "I declare, accept and undertake that I shall vacate, unconditionally and without any need for notice or warning, the property at the address stated above which I currently use as a tenant, on the date specified above; that I shall deliver it to the aforementioned owner empty and in sound condition; and that I shall immediately pay, in cash and in advance, without any need for notice, warning or judgment, all costs the owner may incur through enforcement proceedings and any loss and damage the owner may suffer due to my delay in vacating." + (fvRaw("medeni")==="Evli" ? " As the spouse, I hereby give my express consent and approval to this undertaking concerning the family residence, pursuant to Article 194 of the Turkish Civil Code." : ""))}</div>
       <div class="psig">
         <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${f("taahhutTarihi",120)}</div>
         ${fvRaw("medeni")==="Evli" ? `
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8mm">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8mm;margin-left:-52%;width:152%">
           <tr>
             <td width="45%" align="left" valign="top">
               <div class="prow"><b>${L("TAAHHÜT EDEN","UNDERTAKER")}</b></div>
