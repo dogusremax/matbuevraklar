@@ -1483,19 +1483,19 @@ const TEMPLATES = [
         ${fvRaw("medeni")==="Evli" ? `
         <table style="width:100%;margin-top:7mm;border-collapse:collapse">
           <tr>
-            <td style="width:50%;vertical-align:top;text-align:left">
+            <td style="width:50%;vertical-align:top;padding-right:10mm">
               <div class="prow" style="font-weight:600">${L("TAAHHÜT EDEN","UNDERTAKER")}</div>
               <div class="prow" style="margin-top:1.5mm">${fvRaw("kiraciIsim")||"______________________"}</div>
               <div class="prow">${L("T.C.","ID")} : ${fvRaw("kiraciTc")||"______________"}</div>
               <div class="prow" style="margin-top:16mm">${L("İmza","Signature")}</div>
               <div style="border-top:1px solid #000;width:52mm;margin-top:1mm"></div>
             </td>
-            <td style="width:50%;vertical-align:top;text-align:right">
-              <div class="prow" style="font-weight:600;text-align:right">${L("EŞİ","SPOUSE")}</div>
-              <div class="prow" style="margin-top:1.5mm;text-align:right">${fvRaw("esIsim")||"______________________"}</div>
-              <div class="prow" style="text-align:right">${L("T.C.","ID")} : ${fvRaw("esTc")||"______________"}</div>
-              <div class="prow" style="margin-top:16mm;text-align:right">${L("İmza","Signature")}</div>
-              <div style="border-top:1px solid #000;width:52mm;margin-top:1mm;margin-left:auto"></div>
+            <td style="width:50%;vertical-align:top;padding-left:10mm">
+              <div class="prow" style="font-weight:600">${L("EŞİ","SPOUSE")}</div>
+              <div class="prow" style="margin-top:1.5mm">${fvRaw("esIsim")||"______________________"}</div>
+              <div class="prow">${L("T.C.","ID")} : ${fvRaw("esTc")||"______________"}</div>
+              <div class="prow" style="margin-top:16mm">${L("İmza","Signature")}</div>
+              <div style="border-top:1px solid #000;width:52mm;margin-top:1mm"></div>
             </td>
           </tr>
         </table>` : `
