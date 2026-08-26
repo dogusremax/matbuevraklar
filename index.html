@@ -1445,6 +1445,12 @@ const TEMPLATES = [
     {t:"Taahhüt Eden (Kiracı)", tEn:"Undertaker (Tenant)", fields:[
       {k:"kiraciIsim", l:"Adı Soyadı", lEn:"Full Name", req:1},
       {k:"kiraciTc", l:"T.C. Kimlik No", lEn:"National ID / Passport No"},
+      {k:"medeni", l:"Medeni Durumu", lEn:"Marital Status", type:"select",
+       opts:["Bekar","Evli"], optsEn:["Single","Married"], def:"Bekar"},
+    ]},
+    {t:"Eş Bilgileri (evli ise doldurun)", tEn:"Spouse Information (if married)", fields:[
+      {k:"esIsim", l:"Eşin Adı Soyadı", lEn:"Spouse Full Name"},
+      {k:"esTc", l:"Eşin T.C. Kimlik No", lEn:"Spouse National ID / Passport No"},
     ]},
     {t:"Mal Sahibi (Kiralayan)", tEn:"Owner (Lessor)", fields:[
       {k:"malIsim", l:"Adı Soyadı", lEn:"Full Name", req:1},
@@ -1462,16 +1468,33 @@ const TEMPLATES = [
       <div class="prow"><span class="plabel">${L("TAAHHÜT EDEN (KİRACI)","UNDERTAKER (TENANT)")}</span></div>
       <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("kiraciIsim",180)}</div>
       <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("kiraciTc",160)}</div>
+      ${fvRaw("medeni")==="Evli" ? `
+      <div class="prow" style="margin-top:6mm"><span class="plabel">${L("TAAHHÜT EDENİN EŞİ","SPOUSE OF UNDERTAKER")}</span></div>
+      <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("esIsim",180)}</div>
+      <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("esTc",160)}</div>` : ""}
       <div class="prow" style="margin-top:8mm"><span class="plabel">${L("MAL SAHİBİ (KİRALAYAN)","OWNER (LESSOR)")}</span></div>
       <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("malIsim",180)}</div>
       <div class="prow">${L("T.C. KİMLİK NO","NATIONAL ID / PASSPORT NO")} : ${f("malTc",160)}</div>
       <div class="prow" style="margin-top:8mm">${L("TAHLİYE EDİLECEK TAŞINMAZIN ADRESİ","ADDRESS OF PROPERTY TO BE VACATED")} : ${f("adres",300)}</div>
       <div class="prow">${L("TAHLİYE TARİHİ","EVICTION DATE")} : ${f("tahliyeTarihi",120)}</div>
-      <div class="clz">${Lc("Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim.", "I declare, accept and undertake that I shall vacate, unconditionally and without any need for notice or warning, the property at the address stated above which I currently use as a tenant, on the date specified above; that I shall deliver it to the aforementioned owner empty and in sound condition; and that I shall immediately pay, in cash and in advance, without any need for notice, warning or judgment, all costs the owner may incur through enforcement proceedings and any loss and damage the owner may suffer due to my delay in vacating.")}</div>
+      <div class="clz">${Lc("Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim." + (fvRaw("medeni")==="Evli" ? " Aile konutu niteliğindeki taşınmaza ilişkin işbu taahhüde, Türk Medeni Kanunu'nun 194. maddesi uyarınca eş olarak açık rızam ve muvafakatim bulunmaktadır." : ""), "I declare, accept and undertake that I shall vacate, unconditionally and without any need for notice or warning, the property at the address stated above which I currently use as a tenant, on the date specified above; that I shall deliver it to the aforementioned owner empty and in sound condition; and that I shall immediately pay, in cash and in advance, without any need for notice, warning or judgment, all costs the owner may incur through enforcement proceedings and any loss and damage the owner may suffer due to my delay in vacating." + (fvRaw("medeni")==="Evli" ? " As the spouse, I hereby give my express consent and approval to this undertaking concerning the family residence, pursuant to Article 194 of the Turkish Civil Code." : ""))}</div>
       <div class="psig">
         <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${f("taahhutTarihi",120)}</div>
+        ${fvRaw("medeni")==="Evli" ? `
+        <div style="display:flex;gap:14mm;margin-top:5mm">
+          <div style="flex:1">
+            <div class="prow">${L("Taahhüt Eden","Undertaker")} : <b>${fvRaw("kiraciIsim")||""}</b></div>
+            <div class="prow">${L("T.C. Kimlik No","National ID")} : ${fvRaw("kiraciTc")||""}</div>
+            <div class="prow" style="margin-top:12mm">${L("İmzası","Signature")} : ______________________</div>
+          </div>
+          <div style="flex:1">
+            <div class="prow">${L("Eşi","Spouse")} : <b>${fvRaw("esIsim")||""}</b></div>
+            <div class="prow">${L("T.C. Kimlik No","National ID")} : ${fvRaw("esTc")||""}</div>
+            <div class="prow" style="margin-top:12mm">${L("İmzası","Signature")} : ______________________</div>
+          </div>
+        </div>` : `
         <div class="prow">${L("Taahhüt Eden","Undertaker")} : <b>${fvRaw("kiraciIsim")||""}</b></div>
-        <div class="prow">${L("İmzası","Signature")} :</div>
+        <div class="prow">${L("İmzası","Signature")} :</div>`}
       </div>
     </div>
   `;}
