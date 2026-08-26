@@ -1481,21 +1481,20 @@ const TEMPLATES = [
       <div class="psig">
         <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${f("taahhutTarihi",120)}</div>
         ${fvRaw("medeni")==="Evli" ? `
-        <table style="width:100%;margin-top:7mm;border-collapse:collapse">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8mm">
           <tr>
-            <td style="width:50%;vertical-align:top;padding-right:10mm">
-              <div class="prow" style="font-weight:600">${L("TAAHHÜT EDEN","UNDERTAKER")}</div>
-              <div class="prow" style="margin-top:1.5mm">${fvRaw("kiraciIsim")||"______________________"}</div>
-              <div class="prow">${L("T.C.","ID")} : ${fvRaw("kiraciTc")||"______________"}</div>
-              <div class="prow" style="margin-top:16mm">${L("İmza","Signature")}</div>
-              <div style="border-top:1px solid #000;width:52mm;margin-top:1mm"></div>
+            <td width="45%" align="left" valign="top">
+              <div class="prow"><b>${L("TAAHHÜT EDEN","UNDERTAKER")}</b></div>
+              <div class="prow">${fvRaw("kiraciIsim")||""}</div>
+              <div class="prow">${fvRaw("kiraciTc")||""}</div>
+              <div class="prow" style="margin-top:18mm">${L("İmza","Signature")} : ____________</div>
             </td>
-            <td style="width:50%;vertical-align:top;padding-left:10mm">
-              <div class="prow" style="font-weight:600">${L("EŞİ","SPOUSE")}</div>
-              <div class="prow" style="margin-top:1.5mm">${fvRaw("esIsim")||"______________________"}</div>
-              <div class="prow">${L("T.C.","ID")} : ${fvRaw("esTc")||"______________"}</div>
-              <div class="prow" style="margin-top:16mm">${L("İmza","Signature")}</div>
-              <div style="border-top:1px solid #000;width:52mm;margin-top:1mm"></div>
+            <td width="10%">&nbsp;</td>
+            <td width="45%" align="left" valign="top">
+              <div class="prow"><b>${L("EŞİ","SPOUSE")}</b></div>
+              <div class="prow">${fvRaw("esIsim")||""}</div>
+              <div class="prow">${fvRaw("esTc")||""}</div>
+              <div class="prow" style="margin-top:18mm">${L("İmza","Signature")} : ____________</div>
             </td>
           </tr>
         </table>` : `
