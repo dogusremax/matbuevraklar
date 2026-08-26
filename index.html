@@ -264,6 +264,30 @@ table.ftbl .fv4{background:#fff;width:33%}
 .petition .clz{font-size:11pt;line-height:2;text-align:justify;margin:8mm 0}
 .petition .blank{min-width:120px}
 .petition .psig{margin-top:18mm;margin-left:52%}
+/* Tahliye taahhütnamesi — kişi sayısına göre sıkışma */
+.petition.pt-s{font-size:10pt;line-height:1.7}
+.petition.pt-s .ptitle{font-size:13pt;margin:10mm 0 9mm}
+.petition.pt-s .clz{font-size:10pt;line-height:1.7;margin:6mm 0}
+.petition.pt-s .prow{margin:8px 0}
+.petition.pt-s .psig{margin-top:11mm}
+.petition.pt-ss{font-size:9pt;line-height:1.5}
+.petition.pt-ss .ptitle{font-size:12pt;margin:7mm 0 6mm}
+.petition.pt-ss .clz{font-size:9pt;line-height:1.5;margin:4mm 0}
+.petition.pt-ss .prow{margin:5px 0}
+.petition.pt-ss .psig{margin-top:7mm}
+.petition.pt-sss{font-size:8.2pt;line-height:1.38}
+.petition.pt-sss .ptitle{font-size:11pt;margin:5mm 0 4mm}
+.petition.pt-sss .clz{font-size:8.2pt;line-height:1.4;margin:3mm 0}
+.petition.pt-sss .prow{margin:3.5px 0}
+.petition.pt-sss .psig{margin-top:5mm}
+/* İmza tablosu */
+.sigtbl{width:100%;border-collapse:collapse;margin-top:9mm}
+.sigtbl td{vertical-align:top;padding:0}
+.sigtbl .sname{font-weight:bold;margin-bottom:2mm;font-size:.95em}
+.sigtbl .sline{border-bottom:1px solid #000;height:14mm;margin-top:3mm}
+.sigtbl .sfoot{font-size:.85em;margin-top:1.5mm;color:#333}
+.petition.pt-ss .sigtbl .sline{height:11mm}
+.petition.pt-sss .sigtbl .sline{height:9mm}
 .petition .psig .prow{margin:12px 0}
 
 /* sabit sayfa düzeni (kira: 3 sayfa) */
@@ -1462,8 +1486,14 @@ const TEMPLATES = [
       {k:"taahhutTarihi", l:"Taahhüt Tarihi", lEn:"Undertaking Date", ph:"GG.AA.YYYY", fmt:"date"},
     ]},
   ],
-  render(){ return `
-    <div class="petition">
+  render(){
+    const cm = repCount("mal");
+    const evli = fvRaw("medeni")==="Evli";
+    // Toplam kişi: taahhüt eden + (varsa eş) + mal sahipleri
+    const toplam = 1 + (evli?1:0) + cm;
+    const sk = toplam>=5 ? " pt-sss" : toplam>=4 ? " pt-ss" : toplam>=3 ? " pt-s" : "";
+    return `
+    <div class="petition${sk}">
       <div class="ptitle">${L("TAHLİYE TAAHHÜTNAMESİ","EVICTION UNDERTAKING")}</div>
       <div class="prow"><span class="plabel">${L("TAAHHÜT EDEN (KİRACI)","UNDERTAKER (TENANT)")}</span></div>
       <div class="prow">${L("ADI SOYADI","FULL NAME")} : ${f("kiraciIsim",180)}</div>
@@ -1479,28 +1509,40 @@ const TEMPLATES = [
       <div class="prow" style="margin-top:8mm">${L("TAHLİYE EDİLECEK TAŞINMAZIN ADRESİ","ADDRESS OF PROPERTY TO BE VACATED")} : ${f("adres",300)}</div>
       <div class="prow">${L("TAHLİYE TARİHİ","EVICTION DATE")} : ${f("tahliyeTarihi",120)}</div>
       <div class="clz">${Lc("Halen kiracı olarak kullanmakta olduğumuz yukarıda yazılı adresteki taşınmazı hiçbir ihtar ve ihbara gerek kalmadan kayıtsız ve şartsız olarak; yukarıda belirtilen tarihte tahliye edeceğimizi, boş ve sağlam olarak adı geçen mal sahibine teslim edeceğimizi, mal sahibinin icrai takibata geçerek yapacağı bilumum masrafları ve tahliyeyi geciktirmemden dolayı uğrayacağı zarar ve ziyanları hiçbir ihtar, ihbar ve hükme gerek kalmadan derhal nakden ve peşinen ödeyeceğimi beyan, kabul ve taahhüt ederim." + (fvRaw("medeni")==="Evli" ? " Aile konutu niteliğindeki taşınmaza ilişkin işbu taahhüde, Türk Medeni Kanunu'nun 194. maddesi uyarınca eş olarak açık rızam ve muvafakatim bulunmaktadır." : ""), "I declare, accept and undertake that I shall vacate, unconditionally and without any need for notice or warning, the property at the address stated above which I currently use as a tenant, on the date specified above; that I shall deliver it to the aforementioned owner empty and in sound condition; and that I shall immediately pay, in cash and in advance, without any need for notice, warning or judgment, all costs the owner may incur through enforcement proceedings and any loss and damage the owner may suffer due to my delay in vacating." + (fvRaw("medeni")==="Evli" ? " As the spouse, I hereby give my express consent and approval to this undertaking concerning the family residence, pursuant to Article 194 of the Turkish Civil Code." : ""))}</div>
-      <div class="psig">
+      <div style="margin-top:9mm">
         <div class="prow">${L("Taahhüt Tarihi","Undertaking Date")} : ${f("taahhutTarihi",120)}</div>
-        ${fvRaw("medeni")==="Evli" ? `
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8mm;margin-left:-52%;width:152%">
+        ${evli ? `
+        <table class="sigtbl">
           <tr>
-            <td width="45%" align="left" valign="top">
-              <div class="prow"><b>${L("TAAHHÜT EDEN","UNDERTAKER")}</b></div>
-              <div class="prow">${fvRaw("kiraciIsim")||""}</div>
-              <div class="prow">${fvRaw("kiraciTc")||""}</div>
-              <div class="prow" style="margin-top:18mm">${L("İmza","Signature")} : ____________</div>
+            <td style="width:47%">
+              <div class="sname">${L("TAAHHÜT EDEN","UNDERTAKER")}</div>
+              <div>${fvRaw("kiraciIsim")||""}</div>
+              ${fvRaw("kiraciTc") ? `<div class="sfoot">${L("T.C.","ID")} ${fvRaw("kiraciTc")}</div>` : ""}
+              <div class="sline"></div>
+              <div class="sfoot">${L("İmza","Signature")}</div>
             </td>
-            <td width="10%">&nbsp;</td>
-            <td width="45%" align="left" valign="top">
-              <div class="prow"><b>${L("EŞİ","SPOUSE")}</b></div>
-              <div class="prow">${fvRaw("esIsim")||""}</div>
-              <div class="prow">${fvRaw("esTc")||""}</div>
-              <div class="prow" style="margin-top:18mm">${L("İmza","Signature")} : ____________</div>
+            <td style="width:6%"></td>
+            <td style="width:47%">
+              <div class="sname">${L("EŞİ","SPOUSE")}</div>
+              <div>${fvRaw("esIsim")||""}</div>
+              ${fvRaw("esTc") ? `<div class="sfoot">${L("T.C.","ID")} ${fvRaw("esTc")}</div>` : ""}
+              <div class="sline"></div>
+              <div class="sfoot">${L("İmza","Signature")}</div>
             </td>
           </tr>
         </table>` : `
-        <div class="prow">${L("Taahhüt Eden","Undertaker")} : <b>${fvRaw("kiraciIsim")||""}</b></div>
-        <div class="prow">${L("İmzası","Signature")} :</div>`}
+        <table class="sigtbl">
+          <tr>
+            <td style="width:53%"></td>
+            <td style="width:47%">
+              <div class="sname">${L("TAAHHÜT EDEN","UNDERTAKER")}</div>
+              <div>${fvRaw("kiraciIsim")||""}</div>
+              ${fvRaw("kiraciTc") ? `<div class="sfoot">${L("T.C.","ID")} ${fvRaw("kiraciTc")}</div>` : ""}
+              <div class="sline"></div>
+              <div class="sfoot">${L("İmza","Signature")}</div>
+            </td>
+          </tr>
+        </table>`}
       </div>
     </div>
   `;}
