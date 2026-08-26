@@ -306,6 +306,10 @@ table.ftbl .fv4{background:#fff;width:33%}
 .pg1.kv-tight2 .tcenter{font-size:13pt;margin:3.5mm 0 2.5mm}
 .pg1.kv-tight2 .shead{font-size:11pt;margin:2mm 0 1mm}
 .pg1.kv-tight2 .pgbottom{margin-top:4mm}
+.pg1.kv-tight2 .sigrow{gap:4px}
+.pg1.kv-tight2 .sigbox{padding:2mm 1.5mm;min-height:20mm}
+.pg1.kv-tight2 .sigbox .idlbl{font-size:7.5pt}
+.pg1.kv-tight .sigbox{padding:2.5mm 2mm;min-height:23mm}
 /* çift dil + çok mal sahibi: en sıkı */
 .sheet.bilingual .pg1.kv-tight table.ftbl td{font-size:7.6pt;padding:1px 8px;line-height:1.18}
 .sheet.bilingual .pg1.kv-tight2 table.ftbl td{font-size:6.9pt;padding:.6px 7px;line-height:1.15}
@@ -1075,11 +1079,15 @@ const TEMPLATES = [
     for (let i=1;i<=ckc;i++){
       const n   = ckc>1 ? " "+i : "";
       const nEn = ckc>1 ? " "+i : "";
-      kcRows.push([L(`Kiracı${n} Adı Ve Soyadı`,`Tenant${nEn} Full Name`), fvi("kcIsim",i)]);
-      kcRows.push([L(`Kiracı${n} Türkiye Cumhuriyeti Kimlik Numarası`,`Tenant${nEn} National ID / Passport No`), fvi("kcTc",i)]);
-      kcRows.push([L(`Kiracı${n} İkamet Adresi`,`Tenant${nEn} Residential Address`), fvi("kcAdres",i)]);
-      kcRows.push([L(`Kiracı${n} İş Adresi`,`Tenant${nEn} Work Address`), fvi("kcIs",i)]);
-      kcRows.push([L(`Kiracı${n} Telefon Numarası`,`Tenant${nEn} Phone Number`), fvi("kcTel",i)]);
+      kcRows.push([L(ckc>1?`Kiracı${n} Adı Ve Soyadı`:"Kiracının Adı Ve Soyadı",
+                     ckc>1?`Tenant${nEn} Full Name`:"Tenant Full Name"), fvi("kcIsim",i)]);
+      kcRows.push([L(ckc>1?`Kiracı${n} T.C. Kimlik Numarası`:"Kiracının Türkiye Cumhuriyeti Kimlik Numarası",
+                     ckc>1?`Tenant${nEn} National ID`:"Tenant National ID / Passport No"), fvi("kcTc",i)]);
+      kcRows.push([L(ckc>1?`Kiracı${n} İkamet Adresi`:"Kiracının İkamet Adresi",
+                     ckc>1?`Tenant${nEn} Residential Address`:"Tenant Residential Address"), fvi("kcAdres",i)]);
+      if (ckc === 1) kcRows.push([L("Kiracı İş Adresi","Tenant Work Address"), fvi("kcIs",i)]);
+      kcRows.push([L(ckc>1?`Kiracı${n} Telefon`:"Kiracının Telefon Numarası",
+                     ckc>1?`Tenant${nEn} Phone`:"Tenant Phone Number"), fvi("kcTel",i)]);
     }
     const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},...Array.from({length:ckc},(_,x)=>({t:L(ckc>1?"KİRACI "+(x+1):"KİRACI", ckc>1?"TENANT "+(x+1):"TENANT"),s:fvi("kcIsim",x+1),tc:fvRaw(kfor("kcTc",x+1))}))], true);
     // Ödeme cümlesi: mal sahibi sayısına göre her birinin hesabı ayrı yazılır.
@@ -1097,7 +1105,7 @@ const TEMPLATES = [
       odemeEn = `to the account No. ${f("kvIban",170)} of the lessor owner, in the name of ${f("kvHesapAdi",110)}`;
     }
     return `
-    <div class="pgsec pg1 pgflex${ckv>=3?" kv-tight2":ckv>=2?" kv-tight":""}">
+    <div class="pgsec pg1 pgflex${(function(){var t=ckv+ckc;return t>=5?" kv-tight2":t>=3?" kv-tight":"";})()}">
     <div class="pgfill">
     <div class="tcenter">${L("KİRA SÖZLEŞMESİ","RESIDENTIAL LEASE AGREEMENT")}</div>
     <div class="tgrow">${ftbl([
