@@ -1630,7 +1630,7 @@ function logLogin(danisman){
     p.append('uygulama', 'Matbu Evraklar');
     fetch('https://script.google.com/macros/s/AKfycby3N2cq5LI99_UgjzlxIjZr7looJz88Rft-BJ9E5ZgP9-ZmUEmoXARoIm717JAmTGuD/exec',
       {method:'POST', body:p, redirect:'follow'}).catch(function(){});
-  }catch(e){}
+  }catch(e){ console.warn('Sessiz hata:', e); }
 }
 function enter(pin){
   me = { pin, ...CONSULTANTS[pin] };
@@ -1702,12 +1702,12 @@ function processMaddeler(){
 function maddeSil(mid){
   if (!V._silinenMaddeler) V._silinenMaddeler = [];
   if (!V._silinenMaddeler.includes(mid)) V._silinenMaddeler.push(mid);
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){ console.warn('Sessiz hata:', err); }
   refresh();
 }
 function maddeGeri(mid){
   V._silinenMaddeler = (V._silinenMaddeler || []).filter(x=>x!==mid);
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){ console.warn('Sessiz hata:', err); }
   refresh();
 }
 // kaldırılan maddeler için form üstünde bir "geri getir" paneli
@@ -1730,7 +1730,7 @@ function renderSilinenPanel(sil){
 }
 function maddeHepsiGeri(){
   V._silinenMaddeler = [];
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){ console.warn('Sessiz hata:', err); }
   refresh();
 }
 
@@ -1753,7 +1753,7 @@ function photoPick(key, input){
       c.width = w; c.height = h;
       c.getContext("2d").drawImage(img, 0, 0, w, h);
       V[key] = c.toDataURL("image/jpeg", 0.75);
-      try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+      try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){ console.warn('Sessiz hata:', err); }
       buildForm(); refresh();
     };
     img.onerror = () => { if (pf) pf.innerHTML = `<div class="photoerr">${L("Fotoğraf okunamadı","Could not read photo")}</div>`; };
@@ -1764,7 +1764,7 @@ function photoPick(key, input){
 }
 function photoDel(key){
   delete V[key];
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){ console.warn('Sessiz hata:', err); }
   buildForm(); refresh();
 }
 
@@ -1836,7 +1836,7 @@ function scanCapture(){
   c.width = Math.max(1,Math.round(ow)); c.height = Math.max(1,Math.round(oh));
   c.getContext("2d").drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
   V[_scanKey] = c.toDataURL("image/jpeg", 0.8);
-  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){}
+  try { localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V)); } catch(err){ console.warn('Sessiz hata:', err); }
   scanClose();
   buildForm(); refresh();
 }
@@ -1867,7 +1867,7 @@ function openTpl(tid){
   try {
     const draft = JSON.parse(localStorage.getItem(draftKey(tid))||"null");
     if (draft) V = { ...V, ...draft };
-  } catch(e){}
+  } catch(e){ console.warn('Sessiz hata:', e); }
   buildForm();
   $("catalog").style.display = "none";
   $("editor").style.display = "block";
@@ -1953,7 +1953,7 @@ function buildForm(){
         el.value = after;
         if (fmt === "cap"){
           // büyük harf dönüşümü uzunluğu değiştirmez → imleç yerinde kalır
-          try { el.setSelectionRange(pos, pos); } catch(e){}
+          try { el.setSelectionRange(pos, pos); } catch(e){ console.warn('Sessiz hata:', e); }
         }
       }
       V[el.dataset.k] = el.value;
@@ -2454,7 +2454,7 @@ async function printDoc(){
     try{
       w = window.open("", "_blank");
       if (w) w.document.write('<title>Yazdırma</title><p style="font-family:sans-serif;padding:24px;color:#21237B">Belge hazırlanıyor…</p>');
-    }catch(e){}
+    }catch(e){ console.warn('Sessiz hata:', e); }
     try{
       const images = await buildPageImages();
       const { jsPDF } = window.jspdf;
@@ -2464,7 +2464,7 @@ async function printDoc(){
       if (w) w.location.href = url;
       else pdf.save(pdfFileName()); // pencere engellendiyse dosya olarak indir
     }catch(e){
-      if (w) try{ w.close(); }catch(_){}
+      if (w) try{ w.close(); }catch(_){ console.warn('Sessiz hata:', _); }
       window.print(); // son çare
     }
     return;
@@ -2644,7 +2644,7 @@ function triggerDownload(blob, name){
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){} }, 60000);
+  setTimeout(()=>{ try{ URL.revokeObjectURL(url); }catch(_){ console.warn('Sessiz hata:', _); } }, 60000);
 }
 /* mobil: hazır PDF paneli — kullanıcı GERÇEK bağlantıya dokunur, iOS/Android reddedemez */
 let pdfCache = { key:null, blob:null };
@@ -2712,7 +2712,7 @@ function askName(suggested){
       </div>`;
     const inp = document.getElementById("nmInp");
     inp.value = suggested || "";
-    setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(_){} }, 60);
+    setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(_){ console.warn('Sessiz hata:', _); } }, 60);
     const done = (val)=>{ m.style.display="none"; m.innerHTML=""; resolve(val); };
     document.getElementById("nmCancel").onclick = ()=> done(null);
     document.getElementById("nmOk").onclick = ()=>{
@@ -2772,7 +2772,7 @@ async function saveDrive(btn){
 
     const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
     const txt = await r.text();
-    let j = {}; try{ j = JSON.parse(txt); }catch(_){}
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){ console.warn('Sessiz hata:', _); }
 
     if (j && j.ok){
       showDriveSheet(`
@@ -2818,7 +2818,7 @@ async function openKayitlar(){
   try{
     const r = await fetch(DRIVE_ENDPOINT + "?action=getEvraklar", { redirect:"follow" });
     const txt = await r.text();
-    let j = {}; try{ j = JSON.parse(txt); }catch(_){}
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){ console.warn('Sessiz hata:', _); }
     if (!j || !j.ok) throw new Error((j && j.error) ? j.error : "Liste alınamadı");
 
     // Danışman sadece kendi kayıtlarını görür; broker hepsini
@@ -2886,7 +2886,7 @@ async function kytSil(i){
     p.append("link", k.link);
     const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
     const txt = await r.text();
-    let j = {}; try{ j = JSON.parse(txt); }catch(_){}
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){ console.warn('Sessiz hata:', _); }
     if (!j || !j.ok) throw new Error((j && j.error) ? j.error : "Silinemedi");
     kytCache.splice(i, 1);
     kytRender(kytQ);
@@ -2955,7 +2955,7 @@ async function driveUpload(blob, kayitAdi, dosyaAdi, danisman){
     try { p.append("formVeri", JSON.stringify(V||{})); } catch(_){ p.append("formVeri","{}"); }
     const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
     const txt = await r.text();
-    let j = {}; try{ j = JSON.parse(txt); }catch(_){}
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){ console.warn('Sessiz hata:', _); }
     if (j && j.ok) return { ok:true, link:j.link };
     return { ok:false, error:(j && j.error) ? j.error : ("Sunucu yanıtı beklenmedik: " + txt.slice(0,120)) };
   }catch(e){
