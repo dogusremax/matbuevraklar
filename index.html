@@ -472,7 +472,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v115</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v116</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -483,7 +483,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v115</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v116</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1220,7 +1220,7 @@ const TEMPLATES = [
       ...kvRows,
       ...kcRows,
       [L("Bir Senelik Kira Karşılığı","Annual Rent"), fvu("yillik","TL","")],
-      [L("Bir Aylık Kira Karşılığı","Monthly Rent"), fvu("aylik","TL","") + (fvRaw("stopaj")==="Var" ? ` <b>${L("(Kira + Stopaj)","(Rent + Withholding Tax)")}</b>` : "")],
+      [L("Bir Aylık Kira Karşılığı","Monthly Rent"), fvu("aylik","TL","") + (fvRaw("stopaj")==="Var" ? ` <b>${L("NET + Stopaj","NET + Withholding Tax")}</b>` : "")],
       [L("Ödeme Dönemi","Payment Period"), L(donemKisaTr, donemKisaEn)],
       [L("Kira Karşılığının Ne Şekilde Ödeneceği","Method of Rent Payment"), L(odemeSekliTr, odemeSekliEn)],
       [L("Kira Müddeti","Lease Duration"), fv("muddet")],
