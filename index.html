@@ -472,7 +472,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v117</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v118</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -483,7 +483,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v117</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v118</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1124,28 +1124,35 @@ const TEMPLATES = [
     const donemKisaEn = _dnm.indexOf("12") === 0 ? "Annual (in advance)"
                       : _dnm.indexOf("6") === 0 ? "Semi-annual (in advance)" : "Monthly";
     /* "Kira karşılığının ne şekilde ödeneceği" satırı — döneme göre değişir */
-    const _gb = (fvRaw("odemeGunBas") || "1"), _gs = (fvRaw("odemeGunBit") || "5");
+    const _gb = fvRaw("odemeGunBas"), _gs = fvRaw("odemeGunBit");
+    // Gün aralığı ifadesi: doluysa "her ayın X'i - Y'si arasında",
+    // boşsa boş çizgi (boş form basımı için) — 1-5 DAYATILMAZ.
+    const _cizgi = "_______";
+    const _gunTr = `Her ayın ${_gb ? _gb + ekIHali(_gb) : _cizgi} - ${_gs ? _gs + ekIHali(_gs) : _cizgi} arasında banka havalesi ile`;
+    const _gunEn = `By bank transfer between the ${_gb ? _gb + ordEn(_gb) : _cizgi} and ${_gs ? _gs + ordEn(_gs) : _cizgi} of each month`;
+    const _gunTrKucuk = `her ayın ${_gb ? _gb + ekIHali(_gb) : _cizgi} - ${_gs ? _gs + ekIHali(_gs) : _cizgi} arasında banka havalesi ile`;
+    const _gunEnKucuk = `by bank transfer between the ${_gb ? _gb + ordEn(_gb) : _cizgi} and ${_gs ? _gs + ordEn(_gs) : _cizgi} of each month`;
     const odemeSekliTr = _dnm.indexOf("12") === 0
       ? "12 aylık toplam tutar tek ödemede banka havalesi ile"
       : _dnm.indexOf("6") === 0
         ? "6 aylık 2 dönemde banka havalesi ile"
-        : `Her ayın ${_gb + ekIHali(_gb)} - ${_gs + ekIHali(_gs)} arasında banka havalesi ile`;
+        : _gunTr;
     const odemeSekliEn = _dnm.indexOf("12") === 0
       ? "The total amount for 12 months in a single payment by bank transfer"
       : _dnm.indexOf("6") === 0
         ? "In 2 instalments of 6 months each, by bank transfer"
-        : `By bank transfer between the ${_gb}${ordEn(_gb)} and ${_gs}${ordEn(_gs)} of each month`;
+        : _gunEn;
     /* Madde 5 içi ödeme ifadesi (hesap bilgisiyle birlikte kullanılır) */
     const m5OdemeTr = _dnm.indexOf("12") === 0
       ? "12 (on iki) aylık dönem kirasının tamamı dönem başında tek seferde peşin olarak banka havalesi ile"
       : _dnm.indexOf("6") === 0
         ? "her 6 (altı) aylık dönemin başında ilgili dönem kirasının tamamı peşin olarak banka havalesi ile"
-        : `her ayın ${_gb + ekIHali(_gb)} - ${_gs + ekIHali(_gs)} arasında banka havalesi ile`;
+        : _gunTrKucuk;
     const m5OdemeEn = _dnm.indexOf("12") === 0
       ? "as the entire rent for the 12 (twelve) month period in a single advance payment at the beginning of the period, by bank transfer"
       : _dnm.indexOf("6") === 0
         ? "as the entire rent for each 6 (six) month period, in advance at the beginning of that period, by bank transfer"
-        : `by bank transfer between the ${_gb}${ordEn(_gb)} and ${_gs}${ordEn(_gs)} of each month`;
+        : _gunEnKucuk;
     /* Madde 5 muacceliyet (temerrüt) cümlesi — peşin dönemlerde farklı */
     const m5MuaccelTr = _dnm.indexOf("12") === 0
       ? "Peşin kira bedelinin vadesinde ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 (iki) işgünü içinde ödenmemesi halinde sözleşme feshedilebilir. Ayrıca bu, tartışmasız tahliye sebebidir."
