@@ -497,7 +497,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v124</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v125</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -508,7 +508,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v124</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v125</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2856,7 +2856,12 @@ async function buildPageImages(){
     clone.querySelectorAll(".pv-hl").forEach(e=> e.classList.remove("pv-hl"));
     clone.querySelectorAll(".cell-hl").forEach(e=> e.classList.remove("cell-hl"));
     clone.querySelectorAll(".noprint").forEach(e=> e.remove());
-    clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:37px 42px 37px;background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
+    const _isDanisClone = !!clone.querySelector(".danisdoc");
+    // Danışmanlık: dikey boşluk sayfa dilimlemesinde (1.5cm marj) verilir; klonun
+    // üst/alt padding'i eklenmesin (çift boşluk olmasın). Yatay padding korunur.
+    clone.style.cssText = "width:794px;min-height:0;height:auto;margin:0;padding:" +
+      (_isDanisClone ? "0 42px" : "37px 42px 37px") +
+      ";background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
 
