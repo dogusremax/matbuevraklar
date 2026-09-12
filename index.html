@@ -269,6 +269,9 @@ table.ftbl .fv4{background:#fff;width:33%}
 .danisdoc .blank{display:inline-block;min-width:90px;border-bottom:1px solid #333}
 .danisdoc .dmadde, .danisdoc .dp{page-break-inside:avoid;break-inside:avoid}
 .danisdoc .dsec{page-break-after:avoid;break-after:avoid}
+/* danışmanlık sayfa kırıcı: ekranda çizgi, baskıda gerçek sayfa sonu */
+#preview .dpgbrk{height:24px;border-top:2px dashed #C0392B;margin:10px -4px 12px;position:relative}
+#preview .dpgbrk:after{content:"sayfa sonu";position:absolute;right:0;top:-11px;background:#C0392B;color:#fff;font-size:9px;padding:1px 7px;border-radius:4px;font-family:system-ui;font-weight:700}
 .petition .ptitle{text-align:center;font-weight:bold;font-size:14pt;margin:16mm 0 14mm;letter-spacing:1px}
 .petition .prow{margin:4px 0}
 .petition .plabel{font-weight:bold}
@@ -463,6 +466,11 @@ table.ftbl td.tall{height:9mm}
   table.kefal th{background:#DCE6F4 !important}
   .pgbrk{page-break-after:always;height:0 !important;border:none !important;margin:0 !important}
   .pgbrk:after{display:none !important}
+  /* Danışmanlık: sayfa kırıcı gerçek sayfa sonu, göstergesi gizli */
+  .dpgbrk{page-break-after:always;break-after:page;height:0 !important;border:none !important;margin:0 !important}
+  .dpgbrk:after{display:none !important}
+  /* Danışmanlık belgesinde her baskı sayfasında üst/alt boşluk (@page margin:0 olduğu için padding ile) */
+  .danisdoc{padding-top:6mm !important}
   /* baskıda da sayfa doldurma: bölümler baskı sayfası yüksekliğinde, imzalar altta */
   .pgflex{min-height:268mm !important;display:flex !important;flex-direction:column !important}
   .pgflex .pgbottom{margin-top:auto !important;margin-bottom:6mm !important}
@@ -483,7 +491,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v121</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v122</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -494,7 +502,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v121</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v122</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2277,6 +2285,7 @@ function refresh(){
   processMaddeler();
   bindClauses();
   kiraFlow();
+  danisFlow();
   autoFit();
   if (/\bfit[123]\b/.test($("preview").className || "")) kiraFlow();
   // zorunlu alan işaretleri
@@ -2347,6 +2356,49 @@ function autoFit(){
    Bir sayfanın metni ile imza kutusu arasında sonraki sayfanın ilk maddesi
    sığacak kadar boşluk varsa madde yukarı çekilir; sayfa taşarsa son madde
    sonraki sayfaya itilir. Her cihazın kendi ölçümüyle çalışır. */
+/* Bağımsız Danışmanlık Sözleşmesi: uzun düz metni A4 sayfalarına böler.
+   Her sayfa eşit üst/alt boşlukla, kira gibi düzenli görünür. Blokları
+   (dsec/dmadde/dp) sırayla ölçüp sayfa dolunca .pgbrk ekler; bölüm başlığı
+   sayfa dibine denk gelirse onu da bir sonraki sayfaya atar. */
+function danisFlow(){
+  const sheet = $("preview");
+  if (!sheet) return;
+  const doc = sheet.querySelector(".danisdoc");
+  if (!doc) return;
+  // önceki sayfa kırıcıları temizle (tekrar refresh)
+  doc.querySelectorAll(".dpgbrk").forEach(e=>e.remove());
+
+  const sc = sheet.offsetWidth ? (sheet.getBoundingClientRect().width / sheet.offsetWidth) : 1;
+  const PAGE = 1000;           // sayfa başına güvenli içerik yüksekliği (px @96dpi)
+  const kids = Array.from(doc.children).filter(k=>!k.classList.contains("dpgbrk"));
+  if (!kids.length) return;
+
+  const topOf = el => el.getBoundingClientRect().top / (sc || 1);
+  const botOf = el => el.getBoundingClientRect().bottom / (sc || 1);
+
+  let pageTop = topOf(kids[0]);
+  for (let i = 0; i < kids.length; i++){
+    const el = kids[i];
+    const elBot = botOf(el);
+    // bu blok mevcut sayfayı taşırıyor mu?
+    if (elBot - pageTop > PAGE && i > 0){
+      // başlıksa (dsec) ondan önce böl; değilse yine ondan önce böl
+      const brk = document.createElement("div");
+      brk.className = "dpgbrk";
+      doc.insertBefore(brk, el);
+      pageTop = topOf(el);
+    }
+    // bir bölüm başlığı (dsec) sayfa dibine ~son 90px'e denk geldiyse öne al
+    else if (el.classList.contains("dsec") && i > 0 && (elBot - pageTop) > PAGE - 90){
+      const brk = document.createElement("div");
+      brk.className = "dpgbrk";
+      doc.insertBefore(brk, el);
+      pageTop = topOf(el);
+    }
+  }
+}
+
+
 function kiraFlow(){
   const sheet = $("preview");
   if (!sheet || !sheet.querySelector || !sheet.querySelector(".pgbrk")) return;
