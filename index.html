@@ -497,7 +497,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v123</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v124</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -508,7 +508,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v123</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v124</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2386,7 +2386,7 @@ function danisFlow(){
   doc.querySelectorAll(".dpgbrk").forEach(e=>e.remove());
 
   const sc = sheet.offsetWidth ? (sheet.getBoundingClientRect().width / sheet.offsetWidth) : 1;
-  const PAGE = 1000;           // sayfa başına güvenli içerik yüksekliği (px @96dpi)
+  const PAGE = 960;            // marjlı içerik alanına (1.5cm üst/alt) güvenli sığması için
   const kids = Array.from(doc.children).filter(k=>!k.classList.contains("dpgbrk"));
   if (!kids.length) return;
 
@@ -2860,9 +2860,9 @@ async function buildPageImages(){
     holder.appendChild(clone);
     document.body.appendChild(holder);
 
-    // zorunlu sayfa sonu konumları (klon koordinatlarında)
+    // zorunlu sayfa sonu konumları (klon koordinatlarında) — kira .pgbrk + danışmanlık .dpgbrk
     const cloneRect = clone.getBoundingClientRect();
-    const cssBreaks = Array.from(clone.querySelectorAll(".pgbrk"))
+    const cssBreaks = Array.from(clone.querySelectorAll(".pgbrk, .dpgbrk"))
       .map(el => el.getBoundingClientRect().top - cloneRect.top)
       .filter(v => v > 20);
 
@@ -2908,6 +2908,11 @@ async function buildPageImages(){
 
     // bölümler: [0 .. sonlar .. yükseklik]; her bölüm kendi içinde sayfalanır
     const bounds = [0, ...canvasBreaks, canvas.height];
+    // Danışmanlık sözleşmesi: her baskı sayfasının üst/altında 1.5cm boşluk bırak
+    const isDanis = !!clone.querySelector(".danisdoc");
+    const MARGIN_MM = 15; // 1.5 cm
+    const marginPx = isDanis ? Math.round(pageHpx * MARGIN_MM / 297) : 0; // A4 ölçeğinde
+    const usableH = pageHpx - 2 * marginPx; // içerik yüksekliği (marjlar hariç)
     const images = [];
     for (let s = 0; s < bounds.length - 1; s++){
       let y = bounds[s];
@@ -2915,16 +2920,17 @@ async function buildPageImages(){
       while (y < end - 8){
         const remain = end - y;
         if (remain <= 90 && stripWhite(y, remain)) break; // boş kalıntı: sayfa açma
-        let sliceH = Math.min(pageHpx, remain);
+        let sliceH = Math.min(usableH, remain);
         if (y + sliceH < end - 8){
-          const safe = findWhiteRow(cctx, canvas.width, y + sliceH, Math.floor(pageHpx * 0.35));
+          const safe = findWhiteRow(cctx, canvas.width, y + sliceH, Math.floor(usableH * 0.35));
           if (safe > y + 100) sliceH = safe - y;
         }
         const pc = document.createElement("canvas");
         pc.width = canvas.width; pc.height = pageHpx;
         const pctx = pc.getContext("2d");
         pctx.fillStyle = "#FFFFFF"; pctx.fillRect(0, 0, pc.width, pc.height);
-        pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        // içeriği üstten marginPx kadar aşağı yerleştir (üst boşluk)
+        pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, marginPx, canvas.width, sliceH);
         images.push(pc.toDataURL("image/jpeg", 0.72));
         y += sliceH;
       }
