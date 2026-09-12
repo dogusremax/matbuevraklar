@@ -497,7 +497,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v125</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v126</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -508,7 +508,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v125</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v126</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1725,8 +1725,7 @@ const TEMPLATES = [
       {k:"danVergiTc", l:"Vergi Kimlik / T.C. Kimlik No", lEn:"Tax/National ID No"},
       {k:"danYetkiNo", l:"Danışman Yetki Belgesi No", lEn:"Consultant Authorization No"},
     ]},
-    {t:"Ofis / Sözleşme", tEn:"Office / Contract", fields:[
-      {k:"ofisYetkiNo", l:"Ofis Yetki Belgesi No", lEn:"Office Authorization No"},
+    {t:"Sözleşme", tEn:"Contract", fields:[
       {k:"sozTarih", l:"Sözleşme Tarihi", lEn:"Contract Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
     {t:"Ücretler (Masa Parası)", tEn:"Fees", fields:[
@@ -1741,7 +1740,7 @@ const TEMPLATES = [
       <div class="dsec">1.  TARAFLAR</div>
       <div class="dp">İşbu sözleşme,</div>
       <div class="dp">A-Bir tarafta <b>Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe Sitesi 2. Etap A Blok No:48 N/14, 34720 Kadıköy/İstanbul</b> adresinde faaliyet gösteren <b>Göztepe V.D. 8920318332</b> Vergi Numaralı, <b>UMT GROUP Gayrimenkul Yatırım Danışmanlık İnşaat Sanayi ve Ticaret Limited</b> Şirketi (&#8220;RE/MAX Doğuş&#8221;) ile,</div>
-      <div class="dp">Yetki Belgesi No: ${f("ofisYetkiNo",140)}</div>
+      <div class="dp">Yetki Belgesi No: <b>3402699</b></div>
       <div class="dp">B-Diğer tarafta aynı adreste SÖZLEŞMELİ İŞLETME olarak faaliyet gösteren/gösterecek olan, ${f("danVergiTc",160)} Vergi Kimlik / TC Kimlik numaralı ${f("danIsim",200)} (&#8220;Gayrimenkul Danışmanı&#8221;) arasında ${f("sozTarih",110)} Tarihinde akdedilmiştir.</div>
       <div class="dp">Yetki Belgesi No: ${f("danYetkiNo",140)}</div>
       <div class="dsec">2.  TANIMLAR</div>
