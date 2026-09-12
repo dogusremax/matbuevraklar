@@ -497,7 +497,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v126</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v127</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -508,7 +508,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v126</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v127</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -1848,6 +1848,64 @@ const TEMPLATES = [
           <div class="dsigt">GAYRİMENKUL DANIŞMANI</div>
           <div class="dsigsub">${fvRaw("danIsim")||"&nbsp;"}</div>
           <div class="dsigarea">İmza</div>
+        </div>
+      </div>
+    </div>
+  `;}
+},
+{
+  id:"ek-protokol", fileBase:"Ek_Protokol", nameKey:"danIsim", ic:"📎", title:"Ek Protokol", titleEn:"Supplementary Protocol",
+  desc:"Danışmanlık sözleşmesine ek — RE/MAX Türkiye aidatı ve Power Start eğitim bedeli geri ödeme protokolü. Sadece Türkçe.",
+  descEn:"Supplement to the consultancy agreement. Turkish only.",
+  onlyTr:true,
+  groups:[
+    {t:"Gayrimenkul Danışmanı", tEn:"Consultant", fields:[
+      {k:"danIsim", l:"Danışmanın Adı Soyadı", lEn:"Consultant Full Name", req:1},
+      {k:"danTc", l:"T.C. Kimlik No", lEn:"National ID No"},
+      {k:"danAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
+    ]},
+    {t:"Protokol", tEn:"Protocol", fields:[
+      {k:"sozTarih", l:"Asıl Sözleşme Tarihi", lEn:"Main Contract Date", ph:"GG.AA.YYYY", fmt:"date"},
+      {k:"protTarih", l:"Ek Protokol Tarihi", lEn:"Protocol Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
+    ]},
+  ],
+  render(){ return `
+    <div class="danisdoc">
+      <div class="dbaslik" style="text-align:left;font-size:16pt;margin:2mm 0 5mm">EK PROTOKOL</div>
+      <div class="dp"><b>Taraflar:</b></div>
+      <div class="dmadde"><b>1.</b> RE/MAX Doğuş (UMT GROUP Gayrimenkul Yatırım Danışmanlığı İnşaat Sanayi Ticaret Limited Şirketi)</div>
+      <div class="dp" style="padding-left:7mm">Adres: Dumlupınar Mah. Özen Sok. Nuhoğlu Yenitepe 2. Etap A Blok Dükkan 14 No:48N Kadıköy/İstanbul</div>
+      <div class="dmadde"><b>2.</b> ${fvRaw("danIsim")||'<span class="blank" style="min-width:150px">&nbsp;</span>'} TC: ${f("danTc",130)} (Gayrimenkul Danışmanı)</div>
+      <div class="dp" style="padding-left:7mm">Adres: ${f("danAdres",340)}</div>
+
+      <div class="dsec" style="border:none;color:#000;font-size:10pt;margin:5mm 0 2mm">Madde 1 - Konu</div>
+      <div class="dp">Bu Ek Protokol, RE/MAX Doğuş ile Gayrimenkul Danışmanı arasında ${f("sozTarih",95)} tarihinde imzalanan Sözleşmeli İş Akdi (Bağımsız Gayrimenkul Danışmanlığı Sözleşmesi)'ne ek olarak düzenlenmiştir.</div>
+
+      <div class="dsec" style="border:none;color:#000;font-size:10pt;margin:5mm 0 2mm">Madde 2 - Ödeme ve Yükümlülükler</div>
+      <div class="dp">RE/MAX Doğuş, Gayrimenkul Danışmanı adına RE/MAX Türkiye yıllık aidat bedeli ve Power Start eğitim bedelini ödemiştir.</div>
+      <div class="dp"><b>Gayrimenkul Danışmanı;</b></div>
+      <div class="dp" style="padding-left:7mm">• İşbu sözleşmenin imzalandığı tarihten itibaren 1 (bir) yıl içerisinde kendi isteğiyle RE/MAX Doğuş'tan ayrılması,</div>
+      <div class="dp" style="padding-left:7mm">• Kendi isteğiyle sözleşmesini feshetmesi veya</div>
+      <div class="dp" style="padding-left:7mm">• Sözleşmenin RE/MAX Doğuş tarafından, bizim tarafımızdan feshine sebebiyet vermesi,</div>
+      <div class="dp">Hallerinde, RE/MAX Doğuş tarafından kendisi adına ödenen RE/MAX Türkiye yıllık aidat bedelini ve Power Start eğitim bedelini, sözleşme fesih tarihinde nakden ve peşinen RE/MAX Doğuş'a ödemeyi kabul, beyan ve taahhüt eder.</div>
+
+      <div class="dsec" style="border:none;color:#000;font-size:10pt;margin:5mm 0 2mm">Madde 3 - Yürürlük</div>
+      <div class="dp">Bu Ek Protokol, taraflarca imzalandığı tarihte yürürlüğe girer ve asıl sözleşmenin ayrılmaz bir parçasıdır.</div>
+
+      <div class="dsec" style="border:none;color:#000;font-size:10pt;margin:5mm 0 2mm">Madde 4 - İhtilafların Çözümü</div>
+      <div class="dp">Taraflar arasında işbu Ek Protokolden doğabilecek ihtilaflarda, İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir.</div>
+      <div class="dp">İşbu Ek Protokol, ${f("protTarih",95)} tarihinde 2 (iki) nüsha olarak düzenlenmiş ve taraflarca okunarak imza altına alınmıştır.</div>
+
+      <div class="dsig">
+        <div class="dsigbox">
+          <div class="dsigt">GAYRİMENKUL DANIŞMANI</div>
+          <div class="dsigsub">${fvRaw("danIsim")||"&nbsp;"}<br>Tarih: ${fvRaw("protTarih")||"__.__.____"}</div>
+          <div class="dsigarea">İmza</div>
+        </div>
+        <div class="dsigbox">
+          <div class="dsigt">RE/MAX Doğuş</div>
+          <div class="dsigsub">UMT GROUP Gayrimenkul Yatırım Dan. İnş. San. Tic. Ltd. Şti.</div>
+          <div class="dsigarea">Kaşe / İmza</div>
         </div>
       </div>
     </div>
