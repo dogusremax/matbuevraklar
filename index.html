@@ -515,7 +515,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v134</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v135</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -526,7 +526,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v134</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v135</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2474,12 +2474,12 @@ function danisFlow(){
   const topOf = el => el.getBoundingClientRect().top / (sc || 1);
   const botOf = el => el.getBoundingClientRect().bottom / (sc || 1);
 
-  // Toplam içerik yüksekliği → kaç sayfa gerekir → sayfa başına DENGELİ hedef
+  // Toplam içerik yüksekliği
   const ilkTop = topOf(kids[0]);
   const sonBot = botOf(kids[kids.length - 1]);
   const toplam = sonBot - ilkTop;
-  const sayfaSayisi = Math.max(1, Math.ceil(toplam / MAXPAGE));
-  const PAGE = Math.min(MAXPAGE, Math.ceil(toplam / sayfaSayisi) + 20); // dengeli hedef
+  // Her sayfayı A4 içerik alanına kadar DOLDUR (erken kesme yok, alt boşluk kalmasın)
+  const PAGE = 985;            // A4 içerik alanı (~1010) - küçük güvenlik payı
 
   let pageTop = ilkTop;
   for (let i = 0; i < kids.length; i++){
