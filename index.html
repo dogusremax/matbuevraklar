@@ -278,7 +278,9 @@ table.ftbl .fv4{background:#fff;width:33%}
 .wdoc .dmadde{margin:0 0 2mm;padding-left:9mm;text-indent:-9mm;text-align:justify}
 .wdoc .dmadde > b{color:#000;font-weight:bold}
 .wdoc .dp{margin:0 0 2mm;text-align:justify}
-.wdoc .dsig{margin-top:14mm}
+.wdoc .dsig{margin-top:5mm}
+.wdoc .dsigarea{height:16mm !important}
+.wdoc .dsigsub{min-height:6mm !important}
 .wdoc .dsigt{color:#000}
 .wdoc .dsigsub{color:#000}
 /* arka plan RE/MAX balon filigranı — baskıda buildPageImages her sayfaya çizer */
@@ -513,7 +515,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v132</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v133</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -524,7 +526,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v132</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v133</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2498,6 +2500,42 @@ function danisFlow(){
       brk.className = "dpgbrk";
       doc.insertBefore(brk, el);
       pageTop = topOf(el);
+    }
+  }
+  // Son sayfa: imza (.dsig) + ait olduğu son madde bölümü (son .dsec'ten itibaren)
+  // BİRLİKTE son sayfada dursun. Bu grup bir A4'e sığıyorsa, gruptan önce kır.
+  {
+    const kidsNow = Array.from(doc.children).filter(k=>!k.classList.contains("dpgbrk") && !k.classList.contains("wbanner"));
+    const sig = doc.querySelector(":scope > .dsig");
+    if (sig){
+      // imzadan geriye giderek son .dsec (bölüm başlığı) bloğunu bul = grup başı
+      let gi = kidsNow.indexOf(sig);
+      let grupBasi = gi;
+      for (let j = gi - 1; j >= 0; j--){
+        grupBasi = j;
+        if (kidsNow[j].classList.contains("dsec")) break;
+      }
+      const grupEl = kidsNow[grupBasi];
+      const grupTop = topOf(grupEl);
+      const docBot = doc.getBoundingClientRect().bottom / (sc || 1);
+      const grupYuk = docBot - grupTop;
+      // grup bir A4'e sığıyorsa: gruptan önceki tüm kırıcıları temizle, grup başına tek kır
+      if (grupYuk < 1010){
+        // grup içindeki mevcut kırıcıları kaldır
+        let n = grupEl;
+        while (n){
+          const nx = n.nextElementSibling;
+          if (n.classList && n.classList.contains("dpgbrk")) n.remove();
+          n = nx;
+        }
+        // grup başında kırıcı yoksa ekle (grup yeni sayfada başlasın)
+        const oncesi = grupEl.previousElementSibling;
+        if (oncesi && !(oncesi.classList && oncesi.classList.contains("dpgbrk"))){
+          const brk = document.createElement("div");
+          brk.className = "dpgbrk";
+          doc.insertBefore(brk, grupEl);
+        }
+      }
     }
   }
 }
