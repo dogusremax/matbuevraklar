@@ -517,7 +517,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v138</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v139</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -528,7 +528,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v138</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v139</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2969,9 +2969,11 @@ async function buildPageImages(){
     const bounds = [0, ...canvasBreaks, canvas.height];
     // Danışmanlık sözleşmesi: her baskı sayfasının üst/altında 1.5cm boşluk bırak
     const isDanis = !!clone.querySelector(".danisdoc");
-    const MARGIN_MM = 15; // 1.5 cm
-    const marginPx = isDanis ? Math.round(pageHpx * MARGIN_MM / 297) : 0; // A4 ölçeğinde
-    const usableH = pageHpx - 2 * marginPx; // içerik yüksekliği (marjlar hariç)
+    const TOP_MM = 15;   // üst boşluk 1.5 cm
+    const BOT_MM = 30;   // alt boşluk 3 cm (her sayfaya paraf/imza için)
+    const marginPx  = isDanis ? Math.round(pageHpx * TOP_MM / 297) : 0; // üst marj
+    const botPx     = isDanis ? Math.round(pageHpx * BOT_MM / 297) : 0; // alt marj
+    const usableH   = pageHpx - marginPx - botPx; // içerik yüksekliği (üst+alt marj hariç)
     // Danışmanlık filigranı: watermark'ı bir kez yükle, her sayfanın ortasına çiz
     let wmImg = null;
     if (isDanis && typeof DANIS_WM !== "undefined"){
