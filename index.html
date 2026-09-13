@@ -513,7 +513,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v131</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v132</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -524,7 +524,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v131</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v132</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2465,53 +2465,39 @@ function danisFlow(){
   doc.querySelectorAll(".dpgbrk").forEach(e=>e.remove());
 
   const sc = sheet.offsetWidth ? (sheet.getBoundingClientRect().width / sheet.offsetWidth) : 1;
-  const PAGE = 960;            // marjlı içerik alanına (1.5cm üst/alt) güvenli sığması için
+  const MAXPAGE = 1005;        // bir sayfaya sığabilecek mutlak üst sınır (marjlı içerik)
   const kids = Array.from(doc.children).filter(k=>!k.classList.contains("dpgbrk") && !k.classList.contains("wbanner"));
   if (!kids.length) return;
 
   const topOf = el => el.getBoundingClientRect().top / (sc || 1);
   const botOf = el => el.getBoundingClientRect().bottom / (sc || 1);
 
-  let pageTop = topOf(kids[0]);
+  // Toplam içerik yüksekliği → kaç sayfa gerekir → sayfa başına DENGELİ hedef
+  const ilkTop = topOf(kids[0]);
+  const sonBot = botOf(kids[kids.length - 1]);
+  const toplam = sonBot - ilkTop;
+  const sayfaSayisi = Math.max(1, Math.ceil(toplam / MAXPAGE));
+  const PAGE = Math.min(MAXPAGE, Math.ceil(toplam / sayfaSayisi) + 20); // dengeli hedef
+
+  let pageTop = ilkTop;
   for (let i = 0; i < kids.length; i++){
     const el = kids[i];
     const elBot = botOf(el);
-    // bu blok mevcut sayfayı taşırıyor mu?
-    if (elBot - pageTop > PAGE && i > 0){
-      // başlıksa (dsec) ondan önce böl; değilse yine ondan önce böl
+    // İmza bloğu (.dsig) ve ondan hemen önceki blok birlikte kalsın:
+    // bir sonraki eleman .dsig ise, bu eleman + imza tek parça sayılır.
+    const sonrakiSig = (kids[i+1] && kids[i+1].classList.contains("dsig"));
+    const grupBot = sonrakiSig ? botOf(kids[i+1]) : elBot;
+    if (grupBot - pageTop > PAGE && i > 0){
       const brk = document.createElement("div");
       brk.className = "dpgbrk";
       doc.insertBefore(brk, el);
       pageTop = topOf(el);
     }
-    // bir bölüm başlığı (dsec) sayfa dibine ~son 90px'e denk geldiyse öne al
     else if (el.classList.contains("dsec") && i > 0 && (elBot - pageTop) > PAGE - 90){
       const brk = document.createElement("div");
       brk.className = "dpgbrk";
       doc.insertBefore(brk, el);
       pageTop = topOf(el);
-    }
-  }
-  // Son sayfa dengesi: imza bloğu (.dsig) tek başına/az içerikle yeni sayfaya
-  // düştüyse, ondan önceki son kırıcıyı kaldır — imza bir önceki sayfaya çıksın
-  // (o sayfaya sığıyorsa). Böylece imza havada tek kalmaz.
-  const sig = doc.querySelector(":scope > .dsig");
-  if (sig){
-    const allBrks = Array.from(doc.querySelectorAll(":scope > .dpgbrk"));
-    const lastBrk = allBrks[allBrks.length - 1];
-    if (lastBrk && lastBrk.compareDocumentPosition(sig) & Node.DOCUMENT_POSITION_FOLLOWING){
-      // son kırıcı ile belge sonu arasındaki içerik (imza dahil) yüksekliği
-      const brkTop = topOf(lastBrk);
-      const docBot = doc.getBoundingClientRect().bottom / (sc || 1);
-      const sonBolum = docBot - brkTop;
-      // son kırıcı öncesi sayfanın doluluğu
-      const prevBrk = allBrks[allBrks.length - 2];
-      const prevTop = prevBrk ? topOf(prevBrk) : topOf(kids[0]);
-      const oncekiSayfa = brkTop - prevTop;
-      // ikisi birlikte tek sayfaya sığıyorsa son kırıcıyı kaldır
-      if (oncekiSayfa + sonBolum < PAGE + 40){
-        lastBrk.remove();
-      }
     }
   }
 }
@@ -3040,18 +3026,18 @@ async function buildPageImages(){
         pc.width = canvas.width; pc.height = pageHpx;
         const pctx = pc.getContext("2d");
         pctx.fillStyle = "#FFFFFF"; pctx.fillRect(0, 0, pc.width, pc.height);
-        // FİLİGRAN: sayfanın ortasına tek, büyük, soluk balon logo (içerikten önce)
+        // önce içeriği yerleştir (üstten marginPx boşlukla)
+        pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, marginPx, canvas.width, sliceH);
+        // FİLİGRAN: içeriğin ÜSTÜNE soluk balon çiz — her sayfada eşit görünür
         if (wmImg){
-          const fw = pc.width * 0.62;                 // büyük
+          const fw = pc.width * 0.60;
           const fh = fw * (wmImg.height / wmImg.width);
           const fx = (pc.width - fw) / 2;
           const fy = (pc.height - fh) / 2;
-          pctx.save(); pctx.globalAlpha = 0.22;
+          pctx.save(); pctx.globalAlpha = 0.07;
           pctx.drawImage(wmImg, fx, fy, fw, fh);
           pctx.restore();
         }
-        // içeriği üstten marginPx kadar aşağı yerleştir (üst boşluk)
-        pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, marginPx, canvas.width, sliceH);
         images.push(pc.toDataURL("image/jpeg", 0.85));
         y += sliceH;
       }
