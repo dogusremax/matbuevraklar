@@ -515,7 +515,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v133</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v134</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -526,7 +526,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v133</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v134</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -2519,21 +2519,33 @@ function danisFlow(){
       const grupTop = topOf(grupEl);
       const docBot = doc.getBoundingClientRect().bottom / (sc || 1);
       const grupYuk = docBot - grupTop;
-      // grup bir A4'e sığıyorsa: gruptan önceki tüm kırıcıları temizle, grup başına tek kır
+      // grup (son madde + imza) bir A4'e sığıyorsa tek başına son sayfada dursun
       if (grupYuk < 1010){
-        // grup içindeki mevcut kırıcıları kaldır
         let n = grupEl;
         while (n){
           const nx = n.nextElementSibling;
           if (n.classList && n.classList.contains("dpgbrk")) n.remove();
           n = nx;
         }
-        // grup başında kırıcı yoksa ekle (grup yeni sayfada başlasın)
         const oncesi = grupEl.previousElementSibling;
         if (oncesi && !(oncesi.classList && oncesi.classList.contains("dpgbrk"))){
           const brk = document.createElement("div");
           brk.className = "dpgbrk";
           doc.insertBefore(brk, grupEl);
+        }
+      }
+      // Son iki sayfayı birleştir: son bölüm + bir önceki sayfa A4 tam yüksekliğe
+      // (alt marj dahil) kadar sığıyorsa aradaki kırıcıyı kaldır — imza öncekine iner.
+      const brksNow = Array.from(doc.querySelectorAll(":scope > .dpgbrk"));
+      if (brksNow.length){
+        const sonBrk = brksNow[brksNow.length - 1];
+        const oncekiBrk = brksNow[brksNow.length - 2];
+        const sonSayfa = docBot - topOf(sonBrk);
+        const oncekiTop = oncekiBrk ? topOf(oncekiBrk) : ilkTop;
+        const oncekiSayfa = topOf(sonBrk) - oncekiTop;
+        // A4 içerik + alt marj toleransı (~1130px); imza en altta, alt boşluğa inebilir
+        if (oncekiSayfa + sonSayfa < 1135){
+          sonBrk.remove();
         }
       }
     }
@@ -3055,6 +3067,26 @@ async function buildPageImages(){
       while (y < end - 8){
         const remain = end - y;
         if (remain <= 90 && stripWhite(y, remain)) break; // boş kalıntı: sayfa açma
+        // Son bölümün kalanı A4'ü biraz aşıyorsa (imza dahil), bölmek yerine
+        // hafifçe küçülterek TEK sayfaya sığdır (boş imza sayfası oluşmasın).
+        const sonBolum = (s === bounds.length - 2);
+        if (isDanis && sonBolum && remain > usableH && remain <= usableH * 1.14){
+          const pc = document.createElement("canvas");
+          pc.width = canvas.width; pc.height = pageHpx;
+          const pctx = pc.getContext("2d");
+          pctx.fillStyle = "#FFFFFF"; pctx.fillRect(0, 0, pc.width, pc.height);
+          const olcek = usableH / remain;              // sığdırma oranı
+          const ciz = Math.round(remain * olcek);
+          pctx.drawImage(canvas, 0, y, canvas.width, remain, 0, marginPx, canvas.width, ciz);
+          if (wmImg){
+            const fw = pc.width * 0.60, fh = fw * (wmImg.height / wmImg.width);
+            pctx.save(); pctx.globalAlpha = 0.07;
+            pctx.drawImage(wmImg, (pc.width - fw) / 2, (pc.height - fh) / 2, fw, fh);
+            pctx.restore();
+          }
+          images.push(pc.toDataURL("image/jpeg", 0.85));
+          break;
+        }
         let sliceH = Math.min(usableH, remain);
         if (y + sliceH < end - 8){
           const safe = findWhiteRow(cctx, canvas.width, y + sliceH, Math.floor(usableH * 0.35));
