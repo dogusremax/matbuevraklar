@@ -1962,13 +1962,14 @@ function ekResim(id){ return "https://lh3.googleusercontent.com/d/" + encodeURIC
 function belgeEkleriHtml(){
   const ekler = V.__ekler || [];
   if (!ekler.length) return "";
-  const CIFT = { kimlikOn:["kimlik","on"], kimlikArka:["kimlik","arka"], esKimlikOn:["esKimlik","on"], esKimlikArka:["esKimlik","arka"] };
+  /* adında "kimlik" geçen ve On/Arka ile biten her alan kimlik sayılır (kimlikOn, esKimlikArka, ileride eklenecekler…) */
+  const cift = alan => { const m = String(alan||"").match(/^(.*kimlik.*?)(On|Arka)$/i); return m ? [m[1], m[2].toLowerCase()==="on" ? "on" : "arka"] : null; };
   const ciftler = [], tekler = [], idx = {};
   ekler.forEach(e => {
-    const c = CIFT[e.alan];
+    const c = cift(e.alan);
     if (!c) { tekler.push(e); return; }
     const anahtar = e.kisi + "|" + c[0];
-    if (!idx[anahtar]) { idx[anahtar] = { kisi: e.kisi, baslik: c[0]==="esKimlik" ? "Eşinin kimliği" : "Kimlik", on: null, arka: null }; ciftler.push(idx[anahtar]); }
+    if (!idx[anahtar]) { idx[anahtar] = { kisi: e.kisi, baslik: e.belge ? e.belge.replace(/\s*[—-]\s*(ön|arka) yüz\s*$/i, "") : "Kimlik", on: null, arka: null }; ciftler.push(idx[anahtar]); }
     if (!idx[anahtar][c[1]]) idx[anahtar][c[1]] = e.id; else tekler.push(e);
   });
   const resim = id => `<div class="idimg"><img src="${ekResim(id)}" alt="" onerror="this.parentNode.innerHTML='<div class=ekyok>Belge yüklenemedi — Drive bağlantısını kontrol edin</div>'"></div>`;
