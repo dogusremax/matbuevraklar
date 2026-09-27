@@ -1944,6 +1944,43 @@ const $ = id => document.getElementById(id);
 const _ll=document.querySelector("#loginlogo"); if(_ll) _ll.src=LOGIN_LOGO;
 const _bl=document.querySelector("#barlogo"); if(_bl) _bl.src=DOGUS_LOGO;
 
+/* === Kira Masası'ndan aktarım: #kira=<base64url JSON> ===
+   Kiraya veren / kiracı / kefil bilgileri Kira Sözleşmesi taslağına dolar;
+   kira koşulları, demirbaş ve kefalet danışmanda kalır. */
+let KIRA_AKTAR = null;
+(function(){
+  const m = location.hash.match(/^#kira=([A-Za-z0-9_-]+)/);
+  if (m) {
+    try {
+      const b = m[1].replace(/-/g,"+").replace(/_/g,"/");
+      KIRA_AKTAR = JSON.parse(decodeURIComponent(escape(atob(b))));
+      sessionStorage.setItem("kira_aktar", JSON.stringify(KIRA_AKTAR));
+    } catch(e){ console.warn('Aktarım okunamadı:', e); }
+    history.replaceState(null, "", location.pathname + location.search);   // kişisel veri adres çubuğunda kalmasın
+  } else {
+    try { KIRA_AKTAR = JSON.parse(sessionStorage.getItem("kira_aktar") || "null"); } catch(e){}
+  }
+})();
+function kiraAktarUygula(){
+  if (!KIRA_AKTAR || !KIRA_AKTAR.alanlar) return;
+  const a = KIRA_AKTAR; KIRA_AKTAR = null;
+  try { sessionStorage.removeItem("kira_aktar"); } catch(e){}
+  const tid = "kira";
+  let eski = null;
+  try { eski = JSON.parse(localStorage.getItem(draftKey(tid)) || "null"); } catch(e){}
+  // Aynı dosyanın taslağı varsa danışmanın girdiği kira koşulları korunur; başka dosyanınki silinir
+  if (eski && eski.__dosya !== a.dosyaNo) localStorage.removeItem(draftKey(tid));
+  const taslak = (eski && eski.__dosya === a.dosyaNo) ? eski : {};
+  Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini temizle
+  const yeni = { ...taslak, ...a.alanlar, __dosya: a.dosyaNo,
+                 __rep: { ...(taslak.__rep||{}), kv: a.kv || 1, kc: a.kc || 1 } };
+  localStorage.setItem(draftKey(tid), JSON.stringify(yeni));
+  openTpl(tid);
+  setTimeout(()=>alert(L(
+    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi — kira koşullarını, demirbaşları kontrol edip doldurun.",
+    "Imported from Kira Masası (" + a.dosyaNo + "). Party details are filled — complete the lease terms and fixtures.")), 300);
+}
+
 const savedPin = localStorage.getItem("evrak_pin");
 if (savedPin && CONSULTANTS[savedPin]) { enter(savedPin); }
 
@@ -1973,6 +2010,7 @@ function enter(pin){
   $("whoami").textContent = me.name;
   initLang();
   renderCatalog();
+  kiraAktarUygula();
 }
 function logout(){
   localStorage.removeItem("evrak_pin");
