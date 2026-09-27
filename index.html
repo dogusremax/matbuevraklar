@@ -2991,6 +2991,10 @@ async function buildPageImages(){
       ";background:#fff;box-shadow:none;transform:none;-webkit-text-size-adjust:100%;";
     holder.appendChild(clone);
     document.body.appendChild(holder);
+    // Resimler (kimlik/belge ekleri) yüklenmeden ölçülürse sayfa sonları kayar ve belgeler kesilir
+    await Promise.all(Array.from(clone.querySelectorAll("img")).map(im =>
+      (im.complete && im.naturalWidth) ? (im.decode ? im.decode().catch(()=>{}) : 0)
+        : new Promise(r => { im.addEventListener("load", r, {once:true}); im.addEventListener("error", r, {once:true}); setTimeout(r, 10000); })));
 
     // zorunlu sayfa sonu konumları (klon koordinatlarında) — kira .pgbrk + danışmanlık .dpgbrk
     const cloneRect = clone.getBoundingClientRect();
