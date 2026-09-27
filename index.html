@@ -127,6 +127,11 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .photodel{position:absolute;top:6px;right:6px;width:28px;height:28px;border:none;border-radius:50%;background:rgba(200,30,30,.92);color:#fff;font-size:15px;cursor:pointer;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .photoload,.photoerr{padding:14px;text-align:center;color:#555;border:1.5px dashed #bbb;border-radius:8px;background:#f7f7f7}
 .photoerr{color:#b00;border-color:#e0a0a0;background:#fdf0f0}
+/* Kira Masası'ndan gelen belge ekleri: kimlikler yarım sayfa, diğer belgeler tam sayfa */
+.ekfull{text-align:center}
+.ekfull .idlbl{text-align:left}
+.ekfull .idimg img{max-height:232mm}
+.ekyok{padding:18mm 6mm;color:#999;font-size:10pt}
 /* kimlik ekleri sayfası (baskıda) */
 .idpage{padding-top:6mm}
 .idcard{margin:0 0 8mm;page-break-inside:avoid}
@@ -1377,6 +1382,7 @@ const TEMPLATES = [
         </div>
       </div>` : ""}
     </div>` : ""}
+    ${belgeEkleriHtml()}
   `;}
 },
 
@@ -1944,6 +1950,38 @@ const $ = id => document.getElementById(id);
 const _ll=document.querySelector("#loginlogo"); if(_ll) _ll.src=LOGIN_LOGO;
 const _bl=document.querySelector("#barlogo"); if(_bl) _bl.src=DOGUS_LOGO;
 
+/* Kira Masası'ndan gelen belgeler: kimlik çiftleri (ön+arka) yarım sayfa, 2'si bir sayfada;
+   diğer belgeler (bordro, Findeks, tapu, DASK …) her biri tam sayfa. PDF ise ilk sayfası basılır. */
+function ekResim(id){ return "https://lh3.googleusercontent.com/d/" + encodeURIComponent(id) + "=w1800"; }
+function belgeEkleriHtml(){
+  const ekler = V.__ekler || [];
+  if (!ekler.length) return "";
+  const CIFT = { kimlikOn:["kimlik","on"], kimlikArka:["kimlik","arka"], esKimlikOn:["esKimlik","on"], esKimlikArka:["esKimlik","arka"] };
+  const ciftler = [], tekler = [], idx = {};
+  ekler.forEach(e => {
+    const c = CIFT[e.alan];
+    if (!c) { tekler.push(e); return; }
+    const anahtar = e.kisi + "|" + c[0];
+    if (!idx[anahtar]) { idx[anahtar] = { kisi: e.kisi, baslik: c[0]==="esKimlik" ? "Eşinin kimliği" : "Kimlik", on: null, arka: null }; ciftler.push(idx[anahtar]); }
+    if (!idx[anahtar][c[1]]) idx[anahtar][c[1]] = e.id; else tekler.push(e);
+  });
+  const resim = id => `<div class="idimg"><img src="${ekResim(id)}" alt="" onerror="this.parentNode.innerHTML='<div class=ekyok>Belge yüklenemedi — Drive bağlantısını kontrol edin</div>'"></div>`;
+  let out = "", ilk = true;
+  const baslik = () => { const h = ilk ? `<div class="shead" style="text-align:center;margin-bottom:5mm">${L("BELGE EKLERİ","ATTACHED DOCUMENTS")}</div>` : ""; ilk = false; return h; };
+  for (let i = 0; i < ciftler.length; i += 2) {
+    out += `<div class="pgbrk"></div><div class="pgsec idpage">${baslik()}` + ciftler.slice(i, i+2).map(c => `
+      <div class="idcard"><div class="idlbl">${esc(c.kisi)} · ${esc(c.baslik)}</div><div class="idrow">
+        ${c.on ? `<div class="idside"><div class="idcap">${L("Ön Yüz","Front")}</div>${resim(c.on)}</div>` : ""}
+        ${c.arka ? `<div class="idside"><div class="idcap">${L("Arka Yüz","Back")}</div>${resim(c.arka)}</div>` : ""}
+      </div></div>`).join("") + `</div>`;
+  }
+  tekler.forEach(e => {
+    out += `<div class="pgbrk"></div><div class="pgsec idpage ekfull">${baslik()}
+      <div class="idcard"><div class="idlbl">${esc(e.kisi)} · ${esc(e.belge)}</div>${resim(e.id)}</div></div>`;
+  });
+  return out;
+}
+
 /* === Kira Masası'ndan aktarım: #kira=<base64url JSON> ===
    Kiraya veren / kiracı / kefil bilgileri Kira Sözleşmesi taslağına dolar;
    kira koşulları, demirbaş ve kefalet danışmanda kalır. */
@@ -1972,12 +2010,12 @@ function kiraAktarUygula(){
   if (eski && eski.__dosya !== a.dosyaNo) localStorage.removeItem(draftKey(tid));
   const taslak = (eski && eski.__dosya === a.dosyaNo) ? eski : {};
   Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini temizle
-  const yeni = { ...taslak, ...a.alanlar, __dosya: a.dosyaNo,
+  const yeni = { ...taslak, ...a.alanlar, __dosya: a.dosyaNo, __ekler: a.ekler || [],
                  __rep: { ...(taslak.__rep||{}), kv: a.kv || 1, kc: a.kc || 1 } };
   localStorage.setItem(draftKey(tid), JSON.stringify(yeni));
   openTpl(tid);
   setTimeout(()=>alert(L(
-    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi — kira koşullarını, demirbaşları kontrol edip doldurun.",
+    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi" + ((a.ekler||[]).length ? ", " + a.ekler.length + " belge sözleşmenin arkasına eklendi" : "") + " — kira koşullarını, demirbaşları kontrol edip doldurun.",
     "Imported from Kira Masası (" + a.dosyaNo + "). Party details are filled — complete the lease terms and fixtures.")), 300);
 }
 
