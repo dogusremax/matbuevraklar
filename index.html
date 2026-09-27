@@ -128,9 +128,7 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .photoload,.photoerr{padding:14px;text-align:center;color:#555;border:1.5px dashed #bbb;border-radius:8px;background:#f7f7f7}
 .photoerr{color:#b00;border-color:#e0a0a0;background:#fdf0f0}
 /* Kira Masası'ndan gelen belge ekleri: kimlikler yarım sayfa, diğer belgeler tam sayfa */
-.ekfull{text-align:center}
-.ekfull .idlbl{text-align:left}
-.ekfull .idimg img{max-height:232mm}
+.ekyarim .idimg img{max-height:112mm}
 .ekyok{padding:18mm 6mm;color:#999;font-size:10pt}
 /* kimlik ekleri sayfası (baskıda) */
 .idpage{padding-top:6mm}
@@ -1950,8 +1948,8 @@ const $ = id => document.getElementById(id);
 const _ll=document.querySelector("#loginlogo"); if(_ll) _ll.src=LOGIN_LOGO;
 const _bl=document.querySelector("#barlogo"); if(_bl) _bl.src=DOGUS_LOGO;
 
-/* Kira Masası'ndan gelen belgeler: kimlik çiftleri (ön+arka) yarım sayfa, 2'si bir sayfada;
-   diğer belgeler (bordro, Findeks, tapu, DASK …) her biri tam sayfa. PDF ise ilk sayfası basılır. */
+/* Kira Masası'ndan gelen belgeler: her kart yarım sayfa, bir A4'te 2 kart.
+   Kimlik çiftleri (ön+arka yan yana) önce, sonra bordro, Findeks, tapu, DASK …  PDF ise ilk sayfası basılır. */
 function ekResim(id){ return "https://lh3.googleusercontent.com/d/" + encodeURIComponent(id) + "=w1800"; }
 function belgeEkleriHtml(){
   const ekler = V.__ekler || [];
@@ -1968,17 +1966,16 @@ function belgeEkleriHtml(){
   const resim = id => `<div class="idimg"><img src="${ekResim(id)}" alt="" onerror="this.parentNode.innerHTML='<div class=ekyok>Belge yüklenemedi — Drive bağlantısını kontrol edin</div>'"></div>`;
   let out = "", ilk = true;
   const baslik = () => { const h = ilk ? `<div class="shead" style="text-align:center;margin-bottom:5mm">${L("BELGE EKLERİ","ATTACHED DOCUMENTS")}</div>` : ""; ilk = false; return h; };
-  for (let i = 0; i < ciftler.length; i += 2) {
-    out += `<div class="pgbrk"></div><div class="pgsec idpage">${baslik()}` + ciftler.slice(i, i+2).map(c => `
+  /* her kart yarım sayfa: bir A4'e 2 kart (önce kimlikler, sonra diğer belgeler) */
+  const kartlar = ciftler.map(c => `
       <div class="idcard"><div class="idlbl">${esc(c.kisi)} · ${esc(c.baslik)}</div><div class="idrow">
         ${c.on ? `<div class="idside"><div class="idcap">${L("Ön Yüz","Front")}</div>${resim(c.on)}</div>` : ""}
         ${c.arka ? `<div class="idside"><div class="idcap">${L("Arka Yüz","Back")}</div>${resim(c.arka)}</div>` : ""}
-      </div></div>`).join("") + `</div>`;
+      </div></div>`).concat(tekler.map(e => `
+      <div class="idcard"><div class="idlbl">${esc(e.kisi)} · ${esc(e.belge)}</div>${resim(e.id)}</div>`));
+  for (let i = 0; i < kartlar.length; i += 2) {
+    out += `<div class="pgbrk"></div><div class="pgsec idpage ekyarim">${baslik()}${kartlar.slice(i, i+2).join("")}</div>`;
   }
-  tekler.forEach(e => {
-    out += `<div class="pgbrk"></div><div class="pgsec idpage ekfull">${baslik()}
-      <div class="idcard"><div class="idlbl">${esc(e.kisi)} · ${esc(e.belge)}</div>${resim(e.id)}</div></div>`;
-  });
   return out;
 }
 
