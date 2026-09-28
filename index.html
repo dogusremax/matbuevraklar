@@ -122,6 +122,7 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .scanshot:active{transform:scale(.94)}
 .photobtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed #1B3A6B;border-radius:8px;background:#EEF3FB;color:#1B3A6B;font-weight:600;cursor:pointer;box-sizing:border-box}
 .photobtn:active{background:#DDE7F5}
+.fldnot{font-size:11.5px;color:#8a5a00;background:#FFF6E0;border-radius:6px;padding:5px 8px;margin-top:5px;line-height:1.4}
 .kiranot{background:#EEF2FB;border:1px solid #C9D3EE;color:#21237B;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}
 .photoprev{position:relative;display:inline-block;border-radius:8px;overflow:hidden;border:1px solid #ccc;max-width:100%}
 .photoprev img{display:block;max-width:100%;max-height:220px;object-fit:contain}
@@ -1135,21 +1136,29 @@ const TEMPLATES = [
       {k:"kcTel", l:"Telefon Numarası", lEn:"Phone Number", fmt:"phone"},
       {k:"kcFotoOn", l:"Kimlik — Ön Yüz", lEn:"ID — Front", type:"photo"},
       {k:"kcFotoArka", l:"Kimlik — Arka Yüz", lEn:"ID — Back", type:"photo"},
-      {k:"kcEsIsim", l:"Eşinin Adı Soyadı", lEn:"Spouse Full Name"},
-      {k:"kcEsFotoOn", l:"Eşinin Kimliği — Ön Yüz", lEn:"Spouse ID — Front", type:"photo"},
-      {k:"kcEsFotoArka", l:"Eşinin Kimliği — Arka Yüz", lEn:"Spouse ID — Back", type:"photo"},
+      {k:"kcMedeni", l:"Medeni Durumu", lEn:"Marital Status", type:"select", opts:["Bekar","Evli"], optsEn:["Single","Married"],
+       def:"Bekar", defDolu:"kcEsIsim", defDoluDeger:"Evli", rebuild:1},
+      {k:"kcEsIsim", l:"Eşinin Adı Soyadı", lEn:"Spouse Full Name", showIf:[{k:"kcMedeni",v:"Evli"}]},
+      {k:"kcEsTc", l:"Eşinin T.C. Kimlik No", lEn:"Spouse National ID / Passport No", showIf:[{k:"kcMedeni",v:"Evli"}]},
+      {k:"kcEsFotoOn", l:"Eşinin Kimliği — Ön Yüz", lEn:"Spouse ID — Front", type:"photo", showIf:[{k:"kcMedeni",v:"Evli"}]},
+      {k:"kcEsFotoArka", l:"Eşinin Kimliği — Arka Yüz", lEn:"Spouse ID — Back", type:"photo", showIf:[{k:"kcMedeni",v:"Evli"}]},
     ]},
     {t:"Kefil", tEn:"Guarantor", fields:[
-      {k:"kfIsim", l:"Adı ve Soyadı", lEn:"Full Name"},
-      {k:"kfTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No"},
-      {k:"kfTel", l:"Telefon", lEn:"Phone", fmt:"phone"},
-      {k:"kfIs", l:"İş Adresi", lEn:"Work Address", type:"textarea"},
-      {k:"kfAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea"},
-      {k:"kfFotoOn", l:"Kimlik — Ön Yüz", lEn:"ID — Front", type:"photo"},
-      {k:"kfFotoArka", l:"Kimlik — Arka Yüz", lEn:"ID — Back", type:"photo"},
-      {k:"kfEsIsim", l:"Eşinin Adı Soyadı", lEn:"Spouse Full Name"},
-      {k:"kfEsFotoOn", l:"Eşinin Kimliği — Ön Yüz", lEn:"Spouse ID — Front", type:"photo"},
-      {k:"kfEsFotoArka", l:"Eşinin Kimliği — Arka Yüz", lEn:"Spouse ID — Back", type:"photo"},
+      {k:"kfVar", l:"Kefil Var mı?", lEn:"Is There a Guarantor?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"],
+       def:"Yok", defDolu:"kfIsim", defDoluDeger:"Var", rebuild:1},
+      {k:"kfIsim", l:"Adı ve Soyadı", lEn:"Full Name", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfTc", l:"T.C. Kimlik Numarası", lEn:"National ID / Passport No", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfTel", l:"Telefon", lEn:"Phone", fmt:"phone", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfIs", l:"İş Adresi", lEn:"Work Address", type:"textarea", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfAdres", l:"İkamet Adresi", lEn:"Residential Address", type:"textarea", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfFotoOn", l:"Kimlik — Ön Yüz", lEn:"ID — Front", type:"photo", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfFotoArka", l:"Kimlik — Arka Yüz", lEn:"ID — Back", type:"photo", showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfMedeni", l:"Medeni Durumu", lEn:"Marital Status", type:"select", opts:["Bekar","Evli"], optsEn:["Single","Married"],
+       def:"Bekar", defDolu:"kfEsIsim", defDoluDeger:"Evli", rebuild:1, showIf:[{k:"kfVar",v:"Var"}]},
+      {k:"kfEsIsim", l:"Eşinin Adı Soyadı", lEn:"Spouse Full Name", showIf:[{k:"kfVar",v:"Var"},{k:"kfMedeni",v:"Evli"}], not:"Evli kefil için eşin yazılı rızası şarttır (TBK m.584). Eş Rıza Belgesi'ni de doldurun."},
+      {k:"kfEsTc", l:"Eşinin T.C. Kimlik No", lEn:"Spouse National ID / Passport No", showIf:[{k:"kfVar",v:"Var"},{k:"kfMedeni",v:"Evli"}]},
+      {k:"kfEsFotoOn", l:"Eşinin Kimliği — Ön Yüz", lEn:"Spouse ID — Front", type:"photo", showIf:[{k:"kfVar",v:"Var"},{k:"kfMedeni",v:"Evli"}]},
+      {k:"kfEsFotoArka", l:"Eşinin Kimliği — Arka Yüz", lEn:"Spouse ID — Back", type:"photo", showIf:[{k:"kfVar",v:"Var"},{k:"kfMedeni",v:"Evli"}]},
     ]},
     {t:"Kira Koşulları", tEn:"Lease Terms", fields:[
       {k:"yillik", l:"Bir Senelik Kira (TL)", lEn:"Annual Rent (TL)", fmt:"money"},
@@ -1172,7 +1181,7 @@ const TEMPLATES = [
       {k:"d1",l:"1."},{k:"d2",l:"2."},{k:"d3",l:"3."},{k:"d4",l:"4."},{k:"d5",l:"5."},
       {k:"d6",l:"6."},{k:"d7",l:"7."},{k:"d8",l:"8."},{k:"d9",l:"9."},
     ]},
-    {t:"Kefalet Beyanı", tEn:"Guarantee Declaration", fields:[
+    {t:"Kefalet Beyanı", tEn:"Guarantee Declaration", showIf:[{k:"kfVar",v:"Var"}], fields:[
       {k:"kefTur", l:"Kefaletin Türü", lEn:"Type of Guarantee", def:"Müşterek ve Müteselsil", handwrite:1},
       {k:"kefTutar", l:"Azami Kefalet Tutarı (TL)", lEn:"Maximum Guarantee Amount (TL)", fmt:"money", handwrite:1},
       {k:"kefTarih", l:"Kefalet Tarihi", lEn:"Guarantee Date", ph:"GG.AA.YYYY", fmt:"date", handwrite:1},
@@ -1277,7 +1286,9 @@ const TEMPLATES = [
       kcRows.push([L(ckc>1?`Kiracı${n} Telefon`:"Kiracının Telefon Numarası",
                      ckc>1?`Tenant${nEn} Phone`:"Tenant Phone Number"), fvi("kcTel",i)]);
     }
-    const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")},...Array.from({length:ckc},(_,x)=>({t:L(ckc>1?"KİRACI "+(x+1):"KİRACI", ckc>1?"TENANT "+(x+1):"TENANT"),s:fvi("kcIsim",x+1),tc:fvRaw(kfor("kcTc",x+1))}))], true);
+    const kefilVar = secimDegeri("kfVar") === "Var";
+    const kn = n => kefilVar ? n : n - 2;          // kefil yoksa 18-19. maddeler çıkar, sonrakiler kayar
+    const sigK = sigBlock([...Array.from({length:ckv},(_,x)=>({t:L(ckv>1?"MÜLK SAHİBİ "+(x+1):"MÜLK SAHİBİ", ckv>1?"OWNER "+(x+1):"OWNER"),s:fvi("kvIsim",x+1),tc:fvRaw(kfor("kvTc",x+1))})),...(kefilVar?[{t:L("KEFİL","GUARANTOR"),s:fv("kfIsim"),tc:fvRaw("kfTc")}]:[]),...Array.from({length:ckc},(_,x)=>({t:L(ckc>1?"KİRACI "+(x+1):"KİRACI", ckc>1?"TENANT "+(x+1):"TENANT"),s:fvi("kcIsim",x+1),tc:fvRaw(kfor("kcTc",x+1))}))], true);
     // Ödeme cümlesi: mal sahibi sayısına göre her birinin hesabı ayrı yazılır.
     let odemeTr, odemeEn;
     if (ckv > 1){
@@ -1325,14 +1336,14 @@ const TEMPLATES = [
       [L("Kiralananın Mevcut Durumu","Current Condition"), fv("durum")],
       [L("Kiralanan Şeyin Ne İçin Kullanılacağı","Purpose of Use"), fv("amac")],
     ])}</div>
-    ${secHead(L("Kefil Bilgileri","Guarantor Details"))}
+    ${kefilVar ? `${secHead(L("Kefil Bilgileri","Guarantor Details"))}
     <div class="kfgrow">${ftbl([
       [L("Adı Ve Soyadı","Full Name"), fv("kfIsim")],
       [L("Türkiye Cumhuriyeti Kimlik Numarası","National ID / Passport No"), fv("kfTc")],
       [L("Telefon","Phone"), fv("kfTel")],
       [L("İş Adresi","Work Address"), fv("kfIs")],
       [L("İkamet Adresi","Residential Address"), fv("kfAdres")],
-    ])}</div>
+    ])}</div>` : ""}
     </div>
     <div class="pgbottom">${sigK}</div>
     </div>
@@ -1362,15 +1373,17 @@ const TEMPLATES = [
     <div class="clz"><b>15.</b> ${Lc("Kiracı'nın bu sözleşmenin herhangi bir hükmünü kusuru veya ihmali ile ihlal etmesi ve bunu Mal Sahibi'nin yazılı ihtarının tebliğinden itibaren en geç 15 gün içinde gidermemesi durumunda Mal Sahibi sözleşmeyi derhal feshetme ve uğradığı zararı talep etme hakkına sahiptir.", "If the Tenant breaches any provision of this agreement through fault or negligence and fails to remedy it within 15 days at the latest from the service of the Owner's written notice, the Owner shall have the right to terminate the agreement immediately and claim the damages incurred.")}</div>
     <div class="clz"><b>16.</b> ${Lc("Taraflardan herhangi biri, diğer tarafın işbu sözleşmeye aykırı hareket etmesi durumunda yazılı bildirimle sözleşmeyi feshedebilir.", "Either party may terminate the agreement by written notice if the other party acts in breach of this agreement.")}</div>
     <div class="clz"><b>17.</b> ${Lc("Kiracı ve Mal Sahibi'nin sözleşmede yazılı adresleri yasal tebligat adresleridir; değişiklik yazılı bildirilmedikçe bu adreslere yapılacak her türlü tebligat -tebliğ edilmese dahi- yapılmış sayılır.", "The addresses of the Tenant and Owner stated in the agreement are their legal notification addresses; unless a change is notified in writing, any notification made to these addresses shall be deemed served even if not actually delivered.")}</div>
+    ${kefilVar ? `
     <div class="clz"><b>18.</b> ${Lc("Kefil, kiracı ile birlikte işbu sözleşmeden doğmuş ve doğacak tüm borçlardan azami sorumluluk tutarı kapsamında müteselsilen sorumlu olup sözleşmenin tüm şartlarını kabul eder. Kefilin sorumluluğu sözleşme devam ettiği, uzatıldığı ve yenilendiği sürece ve kiracı kiralananı eksiksiz ve borçsuz teslim edene kadar devam eder.", "The Guarantor is jointly and severally liable together with the tenant for all debts arisen and to arise from this agreement, up to the maximum liability amount, and accepts all terms of the agreement. The Guarantor's liability continues as long as the agreement continues, is extended and renewed, and until the tenant delivers the leased property complete and debt-free.")}</div>
     <div class="clz"><b>19.</b> ${Lc("Müteselsil kefilin il dışına çıkması, vefatı, iflası ya da kefaletten vazgeçmesi halinde sözleşme yeni müteselsil kefil ile yenilenecektir. Mal Sahibi başka bir kefil gösterilmesini isterse Kiracı bu isteği yerine getirecektir.", "If the joint guarantor leaves the province, dies, becomes bankrupt or withdraws from the guarantee, the agreement shall be renewed with a new joint guarantor. If the Owner requests that another guarantor be provided, the Tenant shall fulfil this request.")}</div>
+    ` : ""}
     <div class="pgbottom">${sigK}</div>
     </div>
     <div class="pgbrk"></div>
     <div class="pgsec pg4 pgflex">
-    <div class="clz"><b>20.</b> ${Lc("Gayrimenkul sahibi daireyi satmaya karar verirse Kiracı, randevu ile gelen müşterilere evi göstermekle yükümlüdür. Ayrıca sözleşmenin bitiminden önceki 2 ay içinde, kendisinin belirleyeceği haftanın iki gününde evi yeni kiracı adaylarına gösterecektir.", "If the property owner decides to sell the flat, the Tenant is obliged to show the property to customers who come by appointment. Furthermore, within the 2 months before the end of the agreement, the Tenant shall show the property to prospective new tenants on two days of the week to be determined by the Tenant.")}</div>
-    <div class="clz"><b>21.</b> ${Lc("Kira müddeti bittiği halde kiralananı boşaltmaz ise Kiracı, Mal Sahibi'nin bundan doğacak zarar ve ziyanını tazmin edecektir.", "If the Tenant does not vacate the leased property although the lease term has ended, the Tenant shall compensate the Owner for any resulting loss and damage.")}</div>
-    <div class="clz"><b>22.</b> ${Lc("Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.", "The costs of any decoration the Tenant has carried out inside and outside the leased property belong to the Tenant; upon termination of the agreement the Tenant may not claim compensation for such costs, and all additions made become the property of the Owner.")}</div>
+    <div class="clz"><b>${kn(20)}.</b> ${Lc("Gayrimenkul sahibi daireyi satmaya karar verirse Kiracı, randevu ile gelen müşterilere evi göstermekle yükümlüdür. Ayrıca sözleşmenin bitiminden önceki 2 ay içinde, kendisinin belirleyeceği haftanın iki gününde evi yeni kiracı adaylarına gösterecektir.", "If the property owner decides to sell the flat, the Tenant is obliged to show the property to customers who come by appointment. Furthermore, within the 2 months before the end of the agreement, the Tenant shall show the property to prospective new tenants on two days of the week to be determined by the Tenant.")}</div>
+    <div class="clz"><b>${kn(21)}.</b> ${Lc("Kira müddeti bittiği halde kiralananı boşaltmaz ise Kiracı, Mal Sahibi'nin bundan doğacak zarar ve ziyanını tazmin edecektir.", "If the Tenant does not vacate the leased property although the lease term has ended, the Tenant shall compensate the Owner for any resulting loss and damage.")}</div>
+    <div class="clz"><b>${kn(22)}.</b> ${Lc("Kiracının kiralanan içinde ve dışında yaptıracağı tezyinat masrafları kendisine aittir; sözleşme bittiğinde bu masraflar için tazminat isteyemez ve yapılan tüm ilaveler Mal Sahibinin olur.", "The costs of any decoration the Tenant has carried out inside and outside the leased property belong to the Tenant; upon termination of the agreement the Tenant may not claim compensation for such costs, and all additions made become the property of the Owner.")}</div>
     <div class="clz">${Lc(`Bu sözleşmeden kaynaklanan uyuşmazlıklarda İstanbul Anadolu Mahkemeleri ve İcra Daireleri yetkilidir. Sözleşmede yer almayan hususlarda Türk Medeni Kanunu, Türk Borçlar Kanunu, 634 sayılı Kat Mülkiyeti Kanunu ve yürürlükteki ilgili mevzuat ile Yargıtay içtihatları uygulanır. İşbu sözleşme matbu şartlar ile 22 maddelik özel şartlar ve Ek-A'dan oluşmuş olup taraflar ve müteselsil kefil tarafından ${fvRaw("imzaTarihi")?`<b>${fvRaw("imzaTarihi")}</b>`:"..........................."} tarihinde okunarak kabul edilmiş ve iki nüsha olarak imzalanmıştır.`, `Istanbul Anatolian Courts and Enforcement Offices have jurisdiction over disputes arising from this agreement. For matters not covered in the agreement, the Turkish Civil Code, the Turkish Code of Obligations, the Condominium Law No. 634, the relevant legislation in force and the case-law of the Court of Cassation shall apply. This agreement, consisting of the printed terms, 22 special conditions and Annex-A, has been read, accepted and signed in two copies by the parties and the joint guarantor on ${fvRaw("imzaTarihi")?`<b>${fvRaw("imzaTarihi")}</b>`:"..........................."}.`)}</div>
     ${secHead(L("EK-A — DEMİRBAŞ LİSTESİ","ANNEX-A — LIST OF FIXTURES"))}
     ${fvRaw("demirbasVar")==="Yok"
@@ -1381,11 +1394,13 @@ const TEMPLATES = [
             return `<table class="demir">${dolu.map((i,n)=>`<tr><td class="dn">${n+1}.</td><td>${fv("d"+i)}</td></tr>`).join("")}</table>`;
           return `<table class="demir">${[1,2,3,4,5].map(n=>`<tr><td class="dn">${n}.</td><td>&nbsp;</td></tr>`).join("")}</table>`;
         })()}
+    ${kefilVar ? `
     <div class="shead kefhead">${L("Kefil / Kefalet Beyanı","Guarantor / Guarantee Declaration")}</div>
     <table class="kefal">
       <tr><th>${L("Kefaletin Türü","Type of Guarantee")}</th><th>${L("Müşterek ve Müteselsil Kefil ve Adresi","Joint Guarantor and Address")}</th><th>${L("Azami Kefalet Tutarı","Maximum Guarantee Amount")}</th><th>${L("Kefalet Tarihi","Guarantee Date")}</th><th>${L("İmza","Signature")}</th></tr>
       <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td></tr>
     </table>
+    ` : ""}
     <div class="pgbottom">${sigK}</div>
     </div>
     ${(() => {
@@ -1403,15 +1418,15 @@ const TEMPLATES = [
       for (let i = 1; i <= kcN; i++) {
         const kcK = kart(isimli(L("KİRACI","TENANT"), kfor("kcIsim", i), kcN, i), kfor("kcFotoOn", i), kfor("kcFotoArka", i));
         if (kcK) kartlar.push(kcK);
-        const kcE = kart(isimli(L("KİRACI","TENANT") + " " + L("EŞİ","SPOUSE"), kfor("kcEsIsim", i), kcN, i), kfor("kcEsFotoOn", i), kfor("kcEsFotoArka", i));
+        const kcE = secimDegeri("kcMedeni", i) !== "Evli" ? "" : kart(isimli(L("KİRACI","TENANT") + " " + L("EŞİ","SPOUSE"), kfor("kcEsIsim", i), kcN, i), kfor("kcEsFotoOn", i), kfor("kcEsFotoArka", i));
         if (kcE) kartlar.push(kcE);
       }
       for (let i = 1; i <= kvN; i++) {
         const kvK = kart(isimli(L("KİRAYA VEREN","LESSOR"), kfor("kvIsim", i), kvN, i), kfor("kvFotoOn", i), kfor("kvFotoArka", i));
         if (kvK) kartlar.push(kvK);
       }
-      { const c = kart(isimli(L("KEFİL","GUARANTOR"), "kfIsim", 1, 1), "kfFotoOn", "kfFotoArka"); if (c) kartlar.push(c); }
-      { const c = kart(isimli(L("KEFİL EŞİ","GUARANTOR SPOUSE"), "kfEsIsim", 1, 1), "kfEsFotoOn", "kfEsFotoArka"); if (c) kartlar.push(c); }
+      if (kefilVar) { const c = kart(isimli(L("KEFİL","GUARANTOR"), "kfIsim", 1, 1), "kfFotoOn", "kfFotoArka"); if (c) kartlar.push(c); }
+      if (kefilVar && secimDegeri("kfMedeni") === "Evli") { const c = kart(isimli(L("KEFİL EŞİ","GUARANTOR SPOUSE"), "kfEsIsim", 1, 1), "kfEsFotoOn", "kfEsFotoArka"); if (c) kartlar.push(c); }
       const SAYFADA = 3;                       // A4'e sığan kimlik kartı sayısı
       let idSayfa = "";
       for (let s = 0; s < kartlar.length; s += SAYFADA) {
@@ -2107,6 +2122,8 @@ function kiraAktarUygula(){
   Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k) || /^ek(Ad|Foto)(_\d+)?$/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini ve belgeleri temizle
   const alanlar = { ...a.alanlar };
   const yer = belgeleriAlanlaraYerlestir(a.ekler || [], alanlar);
+  alanlar.kfVar = alanlar.kfIsim ? "Var" : "Yok";
+  Object.keys(alanlar).forEach(k => { const m = k.match(/^(kc|kf)EsFoto(On|Arka)(_\d+)?$/); if (m) alanlar[m[1] + "Medeni" + (m[3]||"")] = "Evli"; });
   const yeni = { ...taslak, ...alanlar, __dosya: a.dosyaNo, __ekler: yer.artan,
                  __rep: { ...(taslak.__rep||{}), kv: a.kv || 1, kc: a.kc || 1, ek: Math.max(1, yer.ek) } };
   localStorage.setItem(draftKey(tid), JSON.stringify(yeni));
@@ -2406,8 +2423,27 @@ function kiraNotu(){
     : `<div class="kiranot">${L("💡 Müşteri bilgileri ve belgeleri kendisi doldursun isterseniz sözleşmeyi <b>Kira Masası</b>'ndan başlatın; hepsi buraya otomatik gelir. Buradan dolduruyorsanız kimlikleri ilgili tarafın bölümüne, diğer belgeleri (Findeks, bordro, tapu, DASK…) en alttaki <b>Ek Belgeler</b>'e ekleyin.",
         "💡 To let clients fill in their own details and documents, start the lease from <b>Kira Masası</b>; everything arrives here automatically. If filling here, add IDs under each party and other documents under <b>Annexes</b> at the bottom.")}</div>`;
 }
+/* Koşullu alanlar: {showIf:[{k,v}]} — tüm koşullar tutarsa alan/bölüm görünür.
+   Seçim boşsa varsayılan: defDolu alanı doluysa defDoluDeger, değilse def
+   (eski taslaklarda kefil adı yazılıysa "Var", eş adı yazılıysa "Evli" sayılır). */
+function alanTanimi(k){
+  for (const g of (currentTpl ? currentTpl.groups : [])) for (const fd of g.fields) if (fd.k === k) return fd;
+  return null;
+}
+function secimDegeri(k, i){
+  i = i || 1;
+  const v = V[kfor(k, i)];
+  if (v) return v;
+  const fd = alanTanimi(k);
+  if (!fd) return "";
+  return (fd.defDolu && fvRaw(kfor(fd.defDolu, i))) ? fd.defDoluDeger : (fd.def || "");
+}
+function kosulTutar(showIf, i){
+  return !showIf || showIf.every(c => secimDegeri(c.k, i) === c.v);
+}
 function buildForm(){
   $("formFields").innerHTML = kiraNotu() + currentTpl.groups.map(g=>{
+    if (!kosulTutar(g.showIf, 1)) return "";
     const inst = g.repeat ? repCount(g.repeat.base) : 1;
     let out = "";
     for (let i=1;i<=inst;i++){
@@ -2415,11 +2451,12 @@ function buildForm(){
         ? ` <a href="#" class="rm" onclick="removeRep('${g.repeat.base}');return false">− kaldır</a>` : "";
       out += `<div class="fgroup"><div class="gt">${L(g.t,g.tEn)}${(g.repeat&&inst>1)?" "+i:""}${rm}</div>`;
       out += g.fields.map(fd=>{
+        if (!kosulTutar(fd.showIf, i)) return "";
         const key = kfor(fd.k, i);
         const val = esc(V[key]||"");
         const fmtAttr = fd.fmt || "cap";
         const inputMode = (fmtAttr==="date"||fmtAttr==="phone"||fmtAttr==="money") ? ` inputmode="numeric"` : "";
-        const common = `id="in_${key}" data-k="${key}" data-fmt="${fmtAttr}"${inputMode} placeholder="${fd.ph||""}"`;
+        const common = `id="in_${key}" data-k="${key}" data-fmt="${fmtAttr}"${inputMode}${fd.rebuild?' data-rebuild="1"':''} placeholder="${fd.ph||""}"`;
         const input = fd.handwrite
           ? `<div class="hwfld" onclick="hwUyari()" title="${L("Elle doldurulacak","To be filled by hand")}">
                <span class="hwtxt">${L("✋ Kefil kendi el yazısıyla dolduracak","✋ To be filled by the guarantor in own handwriting")}</span>
@@ -2436,7 +2473,7 @@ function buildForm(){
           : fd.type==="textarea"
           ? `<textarea ${common}>${val}</textarea>`
           : fd.type==="select"
-          ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||fd.def)===o?" selected":""}>${esc(L(o, fd.optsEn?fd.optsEn[oi]:null))}</option>`).join("")}</select>`
+          ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||secimDegeri(fd.k,i))===o?" selected":""}>${esc(L(o, fd.optsEn?fd.optsEn[oi]:null))}</option>`).join("")}</select>`
           : fd.type==="photo"
           ? `<div class="photofld" id="pf_${key}">
                ${V[key]
@@ -2448,7 +2485,7 @@ function buildForm(){
              </div>`
           : `<input type="text" ${common} value="${val}">`;
         const req = fd.req && i===1;
-        return `<div class="fld" id="fld_${key}"><label>${L(fd.l,fd.lEn)}${req?' <span class="req">*</span>':''}</label>${input}</div>`;
+        return `<div class="fld" id="fld_${key}"><label>${L(fd.l,fd.lEn)}${req?' <span class="req">*</span>':''}</label>${input}${fd.not?`<div class="fldnot">${L(fd.not, fd.notEn||fd.not)}</div>`:""}</div>`;
       }).join("");
       out += `</div>`;
     }
@@ -2474,6 +2511,7 @@ function buildForm(){
       localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V));
       if (el.dataset.k === "odemeDonem") odemeGunGizle();
       refresh();
+      if (el.dataset.rebuild) buildForm();   // kefil var/yok, medeni durum → ilgili alanlar açılır/kapanır
     });
     // odak/tıklama → önizlemede eşleşen alanı göster (SADECE WEB/geniş ekran; mobilde kapalı)
     if (window.matchMedia && window.matchMedia("(min-width: 900px) and (pointer: fine)").matches){
