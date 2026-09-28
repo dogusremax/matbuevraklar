@@ -122,6 +122,7 @@ h2.sec{font-size:15px;color:var(--navy);margin:6px 0 14px}
 .scanshot:active{transform:scale(.94)}
 .photobtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:1.5px dashed #1B3A6B;border-radius:8px;background:#EEF3FB;color:#1B3A6B;font-weight:600;cursor:pointer;box-sizing:border-box}
 .photobtn:active{background:#DDE7F5}
+.kiranot{background:#EEF2FB;border:1px solid #C9D3EE;color:#21237B;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}
 .photoprev{position:relative;display:inline-block;border-radius:8px;overflow:hidden;border:1px solid #ccc;max-width:100%}
 .photoprev img{display:block;max-width:100%;max-height:220px;object-fit:contain}
 .photodel{position:absolute;top:6px;right:6px;width:28px;height:28px;border:none;border-radius:50%;background:rgba(200,30,30,.92);color:#fff;font-size:15px;cursor:pointer;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.3)}
@@ -2066,6 +2067,33 @@ let KIRA_AKTAR = null;
     try { KIRA_AKTAR = JSON.parse(sessionStorage.getItem("kira_aktar") || "null"); } catch(e){}
   }
 })();
+/* Kira Masası belgelerini, elle doldurmadaki alanların aynısına yerleştirir:
+   kimlik → {kv|kc|kf}FotoOn/Arka, eş kimliği → kcEsFoto / kfEsFoto, diğerleri → Ek Belgeler.
+   Böylece Kira Masası'ndan da Matbu'dan da doldurulan sözleşme aynı görünür ve aynı basılır. */
+function belgeleriAlanlaraYerlestir(ekler, A){
+  const artan = [], ekListe = [];
+  ekler.forEach(e => {
+    const onek = e.onek || (/^K[İI]RAYA VEREN/i.test(e.kisi) ? "kv" : /^K[İI]RACI/i.test(e.kisi) ? "kc" : /^KEF[İI]L/i.test(e.kisi) ? "kf" : "");
+    const no = e.no || 1;
+    const m = String(e.alan || "").match(/^(.*kimlik.*?)(On|Arka)$/i);
+    let hedef = null;
+    if (m && onek) {
+      const yuz = m[2].toLowerCase() === "on" ? "On" : "Arka";
+      const es = /^es/i.test(m[1]);
+      if (es && onek === "kc") hedef = kfor("kcEsFoto" + yuz, no);
+      else if (es && onek === "kf" && no === 1) hedef = "kfEsFoto" + yuz;
+      else if (!es && (onek !== "kf" || no === 1)) hedef = kfor(onek + "Foto" + yuz, no);
+    }
+    if (hedef && !A[hedef]) A[hedef] = ekResim(e.id);
+    else ekListe.push(e);
+  });
+  ekListe.forEach((e, j) => {
+    if (j >= 12) { artan.push(e); return; }            // Ek Belgeler en fazla 12; fazlası eskisi gibi arkaya basılır
+    A[kfor("ekAd", j + 1)] = e.kisi + " · " + e.belge;
+    A[kfor("ekFoto", j + 1)] = ekResim(e.id);
+  });
+  return { ek: Math.min(ekListe.length, 12), artan };
+}
 function kiraAktarUygula(){
   if (!KIRA_AKTAR || !KIRA_AKTAR.alanlar) return;
   const a = KIRA_AKTAR; KIRA_AKTAR = null;
@@ -2076,13 +2104,15 @@ function kiraAktarUygula(){
   // Aynı dosyanın taslağı varsa danışmanın girdiği kira koşulları korunur; başka dosyanınki silinir
   if (eski && eski.__dosya !== a.dosyaNo) localStorage.removeItem(draftKey(tid));
   const taslak = (eski && eski.__dosya === a.dosyaNo) ? eski : {};
-  Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini temizle
-  const yeni = { ...taslak, ...a.alanlar, __dosya: a.dosyaNo, __ekler: a.ekler || [],
-                 __rep: { ...(taslak.__rep||{}), kv: a.kv || 1, kc: a.kc || 1 } };
+  Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k) || /^ek(Ad|Foto)(_\d+)?$/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini ve belgeleri temizle
+  const alanlar = { ...a.alanlar };
+  const yer = belgeleriAlanlaraYerlestir(a.ekler || [], alanlar);
+  const yeni = { ...taslak, ...alanlar, __dosya: a.dosyaNo, __ekler: yer.artan,
+                 __rep: { ...(taslak.__rep||{}), kv: a.kv || 1, kc: a.kc || 1, ek: Math.max(1, yer.ek) } };
   localStorage.setItem(draftKey(tid), JSON.stringify(yeni));
   openTpl(tid);
   setTimeout(()=>alert(L(
-    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi" + ((a.ekler||[]).length ? ", " + a.ekler.length + " belge sözleşmenin arkasına eklendi" : "") + " — kira koşullarını, demirbaşları kontrol edip doldurun.",
+    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi" + ((a.ekler||[]).length ? ", " + a.ekler.length + " belge kimlik ve Ek Belgeler alanlarına yerleşti" : "") + " — kira koşullarını, demirbaşları kontrol edip doldurun.",
     "Imported from Kira Masası (" + a.dosyaNo + "). Party details are filled — complete the lease terms and fixtures.")), 300);
 }
 
@@ -2368,8 +2398,16 @@ function updateDemirbas(){
     else row.style.display = "none";
   }
 }
+function kiraNotu(){
+  if (!currentTpl || currentTpl.id !== "kira") return "";
+  return V.__dosya
+    ? `<div class="kiranot">${L("📂 Kira Masası dosyası <b>" + esc(V.__dosya) + "</b>'dan dolduruldu. Taraf bilgileri, kimlikler ve belgeler aşağıdaki alanlara yerleşti; kira bedeli, tarihler, depozito ve demirbaşları siz tamamlayın.",
+        "📂 Filled from Kira Masası file <b>" + esc(V.__dosya) + "</b>. Party details, IDs and documents are placed in the fields below; complete rent, dates, deposit and fixtures.")}</div>`
+    : `<div class="kiranot">${L("💡 Müşteri bilgileri ve belgeleri kendisi doldursun isterseniz sözleşmeyi <b>Kira Masası</b>'ndan başlatın; hepsi buraya otomatik gelir. Buradan dolduruyorsanız kimlikleri ilgili tarafın bölümüne, diğer belgeleri (Findeks, bordro, tapu, DASK…) en alttaki <b>Ek Belgeler</b>'e ekleyin.",
+        "💡 To let clients fill in their own details and documents, start the lease from <b>Kira Masası</b>; everything arrives here automatically. If filling here, add IDs under each party and other documents under <b>Annexes</b> at the bottom.")}</div>`;
+}
 function buildForm(){
-  $("formFields").innerHTML = currentTpl.groups.map(g=>{
+  $("formFields").innerHTML = kiraNotu() + currentTpl.groups.map(g=>{
     const inst = g.repeat ? repCount(g.repeat.base) : 1;
     let out = "";
     for (let i=1;i<=inst;i++){
