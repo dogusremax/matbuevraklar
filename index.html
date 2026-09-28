@@ -1189,7 +1189,12 @@ const TEMPLATES = [
       {k:"kefTarih", l:"Kefalet Tarihi", lEn:"Guarantee Date", ph:"GG.AA.YYYY", fmt:"date", handwrite:1},
     ]},
     {t:"Ek Belgeler", tEn:"Annexes", repeat:{base:"ek", label:"Ek Belge", labelEn:"Annex", max:12}, fields:[
-      {k:"ekAd", l:"Belge Adı", lEn:"Document Name", ph:"Findeks raporu, DASK poliçesi, tapu ..."},
+      {k:"ekAd", l:"Belge", lEn:"Document", type:"select", rebuild:1, def:"Seçiniz",
+       opts:["Seçiniz","Tapu","DASK Poliçesi","Findeks Raporu","Maaş Bordrosu","Gelir Belgesi","Vergi Levhası",
+             "SGK Hizmet Dökümü","Evlilik Cüzdanı","Yerleşim Yeri Belgesi","Vekaletname","Öğrenci Belgesi","Diğer"],
+       optsEn:["Select","Title Deed","Earthquake Insurance (DASK)","Findeks Credit Report","Payslip","Income Certificate","Tax Plate",
+               "Social Security Record","Marriage Certificate","Residence Certificate","Power of Attorney","Student Certificate","Other"]},
+      {k:"ekAdDiger", l:"Belge Adı", lEn:"Document Name", ph:"Belgenin adını yazın", showIf:[{k:"ekAd",v:"Diğer"}]},
       {k:"ekFoto", l:"Belge Görseli", lEn:"Document Image", type:"photo", tara:"belge"},
     ]},
   ],
@@ -1443,7 +1448,9 @@ const TEMPLATES = [
       for (let i = 1; i <= repCount("ek"); i++) {
         const fk = kfor("ekFoto", i);
         if (!fvRaw(fk)) continue;
-        const ad = fvRaw(kfor("ekAd", i)) || L("EK BELGE","ANNEX") + " " + i;
+        const secim = fvRaw(kfor("ekAd", i));
+        const ad = (secim === "Diğer" ? fvRaw(kfor("ekAdDiger", i)) : (secim && secim !== "Seçiniz" ? L(secim, EK_BELGE_EN[secim] || secim) : ""))
+                   || L("EK BELGE","ANNEX") + " " + i;
         ekKartlar.push(`<div class="idcard"><div class="idlbl">${esc(String(ad).toLocaleUpperCase("tr"))}</div>
              <div class="a5kutu"><img src="${V[fk]}" alt="" onload="if(this.naturalHeight>this.naturalWidth)this.classList.add('dondur')"></div>
            </div>`);
@@ -2121,7 +2128,7 @@ function kiraAktarUygula(){
   // Aynı dosyanın taslağı varsa danışmanın girdiği kira koşulları korunur; başka dosyanınki silinir
   if (eski && eski.__dosya !== a.dosyaNo) localStorage.removeItem(draftKey(tid));
   const taslak = (eski && eski.__dosya === a.dosyaNo) ? eski : {};
-  Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k) || /^ek(Ad|Foto)(_\d+)?$/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini ve belgeleri temizle
+  Object.keys(taslak).forEach(k => { if (/^(kv|kc|kf)[A-Z]/.test(k) || /^ek(Ad|AdDiger|Foto)(_\d+)?$/.test(k)) delete taslak[k]; });   // eski taraf bilgilerini ve belgeleri temizle
   const alanlar = { ...a.alanlar };
   const yer = belgeleriAlanlaraYerlestir(a.ekler || [], alanlar);
   alanlar.kfVar = alanlar.kfIsim ? "Var" : "Yok";
@@ -2433,6 +2440,9 @@ function kiraNotu(){
     : `<div class="kiranot">${L("💡 Müşteri bilgileri ve belgeleri kendisi doldursun isterseniz sözleşmeyi <b>Kira Masası</b>'ndan başlatın; hepsi buraya otomatik gelir. Buradan dolduruyorsanız kimlikleri ilgili tarafın bölümüne, diğer belgeleri (Findeks, bordro, tapu, DASK…) en alttaki <b>Ek Belgeler</b>'e ekleyin.",
         "💡 To let clients fill in their own details and documents, start the lease from <b>Kira Masası</b>; everything arrives here automatically. If filling here, add IDs under each party and other documents under <b>Annexes</b> at the bottom.")}</div>`;
 }
+const EK_BELGE_EN = {"Tapu":"Title Deed","DASK Poliçesi":"Earthquake Insurance (DASK)","Findeks Raporu":"Findeks Credit Report",
+  "Maaş Bordrosu":"Payslip","Gelir Belgesi":"Income Certificate","Vergi Levhası":"Tax Plate","SGK Hizmet Dökümü":"Social Security Record",
+  "Evlilik Cüzdanı":"Marriage Certificate","Yerleşim Yeri Belgesi":"Residence Certificate","Vekaletname":"Power of Attorney","Öğrenci Belgesi":"Student Certificate"};
 /* Koşullu alanlar: {showIf:[{k,v}]} — tüm koşullar tutarsa alan/bölüm görünür.
    Seçim boşsa varsayılan: defDolu alanı doluysa defDoluDeger, değilse def
    (eski taslaklarda kefil adı yazılıysa "Var", eş adı yazılıysa "Evli" sayılır). */
@@ -2483,7 +2493,7 @@ function buildForm(){
           : fd.type==="textarea"
           ? `<textarea ${common}>${val}</textarea>`
           : fd.type==="select"
-          ? `<select ${common}>${(fd.opts||[]).map((o,oi)=>`<option value="${esc(o)}"${(val||secimDegeri(fd.k,i))===o?" selected":""}>${esc(L(o, fd.optsEn?fd.optsEn[oi]:null))}</option>`).join("")}</select>`
+          ? `<select ${common}>${(fd.opts||[]).concat(val && !(fd.opts||[]).includes(V[key]) ? [V[key]] : []).map((o,oi)=>`<option value="${esc(o)}"${(val||secimDegeri(fd.k,i))===o?" selected":""}>${esc(L(o, fd.optsEn?fd.optsEn[oi]:null))}</option>`).join("")}</select>`
           : fd.type==="photo"
           ? `<div class="photofld" id="pf_${key}">
                ${V[key]
@@ -2506,7 +2516,7 @@ function buildForm(){
   }).join("");
   $("formFields").querySelectorAll("input,textarea,select").forEach(el=>{
     el.addEventListener("input", ()=>{
-      const fmt = el.dataset.fmt || "cap";
+      const fmt = el.tagName === "SELECT" ? "raw" : (el.dataset.fmt || "cap");   // seçim değerleri olduğu gibi kalır
       const before = el.value;
       const pos = el.selectionStart;
       const after = applyFmt(fmt, before);
