@@ -1168,8 +1168,8 @@ const TEMPLATES = [
       {k:"stopaj", l:"Stopaj Var mı?", lEn:"Withholding Tax?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
       {k:"aylikYazi", l:"Aylık Kira (Yazıyla)", lEn:"Monthly Rent (in Words)"},
       {k:"odemeDonem", l:"Ödeme Dönemi", lEn:"Payment Period", type:"select",
-       opts:["Aylık","6 Aylık (Peşin)","12 Aylık (Peşin)"],
-       optsEn:["Monthly","Semi-Annual (Advance)","Annual (Advance)"], def:"Aylık"},
+       opts:["Aylık","6 Aylık (Peşin)","12 Aylık (Peşin)","101 Günlük (Peşin)"],
+       optsEn:["Monthly","Semi-Annual (Advance)","Annual (Advance)","101 Days (Advance)"], def:"Aylık"},
       {k:"odemeGun", l:"Ödeme Şekli", lEn:"Payment Days", type:"dayrange", pre:"Her ayın", preEn:"Between the", post:"arasında", postEn:"of each month"},
       {k:"muddet", l:"Kira Müddeti", lEn:"Lease Duration", def:"1 Yıl"},
       {k:"baslangic", l:"Kira Başlangıcı", lEn:"Lease Start Date", ph:"GG.AA.YYYY", fmt:"date"},
@@ -1200,21 +1200,26 @@ const TEMPLATES = [
   ],
   render(){
     const ckv = repCount("kv");
-    /* Ödeme dönemi: aylık / 6 aylık peşin / 12 aylık peşin */
+    /* Ödeme dönemi: aylık / 6 aylık peşin / 12 aylık peşin / 101 günlük peşin */
     const _dnm = fvRaw("odemeDonem") || "Aylık";
-    const donemTr = _dnm.indexOf("12") === 0
+    const _g101 = _dnm.indexOf("101") === 0;
+    const donemTr = _g101 ? "Kira bedeli 101 (yüz bir) günlük dönem için peşin olarak ödenecektir"
+      : _dnm.indexOf("12") === 0
       ? "Kira bedeli 12 (on iki) aylık dönem için peşin olarak ödenecektir"
       : _dnm.indexOf("6") === 0
         ? "Kira bedeli 6 (altı) aylık dönemler hâlinde peşin olarak ödenecektir"
         : "Kira bedeli aylık dönemler hâlinde ödenecektir";
-    const donemEn = _dnm.indexOf("12") === 0
+    const donemEn = _g101 ? "The rent shall be paid in advance for a 101 (one hundred and one) day period"
+      : _dnm.indexOf("12") === 0
       ? "The rent shall be paid in advance for a 12 (twelve) month period"
       : _dnm.indexOf("6") === 0
         ? "The rent shall be paid in advance in 6 (six) month periods"
         : "The rent shall be paid in monthly periods";
-    const donemKisaTr = _dnm.indexOf("12") === 0 ? "12 aylık peşin"
+    const donemKisaTr = _g101 ? "101 günlük peşin"
+      : _dnm.indexOf("12") === 0 ? "12 aylık peşin"
                       : _dnm.indexOf("6") === 0 ? "6 aylık peşin" : "Aylık";
-    const donemKisaEn = _dnm.indexOf("12") === 0 ? "Annual (in advance)"
+    const donemKisaEn = _g101 ? "101 days (in advance)"
+      : _dnm.indexOf("12") === 0 ? "Annual (in advance)"
                       : _dnm.indexOf("6") === 0 ? "Semi-annual (in advance)" : "Monthly";
     /* "Kira karşılığının ne şekilde ödeneceği" satırı — döneme göre değişir */
     const _gb = fvRaw("odemeGunBas"), _gs = fvRaw("odemeGunBit");
@@ -1225,45 +1230,53 @@ const TEMPLATES = [
     const _gunEn = `By bank transfer between the ${_gb ? _gb + ordEn(_gb) : _cizgi} and ${_gs ? _gs + ordEn(_gs) : _cizgi} of each month`;
     const _gunTrKucuk = `her ayın ${_gb ? _gb + ekIHali(_gb) : _cizgi} - ${_gs ? _gs + ekIHali(_gs) : _cizgi} arasında banka havalesi ile`;
     const _gunEnKucuk = `by bank transfer between the ${_gb ? _gb + ordEn(_gb) : _cizgi} and ${_gs ? _gs + ordEn(_gs) : _cizgi} of each month`;
-    const odemeSekliTr = _dnm.indexOf("12") === 0
+    const odemeSekliTr = _g101 ? "101 günlük toplam tutar tek ödemede peşin olarak banka havalesi ile"
+      : _dnm.indexOf("12") === 0
       ? "12 aylık toplam tutar tek ödemede banka havalesi ile"
       : _dnm.indexOf("6") === 0
         ? "6 aylık 2 dönemde banka havalesi ile"
         : _gunTr;
-    const odemeSekliEn = _dnm.indexOf("12") === 0
+    const odemeSekliEn = _g101 ? "The total amount for 101 days in a single advance payment by bank transfer"
+      : _dnm.indexOf("12") === 0
       ? "The total amount for 12 months in a single payment by bank transfer"
       : _dnm.indexOf("6") === 0
         ? "In 2 instalments of 6 months each, by bank transfer"
         : _gunEn;
     /* Madde 5 içi ödeme ifadesi (hesap bilgisiyle birlikte kullanılır) */
-    const m5OdemeTr = _dnm.indexOf("12") === 0
+    const m5OdemeTr = _g101 ? "101 (yüz bir) günlük dönem kirasının tamamı dönem başında tek seferde peşin olarak banka havalesi ile"
+      : _dnm.indexOf("12") === 0
       ? "12 (on iki) aylık dönem kirasının tamamı dönem başında tek seferde peşin olarak banka havalesi ile"
       : _dnm.indexOf("6") === 0
         ? "her 6 (altı) aylık dönemin başında ilgili dönem kirasının tamamı peşin olarak banka havalesi ile"
         : _gunTrKucuk;
-    const m5OdemeEn = _dnm.indexOf("12") === 0
+    const m5OdemeEn = _g101 ? "as the entire rent for the 101 (one hundred and one) day period in a single advance payment at the beginning of the period, by bank transfer"
+      : _dnm.indexOf("12") === 0
       ? "as the entire rent for the 12 (twelve) month period in a single advance payment at the beginning of the period, by bank transfer"
       : _dnm.indexOf("6") === 0
         ? "as the entire rent for each 6 (six) month period, in advance at the beginning of that period, by bank transfer"
         : _gunEnKucuk;
     /* Madde 5 muacceliyet (temerrüt) cümlesi — peşin dönemlerde farklı */
-    const m5MuaccelTr = _dnm.indexOf("12") === 0
+    const m5MuaccelTr = _g101 ? "Peşin ödenecek 101 (yüz bir) günlük kira bedelinin vadesinde ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 (iki) işgünü içinde ödenmemesi halinde sözleşme feshedilebilir. Ayrıca bu, tartışmasız tahliye sebebidir."
+      : _dnm.indexOf("12") === 0
       ? "Peşin kira bedelinin vadesinde ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 (iki) işgünü içinde ödenmemesi halinde sözleşme feshedilebilir. Ayrıca bu, tartışmasız tahliye sebebidir."
       : _dnm.indexOf("6") === 0
         ? "Herhangi bir 6 (altı) aylık dönem kirasının vadesinde ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 (iki) işgünü içinde ödenmemesi halinde, sözleşme süresi sonuna kadar olan kiraların tümü muaccel hâle gelir. Ayrıca bu, tartışmasız tahliye sebebidir."
         : "Kiranın ve site aidatının iki ay üst üste ve/veya kiralama süreci içerisinde herhangi iki ay ödenmemesi ve Kiralayan tarafından yapılacak yazılı ihtarın tebliğinden itibaren en geç 2 işgünü içinde ödemelerin yapılmaması halinde, o kira dönemi sonuna kadar olan kiranın tümü muaccel olacaktır. Ayrıca bu, tartışmasız tahliye sebebidir.";
-    const m5MuaccelEn = _dnm.indexOf("12") === 0
+    const m5MuaccelEn = _g101 ? "If the advance rent for the 101 (one hundred and one) day period is not paid on its due date and is not paid within 2 (two) business days from the service of the written notice by the Lessor, the agreement may be terminated. This also constitutes indisputable grounds for eviction."
+      : _dnm.indexOf("12") === 0
       ? "If the advance rent is not paid on its due date and is not paid within 2 (two) business days from the service of the written notice by the Lessor, the agreement may be terminated. This also constitutes indisputable grounds for eviction."
       : _dnm.indexOf("6") === 0
         ? "If the rent for any 6 (six) month period is not paid on its due date and is not paid within 2 (two) business days from the service of the written notice by the Lessor, the entire rent until the end of the lease term shall become due and payable. This also constitutes indisputable grounds for eviction."
         : "If the rent and site dues are not paid for two consecutive months and/or for any two months during the lease period, and payments are not made within 2 business days from the service of the written notice by the Lessor, the entire rent until the end of that lease period shall become due and payable. This also constitutes indisputable grounds for eviction.";
     /* Madde 6 yenileme dönemi — peşin ödeme yenilemede de devam eder */
-    const m6DevamTr = _dnm.indexOf("12") === 0
+    const m6DevamTr = _g101 ? " Sözleşmenin bu şekilde uzadığı izleyen dönemlerde de kira bedeli, 101 (yüz bir) günlük dönemler hâlinde her dönemin başında peşin olarak ödenmeye devam edecektir."
+      : _dnm.indexOf("12") === 0
       ? " Sözleşmenin bu şekilde uzadığı izleyen dönemlerde de kira bedeli, 12 (on iki) aylık dönem için dönem başında peşin olarak ödenmeye devam edecektir."
       : _dnm.indexOf("6") === 0
         ? " Sözleşmenin bu şekilde uzadığı izleyen dönemlerde de kira bedeli, 6 (altı) aylık dönemler hâlinde her dönemin başında peşin olarak ödenmeye devam edecektir."
         : "";
-    const m6DevamEn = _dnm.indexOf("12") === 0
+    const m6DevamEn = _g101 ? " In such extended subsequent periods, the rent shall continue to be paid in advance at the beginning of each 101 (one hundred and one) day period."
+      : _dnm.indexOf("12") === 0
       ? " In such extended subsequent periods, the rent shall continue to be paid in advance at the beginning of each 12 (twelve) month period."
       : _dnm.indexOf("6") === 0
         ? " In such extended subsequent periods, the rent shall continue to be paid in advance at the beginning of each 6 (six) month period."
@@ -2549,7 +2562,7 @@ function odemeGunGizle(){
   const fld = document.getElementById("fld_odemeGun");
   if (!fld) return;                       // sadece kira formunda var
   const donem = (V.odemeDonem || "Aylık");
-  const aylik = donem.indexOf("6") !== 0 && donem.indexOf("12") !== 0;
+  const aylik = donem.indexOf("6") !== 0 && donem.indexOf("12") !== 0 && donem.indexOf("101") !== 0;
   fld.style.display = aylik ? "" : "none";
 }
 
