@@ -540,7 +540,7 @@ table.ftbl td.tall{height:9mm}
   <div class="logincard">
     <img id="loginlogo" alt="RE/MAX Doğuş">
     <h1>Matbu Evraklar</h1>
-    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v139</span></p>
+    <p>RE/MAX Doğuş — Ofis Evrak Sistemi <span style="opacity:.55;font-size:11px">· v140</span></p>
     <input class="pin" id="pinInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
     <div class="err" id="pinErr"></div>
     <button class="btn btn-p" style="width:100%;margin-top:6px" onclick="doLogin()">Giriş</button>
@@ -551,7 +551,7 @@ table.ftbl td.tall{height:9mm}
 <div id="app" style="display:none">
   <div class="appbar">
     <img id="barlogo" alt="">
-    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v139</div></div>
+    <div><div class="t">Matbu Evraklar</div><div class="sub">RE/MAX Doğuş · v140</div></div>
     <div class="right">
       <span class="chip" id="whoami"></span>
       <button class="btn btn-w langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language"></button>
@@ -699,6 +699,20 @@ const f = (key, w=90) => {
     : `<span class="blank pv" data-pk="${key}" style="min-width:${w}px">&nbsp;</span>`;
 };
 const fv = key => `<span class="pv" data-pk="${key}">${esc((V[key]||"").trim())}</span>`;
+/* Kira sözleşmesi 1. madde: kiralanan yerin TAM açık adresi
+   (Mahalle - İlçe - Şehir + Adres + Daire No). Tekrar eden parça yazılmaz. */
+const fAdresTam = (w=120) => {
+  const sade = x => String(x||"").toLocaleLowerCase("tr-TR").replace(/[^\p{L}\p{N}]+/gu," ").trim();
+  const mah = (V.mahalle||"").trim(), adr = (V.mAdres||"").trim().replace(/\s*\n\s*/g," "), dn = (V.daireNo||"").trim();
+  const parca = [];
+  if (mah && !(adr && sade(adr).includes(sade(mah)))) parca.push(mah);
+  if (adr) parca.push(adr);
+  if (dn && !/daire/i.test(adr)) parca.push("Daire " + dn);
+  const val = parca.join(", ");
+  return val
+    ? `<span class="blank filled pv" data-pk="mAdres">${esc(val)}</span>`
+    : `<span class="blank pv" data-pk="mAdres" style="min-width:${w}px">&nbsp;</span>`;
+};
 const fvRaw = key => esc((V[key]||"").trim());
 /* dolu ise span'li değer + birim, boşsa fallback */
 const fvu = (key,unit,fb="&nbsp;") => fvRaw(key) ? `${fv(key)} ${unit}` : fb;
@@ -1370,7 +1384,7 @@ const TEMPLATES = [
     <div class="pgbrk"></div>
     <div class="pgsec pg2 pgflex">
     <div class="shead" style="text-align:center">${L("HUSUSİ ŞARTLAR","SPECIAL CONDITIONS")}</div>
-    <div class="clz"><b>${L("1. Konu.","1. Subject.")}</b> ${Lc(`İşbu kira sözleşmesinin konusu ${f("mahalle",120)} adresinde mukim mecurun ${fj("kvIsim","kv",130)} (Mal Sahibi) tarafından ${f("kcIsim",130)} (Kiracı) ${f("amac",70)} olarak kiralanmasıdır. İşbu aşağıdaki özel şartlar kira sözleşmesinin bütününü oluşturur.`, `The subject of this lease agreement is the leasing of the property located at ${f("mahalle",120)} by ${fj("kvIsim","kv",130)} (the Owner) to ${f("kcIsim",130)} (the Tenant) for use as ${f("amac",70)}. The following special conditions constitute the entirety of the lease agreement.`)}</div>
+    <div class="clz"><b>${L("1. Konu.","1. Subject.")}</b> ${Lc(`İşbu kira sözleşmesinin konusu ${fAdresTam(120)} adresinde mukim mecurun ${fj("kvIsim","kv",130)} (Mal Sahibi) tarafından ${f("kcIsim",130)} (Kiracı) ${f("amac",70)} olarak kiralanmasıdır. İşbu aşağıdaki özel şartlar kira sözleşmesinin bütününü oluşturur.`, `The subject of this lease agreement is the leasing of the property located at ${fAdresTam(120)} by ${fj("kvIsim","kv",130)} (the Owner) to ${f("kcIsim",130)} (the Tenant) for use as ${f("amac",70)}. The following special conditions constitute the entirety of the lease agreement.`)}</div>
     <div class="clz"><b>2.</b> ${Lc("Mecur kira süresi içinde Kiracının kullanımına tahsis edilmiştir. Kiracı, mecuru tahsis amacının dışında başka bir amaçla kullanamaz/kullandıramaz, üçüncü şahıslara kiralayamaz, devir ve temlik edemez, başkasının istifade ve işgaline terk ve tahsis edemez. Aksi durum mal sahibi için sözleşme fesih sebebidir.", "The property is allocated for the Tenant's use during the lease term. The Tenant may not use or allow the use of the property for any purpose other than that allocated, may not sublease it to third parties, may not assign or transfer it, and may not surrender or allocate it to the benefit or occupation of others. Any breach constitutes grounds for termination by the Owner.")}</div>
     <div class="clz"><b>3.</b> ${Lc("Kiracı, Kiralanana ait bina aidat, yakıt, su, elektrik, doğalgaz, telefon, internet, TV gibi kendi kullanımından doğan giderleri ilgili kurumlara zamanında ödeyeceğini kabul ve taahhüt eder; site/apartman yönetiminin alacağı kararlara ve ödeme planlarına uyacaktır. Kiracı her türlü aboneliğini 1 ay içerisinde kendi adına yaptıracak, depozitoları kendi adına yatıracaktır. Tahliye halinde ilgili idarelerle ilişkisini kesecek, birikmiş tüm borçlarını ödeyecek, depozitolarını geri alacak ve borcu yoktur yazısını mal sahibine ibraz edecektir.", "The Tenant agrees and undertakes to pay on time to the relevant institutions all charges arising from their own use, such as building dues, fuel, water, electricity, natural gas, telephone, internet and TV, and shall comply with the decisions and payment plans of the site/apartment management. The Tenant shall register all utility subscriptions in their own name within 1 month and pay the relevant deposits in their own name. Upon vacating, the Tenant shall terminate their relationship with the relevant authorities, pay all accrued debts, reclaim their deposits, and submit a clearance (no-debt) letter to the Owner.")}</div>
     <div class="clz"><b>4.</b> ${Lc("Kiralananda deprem, yangın ve doğal afet hasar sigortası Mal Sahibi tarafından yaptırılmış olup, kira süresince (yenileme dönemleri dâhil) Mal Sahibi tarafından geçerli tutulacaktır. Kiracı kendi eşya sigortasını yaptırmakla sorumludur.", "Earthquake, fire and natural disaster damage insurance for the property has been arranged by the Owner and shall be kept in force by the Owner throughout the lease term (including renewal periods). The Tenant is responsible for arranging insurance for their own belongings.")}</div>
