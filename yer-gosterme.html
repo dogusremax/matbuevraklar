@@ -117,7 +117,7 @@ function takibeGosterimYaz(dosya){
     try{
       fetch(TAKIP_URL,{method:"POST",mode:"no-cors",keepalive:true,body:JSON.stringify({
         action:"gosterimImza",k:"dogus-yergosterme",danisman:me.name,
-        musteri:coklu?V.isim.trim()+" · "+adres.slice(0,30):V.isim.trim(),
+        musteri:coklu?V.isim.trim()+" · "+adres:V.isim.trim(),  // tam adres: aynı sitedeki daireler ilk harflerde aynıdır
         tel:V.tel||"",adres:adres.slice(0,60),dosya:dosya||"",ev:(i+1)+"/"+evler.length})});
     }catch(_){}
   },i*600));
