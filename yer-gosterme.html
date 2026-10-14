@@ -171,6 +171,13 @@ const L={
     pdfCreating:"⏳ PDF oluşturuluyor…",
     saved:"✅ Kaydedildi!",
     emailRequired:"Müşteri e-posta adresi gerekli.",
+    emailInvalid:"E-posta adresi hatalı. @ işaretini ve uzantıyı kontrol edin (gmail.com, hotmail.com…).",
+    telInvalid:"Telefon 11 hane olmalı: 05xx xxx xx xx.",
+    tcRequired:"Müşterinin TC kimlik numarası gerekli. Müşterinin kimliğinden okuyarak girin.",
+    tcInvalid:"Bu TC kimlik numarası geçerli değil. Müşterinin kimliğinden tekrar okuyun.\n\nYabancı müşteri ise başına PASAPORT yazın (örn. PASAPORT U12345678). Şirket ise 10 haneli vergi numarasını girin.",
+    vknInvalid:"Bu vergi numarası geçerli değil. 10 haneyi kontrol edin.",
+    sigRequired:"Müşteri imzası gerekli. Formu gösterim sırasında müşteriye imzalatın.",
+    formErrors:"Form kaydedilemez, eksik veya hatalı bilgi var:",
     emailConfirm:"PDF olarak e-posta gönderilsin mi?\nAlıcı: ",
     sending:"⏳ Gönderiliyor…",
     sent:"✅ PDF olarak gönderildi!",
@@ -280,6 +287,49 @@ const todayStr=()=>{const d=new Date();return`${String(d.getDate()).padStart(2,"
 const fmtTL=v=>{const d=(v||"").replace(/\D/g,"");return d?d.replace(/\B(?=(\d{3})+(?!\d))/g,".")+" TL":""};
 const fmtTel=v=>{const d=(v||"").replace(/\D/g,"").slice(0,11);if(!d)return"";let r=d[0]||"";if(d.length>1)r+=" ("+d.slice(1,4);if(d.length>=4)r+=") ";if(d.length>4)r+=d.slice(4,7);if(d.length>7)r+=" "+d.slice(7,9);if(d.length>9)r+=" "+d.slice(9,11);return r};
 const rawTel=v=>(v||"").replace(/\D/g,"").slice(0,11);
+/* Kimlik kontrolü: uydurma TC/vergi no kaydedilmesin. Resmi kontrol hanesi algoritmaları. */
+const tcGecerli=s=>{
+  if(!/^[1-9]\d{10}$/.test(s)||/^(\d)\1{10}$/.test(s))return false;
+  const d=s.split("").map(Number);
+  const h10=(((d[0]+d[2]+d[4]+d[6]+d[8])*7-(d[1]+d[3]+d[5]+d[7]))%10+10)%10;
+  return h10===d[9]&&d.slice(0,10).reduce((a,b)=>a+b,0)%10===d[10];
+};
+const vknGecerli=s=>{
+  if(!/^\d{10}$/.test(s)||/^(\d)\1{9}$/.test(s))return false;
+  const d=s.split("").map(Number);let top=0;
+  for(let i=0;i<9;i++){const a=(d[i]+9-i)%10;let b=(a*Math.pow(2,9-i))%9;if(a!==0&&b===0)b=9;top+=b;}
+  return (10-top%10)%10===d[9];
+};
+// "" = geçerli, aksi halde hata anahtarı
+const kimlikHata=v=>{
+  v=(v||"").trim();if(!v)return "tcRequired";
+  if(/^PASAPORT\s*[A-Z0-9]{6,}/.test(v))return "";
+  const n=v.replace(/\D/g,"");
+  if(n.length===10)return vknGecerli(n)?"":"vknInvalid";
+  return n.length===11&&tcGecerli(n)?"":"tcInvalid";
+};
+const emailHata=v=>{
+  v=(v||"").trim();if(!v)return "";
+  if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v))return "emailInvalid";
+  if(/@(gamail|gmial|gmal|gmai|gmil|gnail|hotmial|hotmal|hotmai|hotmil|yahooo|yaho|outlok)\./i.test(v))return "emailInvalid";
+  return "";
+};
+const telHata=v=>(v&&!/^05\d{9}$/.test(v))?"telInvalid":"";
+// Kaydet/Gönder öncesi tüm form; boş dizi = sorun yok
+function formHatalari(){
+  const h=[];
+  if(!V.isim.trim())h.push(t("nameRequired"));
+  if(!props[0].adres.trim())h.push(t("addrRequired"));
+  const k=kimlikHata(V.tc);if(k)h.push(t(k).split("\n")[0]);
+  const tl=telHata(V.tel);if(tl)h.push(t(tl));
+  const em=emailHata(V.email);if(em)h.push(t(em));
+  if(!imzaData)h.push(t("sigRequired"));
+  return h;
+}
+function formUygunMu(){
+  const h=formHatalari();if(!h.length)return true;
+  alert(t("formErrors")+"\n\n• "+h.join("\n• "));return false;
+}
 const toUpper=s=>(s||"").replace(/i/g,"İ").replace(/ı/g,"I").replace(/ö/g,"Ö").replace(/ü/g,"Ü").replace(/ş/g,"Ş").replace(/ç/g,"Ç").replace(/ğ/g,"Ğ").toUpperCase();
 
 /* Rakamdan Yazıya (Türkçe) */
@@ -311,6 +361,7 @@ let me=null, tarih=todayStr();
 let V={isim:"",tc:"",tel:"",email:"",adres:""};
 let props=[{adres:"",fiyat:"",fiyatY:""}];
 let imzaData=null;
+let imzaMeta=null; // imzanın atıldığı an, cihaz ve (izin verilirse) konum; formVeri'ye yazılır
 let yasal=getLegal();
 
 /* ─── LOGIN ─── */
@@ -355,6 +406,9 @@ function saveField(key,propIdx,isMoney,isEmail,isTel){
   if(isMoney)val=val.replace(/[^0-9]/g,"");
   else if(isTel)val=rawTel(val);
   else if(!isEmail)val=toUpper(val);
+  else val=val.trim().toLowerCase();
+  const hata=key==="tc"&&val?kimlikHata(val):isEmail?emailHata(val):isTel?telHata(val):"";
+  if(hata){alert(t(hata));$("mval").focus();return;}
   if(propIdx!==null){
     props[propIdx][key]=val;
     // Rakam girilince yazıyı otomatik doldur
@@ -407,13 +461,19 @@ function openSigModal(){
 }
 function sigModalSave(){
   const cv=$("sigModalCv");if(!cv||!window._sigM||!_sigM.ink)return;
-  imzaData=cv.toDataURL("image/png");closeModal();render();
+  imzaData=cv.toDataURL("image/png");
+  imzaMeta={zaman:new Date().toLocaleString("tr-TR",{timeZone:"Europe/Istanbul"}),cihaz:navigator.userAgent};
+  const m=imzaMeta;
+  if(navigator.geolocation)navigator.geolocation.getCurrentPosition(
+    p=>{m.konum=p.coords.latitude.toFixed(5)+","+p.coords.longitude.toFixed(5);m.konumHassasiyet=Math.round(p.coords.accuracy)+" m";},
+    ()=>{m.konum="izin verilmedi";},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+  closeModal();render();
 }
 function sigModalClear(){
   const cv=$("sigModalCv");if(!cv)return;
   const ctx=cv.getContext("2d");const dpr=window.devicePixelRatio||1;
   ctx.clearRect(0,0,cv.width/dpr,cv.height/dpr);
-  window._sigM.ink=false;imzaData=null;
+  window._sigM.ink=false;imzaData=null;imzaMeta=null;
   const h=$("sigModalHint");if(h)h.style.display="";
   $("sigModalWrap").style.borderColor="#bbb";$("sigModalWrap").style.borderStyle="dashed";
 }
@@ -464,8 +524,7 @@ function doPrint(){window.print();}
 
 /* ─── SAVE TO DRIVE ─── */
 async function kaydetDrive(){
-  if(!V.isim.trim()){alert(t("nameRequired"));return;}
-  if(!props[0].adres.trim()){alert(t("addrRequired"));return;}
+  if(!formUygunMu())return;
   const kayitAdi=V.isim+" — "+props[0].adres.slice(0,40);
   if(!confirm(t("driveConfirm")+"\n\n"+kayitAdi))return;
 
@@ -513,7 +572,7 @@ async function kaydetDrive(){
     if(btn)btn.textContent=t("saving");
 
     const dosyaAdi="Yer_Gosterme_"+V.isim.replace(/\s+/g,"_")+"_"+tarih.replace(/\./g,"")+".pdf";
-    const formVeri=JSON.stringify({musteri:V,gayrimenkuller:props.filter(p=>p.adres),danisman:me.name,tarih:tarih});
+    const formVeri=JSON.stringify({musteri:V,gayrimenkuller:props.filter(p=>p.adres),danisman:me.name,tarih:tarih,imza:imzaMeta});
 
     const body=new URLSearchParams();
     body.append("action","saveEvrak");
@@ -569,8 +628,8 @@ async function showKayitlar(){
 
 /* ─── SEND ─── */
 async function sendEmail(){
-  if(!V.email||!V.email.includes("@")){alert(t("emailRequired"));return;}
-  if(!V.isim.trim()){alert(t("nameRequired"));return;}
+  if(!V.email){alert(t("emailRequired"));return;}
+  if(!formUygunMu())return;
   if(!confirm(t("emailConfirm")+V.email)){return;}
 
   const sheet=document.querySelector(".sheet");
@@ -698,7 +757,7 @@ function render(){
   <div class="toolbar no-print">
     <div class="who"><b>${me.name}</b> · Yer Gösterme</div>
     <button class="tb langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language">${langLabel()}</button>
-    <button class="tb" onclick="if(confirm('${t("clearConfirm")}')){V={isim:'',tc:'',tel:'',email:'',adres:''};props=[{adres:'',fiyat:'',fiyatY:''}];imzaData=null;yasal=getLegal();render();}">${t("btnClear")}</button>
+    <button class="tb" onclick="if(confirm('${t("clearConfirm")}')){V={isim:'',tc:'',tel:'',email:'',adres:''};props=[{adres:'',fiyat:'',fiyatY:''}];imzaData=null;imzaMeta=null;yasal=getLegal();render();}">${t("btnClear")}</button>
     <button class="tb tb-v" onclick="openPreview()">${t("btnPreview")}</button>
     <button class="tb tb-b" onclick="doPrint()">${t("btnPrint")}</button>
     <button class="tb tb-g" onclick="kaydetDrive()">${t("btnSave")}</button>
@@ -727,7 +786,7 @@ function render(){
         <div style="height:22mm;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;cursor:pointer" onclick="openSigModal()">
           ${imzaData?`<img src="${imzaData}" style="max-height:50px;max-width:85%">`:`<span class="tv no-print" style="font-family:sans-serif;font-size:11px">${t("sigHint")}</span>`}
         </div>
-        <div class="sf">${t("sigLabel")}</div></div></td>
+        <div class="sf">${t("sigLabel")}${imzaMeta?` · ${imzaMeta.zaman}`:""}</div></div></td>
       <td style="border:none;width:3mm"></td>
       <td class="sigBox"><div class="sh">${t("sigOffice")}</div><div style="padding:4px 6px">
         <div class="sn">${t("consultant")}</div>
