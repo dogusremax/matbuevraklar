@@ -280,6 +280,21 @@ const todayStr=()=>{const d=new Date();return`${String(d.getDate()).padStart(2,"
 const fmtTL=v=>{const d=(v||"").replace(/\D/g,"");return d?d.replace(/\B(?=(\d{3})+(?!\d))/g,".")+" TL":""};
 const fmtTel=v=>{const d=(v||"").replace(/\D/g,"").slice(0,11);if(!d)return"";let r=d[0]||"";if(d.length>1)r+=" ("+d.slice(1,4);if(d.length>=4)r+=") ";if(d.length>4)r+=d.slice(4,7);if(d.length>7)r+=" "+d.slice(7,9);if(d.length>9)r+=" "+d.slice(9,11);return r};
 const rawTel=v=>(v||"").replace(/\D/g,"").slice(0,11);
+/* Kayıt/gönderim öncesi kontrol (haftalık karnedeki kontrollerle aynı). TC'nin son 2 hanesi ilk 9 haneden hesaplanan kontrol hanesidir. */
+const tcGecerli=tc=>{if(!/^[1-9]\d{10}$/.test(tc))return false;const d=tc.split("").map(Number);const t1=((d[0]+d[2]+d[4]+d[6]+d[8])*7-(d[1]+d[3]+d[5]+d[7]))%10;return (t1+10)%10===d[9]&&d.slice(0,10).reduce((a,b)=>a+b,0)%10===d[10];};
+function formKontrol(){
+  const h=[],v=(V.tc||"").trim(),r=v.replace(/\D/g,"");
+  if(!v)h.push("TC kimlik no boş");
+  else if(!/^[A-Za-z]{1,2}\s?\d{6,9}$/.test(v)&&r.length!==10&&!tcGecerli(r))h.push(r.length===11?"TC kimlik no hatalı (son iki hane tutmuyor, bir rakam yanlış yazılmış)":"TC kimlik no 11 hane olmalı (vergi no ise 10 hane)");
+  const tel=rawTel(V.tel);
+  if(!tel)h.push("Telefon boş");else if(!/^0?5[013456]\d{8}$/.test(tel))h.push("Telefon hatalı (05xx xxx xx xx olmalı)");
+  if(V.email&&!/^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$/.test(V.email.trim()))h.push("E-posta hatalı");
+  props.forEach((p,i)=>{const n=props.length>1?(i+1)+". gayrimenkul":"Gayrimenkul";
+    if(!(p.adres||"").trim())h.push(n+" adresi boş");
+    if(!p.fiyat)h.push(n+" fiyatı boş");else if(+p.fiyat<1000)h.push(n+" fiyatı çok düşük ("+p.fiyat+" TL)");});
+  return h;
+}
+const kontrolOnay=()=>{const h=formKontrol();return !h.length||confirm("Formda düzeltilmesi gerekenler var:\n\n• "+h.join("\n• ")+"\n\nDüzeltmek için İptal'e bas. Yine de devam edilsin mi?");};
 const toUpper=s=>(s||"").replace(/i/g,"İ").replace(/ı/g,"I").replace(/ö/g,"Ö").replace(/ü/g,"Ü").replace(/ş/g,"Ş").replace(/ç/g,"Ç").replace(/ğ/g,"Ğ").toUpperCase();
 
 /* Rakamdan Yazıya (Türkçe) */
@@ -364,6 +379,7 @@ function saveField(key,propIdx,isMoney,isEmail,isTel){
   }
   else V[key]=val;
   closeModal();render();
+  if((key==="tc"||key==="tel")&&val){const h=formKontrol().filter(x=>x.startsWith(key==="tc"?"TC":"Telefon"));if(h.length)setTimeout(()=>alert("⚠️ "+h[0]),50);}
 }
 function closeModal(){const m=$("modalBg");if(m)m.remove();}
 
@@ -466,6 +482,7 @@ function doPrint(){window.print();}
 async function kaydetDrive(){
   if(!V.isim.trim()){alert(t("nameRequired"));return;}
   if(!props[0].adres.trim()){alert(t("addrRequired"));return;}
+  if(!kontrolOnay())return;
   const kayitAdi=V.isim+" — "+props[0].adres.slice(0,40);
   if(!confirm(t("driveConfirm")+"\n\n"+kayitAdi))return;
 
@@ -571,6 +588,7 @@ async function showKayitlar(){
 async function sendEmail(){
   if(!V.email||!V.email.includes("@")){alert(t("emailRequired"));return;}
   if(!V.isim.trim()){alert(t("nameRequired"));return;}
+  if(!kontrolOnay())return;
   if(!confirm(t("emailConfirm")+V.email)){return;}
 
   const sheet=document.querySelector(".sheet");
