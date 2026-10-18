@@ -3194,6 +3194,13 @@ async function buildPageImages(){
     const cssBreaks = Array.from(clone.querySelectorAll(".pgbrk, .dpgbrk"))
       .map(el => el.getBoundingClientRect().top - cloneRect.top)
       .filter(v => v > 20);
+    // Danışmanlık blokları (başlık/madde/paragraf): sayfa kesimi bir maddenin
+    // ortasına düşmesin, bölüm başlığı da sayfa dibinde metninden ayrı kalmasın
+    // diye konumları ölçülür.
+    const cssBlocks = Array.from(clone.querySelectorAll(".danisdoc .dsec, .danisdoc .dmadde, .danisdoc .dp")).map(el => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top - cloneRect.top, bottom: r.bottom - cloneRect.top, head: el.classList.contains("dsec") };
+    });
 
     // Tuval alan sınırı: uzun belgelerde tek dev canvas, tarayıcının
     // maksimum canvas alanını (özellikle Safari ~16.7MP) aşınca alt kısım
@@ -3220,6 +3227,7 @@ async function buildPageImages(){
     holder.remove(); holder = null;
     const cScale = canvas.width / 794;
     const canvasBreaks = cssBreaks.map(v => Math.round(v * cScale)).filter(v => v < canvas.height - 20);
+    const canvasBlocks = cssBlocks.map(b => ({ top: Math.round(b.top * cScale), bottom: Math.round(b.bottom * cScale), head: b.head }));
 
     const pageHpx = Math.floor(canvas.width * 297 / 210); // A4 oranında sayfa yüksekliği (canvas px)
     const cctx = canvas.getContext("2d");
@@ -3277,8 +3285,19 @@ async function buildPageImages(){
         }
         let sliceH = Math.min(usableH, remain);
         if (y + sliceH < end - 8){
-          const safe = findWhiteRow(cctx, canvas.width, y + sliceH, Math.floor(usableH * 0.35));
+          const target = y + sliceH;
+          const safe = findWhiteRow(cctx, canvas.width, target, Math.floor(usableH * 0.35));
           if (safe > y + 100) sliceH = safe - y;
+          if (isDanis){
+            // madde/paragraf bölünmesin: kesim bir bloğun içine düşüyorsa bloğun
+            // tamamını sonraki sayfaya at (sayfadan uzun bloklar satır arasından bölünür)
+            const inBlk = canvasBlocks.find(b => b.top < target && b.bottom > target);
+            if (inBlk && inBlk.top - 2 > y + 100) sliceH = inBlk.top - 2 - y;
+            // bölüm başlığı sayfa dibinde tek kalmasın: metniyle birlikte sonraki sayfaya
+            const cut = y + sliceH;
+            const last = canvasBlocks.filter(b => b.bottom <= cut + 2).pop();
+            if (last && last.head && last.top - 2 > y + 100) sliceH = last.top - 2 - y;
+          }
         }
         const pc = document.createElement("canvas");
         pc.width = canvas.width; pc.height = pageHpx;
