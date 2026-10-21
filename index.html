@@ -883,7 +883,7 @@ const TEMPLATES = [
     {t:"Genel", tEn:"General", fields:[
       {k:"imzaTarihi", l:"İmza Tarihi", lEn:"Signature Date", ph:"GG.AA.YYYY", fmt:"date", auto:"today"},
     ]},
-    {t:"Mülk Sahibi", tEn:"Property Owner", repeat:{base:"ms", label:"Mülk Sahibi", labelEn:"Owner", max:5}, fields:[
+    {t:"Mülk Sahibi", tEn:"Property Owner", repeat:{base:"ms", label:"Mülk Sahibi", labelEn:"Owner", max:8}, fields:[
       {k:"msIsim", l:"İsim Soyisim / Ticari Ünvan", lEn:"Full Name / Company Title", req:1},
       {k:"msVergi", l:"Vergi No / TC No", lEn:"Tax No / National ID"},
       {k:"msAdres", l:"Adres", lEn:"Address", type:"textarea"},
@@ -940,12 +940,14 @@ const TEMPLATES = [
       </table>`
     );
     const danBlock = blocks.splice(blocks.length-2, 1)[0];
+    // 6+ mal sahibinde işlem bilgileri yarım sütuna sıkışmasın: tam genişlik
+    const islemBlock = c>=6 ? blocks.pop() : "";
     let grid = "";
     for (let i=0;i<blocks.length;i+=2){
       if (i+1 < blocks.length) grid += `<table class="pair"><tr><td>${blocks[i]}</td><td>${blocks[i+1]}</td></tr></table>`;
       else grid += blocks[i];
     }
-    grid += danBlock;
+    grid += islemBlock + danBlock;
     return `
     ${hdrBand(L("SATILIK YETKİLENDİRME SÖZLEŞMESİ","EXCLUSIVE SALE AUTHORIZATION AGREEMENT"))}
     ${dateLine()}
@@ -3197,9 +3199,13 @@ async function buildPageImages(){
     // Danışmanlık blokları (başlık/madde/paragraf): sayfa kesimi bir maddenin
     // ortasına düşmesin, bölüm başlığı da sayfa dibinde metninden ayrı kalmasın
     // diye konumları ölçülür.
-    const cssBlocks = Array.from(clone.querySelectorAll(".danisdoc .dsec, .danisdoc .dmadde, .danisdoc .dp")).map(el => {
+    // Diğer belgelerde (ör. çok mal sahipli satılık yetki 2 sayfaya taşınca) de
+    // madde / imza satırı / bilgi tablosu ortadan bölünmesin; başlık tek kalmasın.
+    const cssBlocks = Array.from(clone.querySelectorAll(_isDanisClone
+      ? ".danisdoc .dsec, .danisdoc .dmadde, .danisdoc .dp"
+      : ".clz, table.sigs tr, table.pair, table.ftbl, .shead")).map(el => {
       const r = el.getBoundingClientRect();
-      return { top: r.top - cloneRect.top, bottom: r.bottom - cloneRect.top, head: el.classList.contains("dsec") };
+      return { top: r.top - cloneRect.top, bottom: r.bottom - cloneRect.top, head: el.classList.contains("dsec") || el.classList.contains("shead") };
     });
 
     // Tuval alan sınırı: uzun belgelerde tek dev canvas, tarayıcının
@@ -3252,6 +3258,7 @@ async function buildPageImages(){
     const marginPx  = isDanis ? Math.round(pageHpx * TOP_MM / 297) : 0; // üst marj
     const botPx     = isDanis ? Math.round(pageHpx * BOT_MM / 297) : 0; // alt marj
     const usableH   = pageHpx - marginPx - botPx; // içerik yüksekliği (üst+alt marj hariç)
+    const contPx    = Math.round(37 * cScale);    // diğer belgeler: devam sayfası üst/alt boşluğu
     // Danışmanlık filigranı: watermark'ı bir kez yükle, her sayfanın ortasına çiz
     let wmImg = null;
     if (isDanis && typeof DANIS_WM !== "undefined"){
@@ -3283,12 +3290,17 @@ async function buildPageImages(){
           images.push(pc.toDataURL("image/jpeg", 0.85));
           break;
         }
-        let sliceH = Math.min(usableH, remain);
+        // Devam sayfaları (ör. satılık yetki 2. sayfa): metin kâğıdın en üstüne
+        // yapışmasın, 1. sayfanın kenar boşluğu kadar üst/alt boşluk bırak.
+        const devam = !isDanis && y > bounds[s];
+        const topPx = isDanis ? marginPx : (devam ? contPx : 0);
+        const uH    = isDanis ? usableH : (devam ? pageHpx - 2 * contPx : pageHpx);
+        let sliceH = Math.min(uH, remain);
         if (y + sliceH < end - 8){
           const target = y + sliceH;
-          const safe = findWhiteRow(cctx, canvas.width, target, Math.floor(usableH * 0.35));
+          const safe = findWhiteRow(cctx, canvas.width, target, Math.floor(uH * 0.35));
           if (safe > y + 100) sliceH = safe - y;
-          if (isDanis){
+          {
             // madde/paragraf bölünmesin: kesim bir bloğun içine düşüyorsa bloğun
             // tamamını sonraki sayfaya at (sayfadan uzun bloklar satır arasından bölünür)
             const inBlk = canvasBlocks.find(b => b.top < target && b.bottom > target);
@@ -3304,7 +3316,7 @@ async function buildPageImages(){
         const pctx = pc.getContext("2d");
         pctx.fillStyle = "#FFFFFF"; pctx.fillRect(0, 0, pc.width, pc.height);
         // önce içeriği yerleştir (üstten marginPx boşlukla)
-        pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, marginPx, canvas.width, sliceH);
+        pctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, topPx, canvas.width, sliceH);
         // FİLİGRAN: içeriğin ÜSTÜNE soluk balon çiz — her sayfada eşit görünür
         if (wmImg){
           const fw = pc.width * 0.60;
