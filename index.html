@@ -594,6 +594,7 @@ table.ftbl td.tall{height:9mm}
             <button class="btn btn-g" onclick="clearForm()">Temizle</button>
             <button class="btn btn-p" style="background:#5A4FB5" onclick="openPreview()">👁️ Önizleme</button>
             <button class="btn btn-p" onclick="printDoc()">🖨️ Yazdır</button>
+            <button class="btn btn-p uzaktanBasBtn" style="background:#B8501A;display:none" onclick="uzaktanBas(this)">📠 Uzaktan Bas</button>
             <button class="btn btn-p" style="background:#0E7A3D" onclick="kaydet(this)">💾 Kaydet</button>
           </div>
           <div class="note">Alanları doldurdukça sağdaki belge canlı olarak güncellenir. <b>Belgedeki herhangi bir maddeye dokunarak metnini bu evraka özel düzenleyebilirsiniz.</b> Boş bırakılan alanlar belgede noktalı boşluk olarak kalır. Taslak otomatik kaydedilir.</div>
@@ -611,6 +612,7 @@ table.ftbl td.tall{height:9mm}
     <span>👁️ Önizleme — belgenin son hali</span>
     <div class="fp-actions">
       <button onclick="printDoc()">🖨️ Yazdır</button>
+      <button class="uzaktanBasBtn" style="display:none" onclick="uzaktanBas(this)">📠 Uzaktan Bas</button>
       <button onclick="kaydet(this)">💾 Kaydet</button>
       <button class="fp-close" onclick="closePreview()">✕ Kapat</button>
     </div>
@@ -2227,6 +2229,8 @@ function enter(pin){
   $("login").style.display = "none";
   $("app").style.display = "block";
   $("whoami").textContent = me.name;
+  // Uzaktan Bas: deneme süresince yalnız broker görür
+  document.querySelectorAll(".uzaktanBasBtn").forEach(b=>{ b.style.display = me.admin ? "" : "none"; });
   initLang();
   renderCatalog();
   kiraAktarUygula();
@@ -3819,6 +3823,40 @@ function showSaveSheet(s){
   el.style.display = "flex";
 }
 function closeSaveSheet(){ const el=document.getElementById("saveSheet"); if(el){ el.style.display="none"; el.innerHTML=""; } }
+
+/* =================== UZAKTAN BAS ===================
+   PDF'i Drive'ım/Yazdir klasörüne bırakır; ofisteki köprü bilgisayar
+   klasörü izleyip Canon yazıcıdan basar (nerede olursan ol). */
+async function uzaktanBas(btn){
+  if (!confirmMissing()) return;
+  if (!confirm("Belge ofisteki yazıcıdan basılsın mı?")) return;
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = "⏳ Gönderiliyor…";
+  showBusy("Belge hazırlanıyor…");
+  try{
+    let blob;
+    if (pdfCache.blob && pdfCache.key === docKey()){ blob = pdfCache.blob; }
+    else { blob = await buildPdfBlob(); pdfCache = { key: docKey(), blob }; }
+    updateBusy("Ofis yazıcısına gönderiliyor…", Math.round(blob.size/1024) + " KB");
+    const p = new URLSearchParams();
+    p.append("action", "uzaktanBas");
+    p.append("danisman", me.admin ? "Umut Tokkuş" : me.name);
+    p.append("evrak", currentTpl.title);
+    p.append("dosyaAdi", pdfFileName());
+    p.append("veri", await blobToBase64(blob));
+    const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
+    const txt = await r.text();
+    let j = {}; try{ j = JSON.parse(txt); }catch(_){ console.warn('Sessiz hata:', _); }
+    hideBusy();
+    if (j && j.ok) alert("✅ Gönderildi.\n\nBelge yaklaşık 1 dakika içinde ofisteki yazıcıdan çıkar.");
+    else alert("⚠️ Gönderilemedi.\n\n" + ((j && j.error) ? j.error : txt.slice(0,160)));
+  }catch(e){
+    hideBusy();
+    alert("⚠️ Gönderilemedi.\n\n" + ((e && e.message) ? e.message : String(e)));
+  }finally{
+    btn.disabled = false; btn.textContent = old;
+  }
+}
 
 async function savePdf(btn){
   if (!confirmMissing()) return;
