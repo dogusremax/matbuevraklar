@@ -349,7 +349,9 @@ function showLogin(){
   });
   inp.focus();
 }
-const saved=localStorage.getItem("yg_pin");
+/* Matbu Evraklar'dan gelince aynı PIN'le doğrudan açılır (31.10.2026). */
+let saved=localStorage.getItem("yg_pin");
+if(!(saved&&CONSULTANTS[saved])){const ep=localStorage.getItem("evrak_pin");if(ep&&CONSULTANTS[ep]){saved=ep;localStorage.setItem("yg_pin",ep);}}
 if(saved&&CONSULTANTS[saved]){me={pin:saved,...CONSULTANTS[saved]};render();}else{showLogin();}
 
 /* ─── MODAL ─── */
@@ -661,6 +663,7 @@ function render(){
 
   $("app").innerHTML=`
   <div class="toolbar no-print">
+    <a class="tb" href="./" style="text-decoration:none">← Matbu Evraklar</a>
     <div class="who"><b>${me.name}</b> · Yer Gösterme</div>
     <button class="tb langbtn" id="langBtn" onclick="toggleLang()" title="Dil / Language">${langLabel()}</button>
     <button class="tb" onclick="if(confirm('${t("clearConfirm")}')){V={isim:'',tc:'',tel:'',email:'',adres:''};props=[{adres:'',fiyat:'',fiyatY:''}];imzaData=null;yasal=getLegal();render();}">${t("btnClear")}</button>
@@ -668,7 +671,7 @@ function render(){
     <button class="tb tb-b" onclick="doPrint()">${t("btnPrint")}</button>
     <button class="tb tb-g" onclick="kaydetDrive()">${t("btnSave")}</button>
     <button class="tb" onclick="showKayitlar()">${t("btnRecords")}</button>
-    <button class="tb" onclick="localStorage.removeItem('yg_pin');me=null;showLogin();">${t("btnLogout")}</button>
+    <button class="tb" onclick="localStorage.removeItem('yg_pin');localStorage.removeItem('evrak_pin');me=null;showLogin();">${t("btnLogout")}</button>
   </div>
   <div class="sheet-wrap"><div class="sheet" style="font-size:${fs}">
     <table><tr class="hdr"><td style="color:#fff;font-size:11pt;font-weight:700;letter-spacing:1px;white-space:nowrap">RE/MAX DOĞUŞ</td><td style="text-align:right;color:#fff;font-weight:700;font-size:11pt;letter-spacing:.4px">${t("docTitle")}</td></tr></table>

@@ -2237,6 +2237,7 @@ function enter(pin){
 }
 function logout(){
   localStorage.removeItem("evrak_pin");
+  localStorage.removeItem("yg_pin");
   location.reload();
 }
 
@@ -2446,7 +2447,12 @@ function scanCapture(){
 function renderCatalog(){
   $("catalog").style.display = "block";
   $("editor").style.display = "none";
-  $("cards").innerHTML = TEMPLATES.map(t=>{
+  $("cards").innerHTML = `<div class="card" onclick="location.href='yer-gosterme.html'">
+      <span class="tag">${L("AYRI SAYFA","SEPARATE")}</span>
+      <div class="ic">📍</div>
+      <h3>${L("Taşınmaz Gösterme Belgesi (Yer Gösterme)","Property Viewing Form")}</h3>
+      <p>${L("Müşteriye gösterilen evler, imza, Drive kaydı ve müşteriye e-posta.","Viewed properties, signature, Drive record and e-mail to the client.")}</p>
+    </div>` + TEMPLATES.map(t=>{
     const hasDraft = !!localStorage.getItem(draftKey(t.id));
     return `<div class="card ${hasDraft?"draft":""}" onclick="openTpl('${t.id}')">
       <span class="tag">${hasDraft?L("TASLAK VAR","DRAFT"):L("HAZIR","READY")}</span>
