@@ -838,6 +838,51 @@ function ekIHali(nStr){
   return "'" + (sonHarfSesli ? "s" : "") + ek;
 }
 
+/* Türkçe sayı okunuşu: 35000 → "Otuz Beş Bin" */
+function sayiYaziTr(n){
+  n = Math.floor(Number(n) || 0);
+  if (!n) return "";
+  const bir = ["","Bir","İki","Üç","Dört","Beş","Altı","Yedi","Sekiz","Dokuz"];
+  const on  = ["","On","Yirmi","Otuz","Kırk","Elli","Altmış","Yetmiş","Seksen","Doksan"];
+  const bolum = ["","Bin","Milyon","Milyar"];
+  const uc = x => {
+    const y = Math.floor(x/100), o = Math.floor(x/10)%10, b = x%10, p = [];
+    if (y) p.push(y === 1 ? "Yüz" : bir[y] + " Yüz");
+    if (o) p.push(on[o]);
+    if (b) p.push(bir[b]);
+    return p.join(" ");
+  };
+  const parca = [];
+  for (let i = 0; n > 0 && i < bolum.length; i++, n = Math.floor(n/1000)){
+    const x = n % 1000; if (!x) continue;
+    parca.unshift(i === 1 && x === 1 ? "Bin" : (uc(x) + (bolum[i] ? " " + bolum[i] : "")));
+  }
+  return parca.join(" ");
+}
+/* Kira: aylık kiradan yıllık kira ve yazıyla tutar, başlangıçtan bitiş tarihi kendiliğinden dolar.
+   Danışman elle değiştirdiyse dokunulmaz (yalnız boşsa ya da en son otomatik yazılan değerse). */
+function kiraOto(V, degisen){
+  const oto = V.__oto || {};
+  let degisti = false;
+  const yaz = (k, deger) => {
+    if (V[k] && V[k] !== oto[k]) return;                // elle yazılmış → koru
+    if ((V[k] || "") === deger) { oto[k] = deger; return; }
+    V[k] = deger; oto[k] = deger; degisti = true;
+  };
+  if (!degisen || degisen === "aylik") {
+    const ay = parseInt(String(V.aylik || "").replace(/\D/g,""), 10) || 0;
+    yaz("yillik", ay ? fmtMoney(String(ay * 12)) : "");
+    yaz("aylikYazi", ay ? sayiYaziTr(ay) : "");
+  }
+  if (!degisen || degisen === "baslangic" || degisen === "muddet") {
+    const m = String(V.baslangic || "").match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    const yil = parseInt(String(V.muddet || "1"), 10) || 1;
+    yaz("bitis", m ? m[1] + "." + m[2] + "." + (Number(m[3]) + yil) : "");
+  }
+  V.__oto = oto;
+  return degisti;
+}
+
 function applyFmt(fmt, val){
   if (fmt==="num2")  return String(val).replace(/[^0-9]/g,"").slice(0,2);
   if (fmt==="date")  return fmtDate(val);
@@ -2195,10 +2240,11 @@ function kiraAktarUygula(){
   Object.keys(alanlar).forEach(k => { const m = k.match(/^(kc|kf)EsFoto(On|Arka)(_\d+)?$/); if (m) alanlar[m[1] + "Medeni" + (m[3]||"")] = "Evli"; });
   const yeni = { ...taslak, ...alanlar, __dosya: a.dosyaNo, __ekler: yer.artan,
                  __rep: { ...(taslak.__rep||{}), kv: a.kv || 1, kc: a.kc || 1, ek: Math.max(1, yer.ek) } };
+  kiraOto(yeni);
   localStorage.setItem(draftKey(tid), JSON.stringify(yeni));
   openTpl(tid);
   setTimeout(()=>alert(L(
-    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi" + ((a.ekler||[]).length ? ", " + a.ekler.length + " belge kimlik ve Ek Belgeler alanlarına yerleşti" : "") + " — kira koşullarını, demirbaşları kontrol edip doldurun.",
+    "Kira Masası'ndan aktarıldı (" + a.dosyaNo + "). Taraf bilgileri dolu geldi" + ((a.ekler||[]).length ? ", " + a.ekler.length + " belge kimlik ve Ek Belgeler alanlarına yerleşti" : "") + (a.alanlar.aylik ? " — kira koşulları da dosyadan geldi, kontrol edip basın." : " — kira koşullarını, demirbaşları kontrol edip doldurun."),
     "Imported from Kira Masası (" + a.dosyaNo + "). Party details are filled — complete the lease terms and fixtures.")), 300);
 }
 
@@ -2590,6 +2636,9 @@ function buildForm(){
         }
       }
       V[el.dataset.k] = el.value;
+      if (currentTpl.id === "kira" && kiraOto(V, el.dataset.k)) {
+        ["yillik","aylikYazi","bitis"].forEach(k=>{ const e = document.getElementById("in_"+k); if (e && e !== el) e.value = V[k] || ""; });
+      }
       localStorage.setItem(draftKey(currentTpl.id), JSON.stringify(V));
       if (el.dataset.k === "odemeDonem") odemeGunGizle();
       refresh();
