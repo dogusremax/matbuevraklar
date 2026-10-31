@@ -3556,10 +3556,10 @@ async function openKayitlar(){
     <div style="text-align:center;padding:30px 0;color:#5B6470;font-size:14px">⏳ Yükleniyor…</div>
     <button onclick="closeKayitlar()" style="width:100%;padding:12px;border:1px solid #C9D2E3;background:#fff;border-radius:10px;font-size:15px;cursor:pointer">Kapat</button>`);
   try{
-    const r = await fetch(DRIVE_ENDPOINT + "?action=getEvraklar", { redirect:"follow" });
+    const r = await fetch(DRIVE_ENDPOINT + "?action=getEvraklar&pin=" + encodeURIComponent(me.pin), { redirect:"follow" });
     const txt = await r.text();
     let j = {}; try{ j = JSON.parse(txt); }catch(_){ console.warn('Sessiz hata:', _); }
-    if (!j || !j.ok) throw new Error((j && j.error) ? j.error : "Liste alınamadı");
+    if (!j || !j.ok) throw new Error((j && j.error === "yetki") ? "Bu PIN ile kayıtlar açılamadı, broker'a haber ver." : (j && j.error) ? j.error : "Liste alınamadı");
 
     // Danışman sadece kendi kayıtlarını görür; broker hepsini
     kytCache = me.admin ? j.kayitlar : j.kayitlar.filter(k => k.danisman === me.name);
