@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Elektronik İmza</title>
+<style>
+:root{--ink:#14213D;--soft:#5B6470;--line:#DDE3EC;--bg:#F4F6FA;--acc:#1A56C4;--ok:#0E7A3D;--err:#C8102E}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding:16px 14px 60px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:14px}
+.ofis{font-size:12px;color:var(--soft);letter-spacing:.04em;text-transform:uppercase}
+h1{font-size:20px;margin:6px 0 4px}
+.muted{color:var(--soft);font-size:14px;line-height:1.5}
+.taraf{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.taraf:first-child{border-top:0}
+.rozet{font-size:12px;padding:3px 9px;border-radius:99px;background:#FFF4E0;color:#8A5A00;white-space:nowrap}
+.rozet.ok{background:#E3F4EA;color:var(--ok)}
+.sayfa{width:100%;display:block;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:#fff}
+label.chk{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;margin:10px 0}
+label.chk input{width:22px;height:22px;flex:0 0 22px;margin-top:1px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:600;cursor:pointer;background:var(--acc);color:#fff}
+.btn.g{background:#EEF2F8;color:var(--ink)}
+.btn:disabled{opacity:.5}
+input.txt{width:100%;padding:14px;border:1px solid #C9D2E3;border-radius:12px;font-size:20px;letter-spacing:6px;text-align:center}
+.pad{border:2px dashed #B9C4D6;border-radius:12px;background:#fff;touch-action:none;width:100%;height:190px;display:block}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.msg{font-size:14px;margin-top:10px;min-height:20px}
+.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+.yasal{font-size:12px;color:var(--soft);line-height:1.5}
+.gizli{display:none}
+.bitti{text-align:center;padding:26px 18px}
+.bitti .ik{font-size:44px}
+#denetim{position:fixed;left:-10000px;top:0;width:794px;background:#fff;color:#111;font-family:Arial,sans-serif;padding:48px 56px;font-size:13px}
+#denetim h2{font-size:20px;margin:0 0 6px}
+#denetim table{width:100%;border-collapse:collapse;margin-top:10px}
+#denetim td{border:1px solid #ccc;padding:8px;vertical-align:top}
+#denetim .imz{height:70px;max-width:260px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="yukleniyor" class="card muted">Belge yükleniyor…</div>
+  <div id="hata" class="card gizli"></div>
+
+  <div id="icerik" class="gizli">
+    <div class="card">
+      <div class="ofis" id="ofis"></div>
+      <h1 id="belgeAd"></h1>
+      <div class="muted" id="selam"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:6px">İmza durumu</div>
+      <div id="taraflar"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px">Belge</div>
+      <div id="sayfalar"></div>
+    </div>
+
+    <div class="card" id="imzaKart">
+      <div style="font-weight:600;font-size:17px">İmzala</div>
+      <label class="chk"><input type="checkbox" id="onay"><span>Belgenin tamamını okudum. Bu belgeyi elektronik ortamda imzalamayı kabul ediyorum.</span></label>
+      <label class="chk"><input type="checkbox" id="konumChk"><span>Konumumu da kayda ekle (isteğe bağlı)</span></label>
+
+      <div id="kodAlan">
+        <p class="muted" id="kodBilgi" style="margin:12px 0 8px">Kimliğinizi doğrulamak için e-postanıza 6 haneli bir kod gönderilecek.</p>
+        <button class="btn g" id="kodBtn" onclick="kodIste()">Doğrulama kodunu gönder</button>
+        <div id="kodGirisi" class="gizli" style="margin-top:10px">
+          <input class="txt" id="kod" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+        </div>
+      </div>
+      <div id="pinAlan" class="gizli">
+        <p class="muted" style="margin:12px 0 8px">Yüz yüze imza: danışman PIN'i gerekli.</p>
+        <input class="txt" id="danPin" type="password" inputmode="numeric" maxlength="6" placeholder="Danışman PIN">
+      </div>
+
+      <p class="muted" style="margin:16px 0 8px">İmzanızı aşağıdaki alana parmağınızla atın:</p>
+      <canvas id="pad" class="pad"></canvas>
+      <div class="row" style="margin-top:8px"><button class="btn g" onclick="padTemizle()">Temizle</button></div>
+      <div style="margin-top:12px"><button class="btn" id="imzalaBtn" onclick="imzala()">İmzala</button></div>
+      <div class="msg" id="msg"></div>
+      <p class="yasal" style="margin-top:14px">İmzanız; zaman, doğrulama yöntemi ve cihaz bilgisiyle birlikte bu belgenin ispatı amacıyla saklanır. Kişisel verileriniz yalnız bu belgenin düzenlenmesi, ilgili taraflara iletilmesi ve saklanması amacıyla işlenir. Bu işlem 5070 sayılı Kanun'daki nitelikli elektronik imza değildir; elektronik ortamda onay ve delil kaydıdır.</p>
+    </div>
+
+    <div class="card bitti gizli" id="bitti"></div>
+  </div>
+</div>
+<div id="denetim"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycby3N2cq5LI99_UgjzlxIjZr7looJz88Rft-BJ9E5ZgP9-ZmUEmoXARoIm717JAmTGuD/exec';
+const T = new URLSearchParams(location.search).get('t') || '';
+let D = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function post(params){
+  const b = new URLSearchParams(); Object.keys(params).forEach(k => b.append(k, params[k]));
+  const r = await fetch(API, { method:'POST', body:b, redirect:'follow' });
+  return r.json();
+}
+function mesaj(t, tur){ const m = $('msg'); m.textContent = t || ''; m.className = 'msg' + (tur ? ' ' + tur : ''); }
+
+async function yukle(){
+  if (!T){ return hataGoster('Bağlantı eksik. Size gönderilen linki kullanın.'); }
+  try{
+    const r = await fetch(API + '?action=imzaBelge&t=' + encodeURIComponent(T), { redirect:'follow' });
+    D = await r.json();
+  }catch(e){ return hataGoster('Sunucuya ulaşılamadı. İnternet bağlantınızı kontrol edip sayfayı yenileyin.'); }
+  if (!D || !D.ok) return hataGoster((D && D.error) || 'Belge bulunamadı.');
+  $('yukleniyor').classList.add('gizli'); $('icerik').classList.remove('gizli');
+  $('ofis').textContent = D.ofis;
+  $('belgeAd').textContent = D.belge;
+  $('selam').innerHTML = 'Sayın <b>' + esc(D.ben.ad) + '</b>' + (D.ben.rol ? ' (' + esc(D.ben.rol) + ')' : '') +
+    ', danışman <b>' + esc(D.danisman) + '</b> bu belgeyi imzanıza sundu. Belge no: ' + esc(D.id);
+  $('taraflar').innerHTML = D.taraflar.map(x => '<div class="taraf"><span>' + esc(x.ad) + (x.rol ? ' · <span class="muted">' + esc(x.rol) + '</span>' : '') +
+    '</span><span class="rozet' + (x.durum === 'imzaladi' ? ' ok' : '') + '">' + (x.durum === 'imzaladi' ? 'İmzaladı' : 'Bekliyor') + '</span></div>').join('');
+  $('sayfalar').innerHTML = D.sayfalar.map((s, i) => '<img class="sayfa" alt="Sayfa ' + (i+1) + '" src="' + s + '">').join('');
+  if (D.ben.yuzYuze){
+    $('kodAlan').classList.add('gizli'); $('pinAlan').classList.remove('gizli');
+    try{ const k = JSON.parse(localStorage.getItem('evrak_kimlik') || 'null'); if (k && k.pin) $('danPin').value = k.pin; }catch(e){}
+  } else {
+    $('kodBilgi').textContent = 'Kimliğinizi doğrulamak için ' + (D.ben.eposta || 'e-postanıza') + ' adresine 6 haneli bir kod gönderilecek.';
+  }
+  if (D.ben.durum === 'imzaladi'){
+    $('imzaKart').classList.add('gizli');
+    if (D.tumu && !D.pdfVar){ bittiGoster('⏳', 'İmzalı belge hazırlanıyor…', ''); await sonPdf(); }
+    else bittiGoster('✅', 'Bu belgeyi imzaladınız', D.tumu ? 'İmzalı belge tüm taraflara e-postayla gönderildi.' : 'Diğer taraflar imzaladığında imzalı belge e-postanıza gönderilecek.');
+  }
+  padKur();
+}
+function hataGoster(t){ $('yukleniyor').classList.add('gizli'); const h = $('hata'); h.classList.remove('gizli'); h.innerHTML = '<b>Açılamadı</b><p class="muted">' + esc(t) + '</p>'; }
+function bittiGoster(ik, baslik, alt){ const b = $('bitti'); b.classList.remove('gizli'); b.innerHTML = '<div class="ik">' + ik + '</div><h1>' + esc(baslik) + '</h1><p class="muted">' + esc(alt) + '</p>'; b.scrollIntoView({behavior:'smooth'}); }
+
+/* ---- imza alanı ---- */
+let ctx, ciziliyor = false, cizildi = false;
+function padKur(){
+  const c = $('pad'), oran = window.devicePixelRatio || 1, r = c.getBoundingClientRect();
+  c.width = r.width * oran; c.height = r.height * oran;
+  ctx = c.getContext('2d'); ctx.scale(oran, oran);
+  ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0B1F4D';
+  const nokta = e => { const b = c.getBoundingClientRect(); const p = e.touches ? e.touches[0] : e; return [p.clientX - b.left, p.clientY - b.top]; };
+  const bas = e => { e.preventDefault(); ciziliyor = true; const [x,y] = nokta(e); ctx.beginPath(); ctx.moveTo(x,y); };
+  const ciz = e => { if (!ciziliyor) return; e.preventDefault(); const [x,y] = nokta(e); ctx.lineTo(x,y); ctx.stroke(); cizildi = true; };
+  const bit = () => { ciziliyor = false; };
+  c.addEventListener('pointerdown', bas); c.addEventListener('pointermove', ciz);
+  window.addEventListener('pointerup', bit); c.addEventListener('pointerleave', bit);
+}
+function padTemizle(){ const c = $('pad'); ctx.clearRect(0, 0, c.width, c.height); cizildi = false; }
+function imzaPng(){
+  const c = $('pad'), t = document.createElement('canvas');
+  t.width = c.width; t.height = c.height;
+  const x = t.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, t.width, t.height); x.drawImage(c, 0, 0);
+  return t.toDataURL('image/png');
+}
+
+/* ---- kod ---- */
+async function kodIste(){
+  const b = $('kodBtn'); b.disabled = true; mesaj('Kod gönderiliyor…');
+  try{
+    const j = await post({ action:'imzaKod', t:T });
+    if (j.ok){ $('kodGirisi').classList.remove('gizli'); b.textContent = 'Kodu tekrar gönder'; mesaj('Kod ' + j.eposta + ' adresine gönderildi. Gelen kutunuzu (ve gereksiz klasörünü) kontrol edin.', 'ok'); $('kod').focus(); }
+    else mesaj(j.error || 'Kod gönderilemedi', 'err');
+  }catch(e){ mesaj('Sunucuya ulaşılamadı', 'err'); }
+  setTimeout(() => { b.disabled = false; }, 20000);
+}
+
+function konumAl(){
+  return new Promise(res => {
+    if (!$('konumChk').checked || !navigator.geolocation) return res('');
+    navigator.geolocation.getCurrentPosition(p => res(p.coords.latitude.toFixed(5) + ',' + p.coords.longitude.toFixed(5)), () => res(''), { timeout:8000 });
+  });
+}
+
+/* ---- imzala ---- */
+async function imzala(){
+  if (!$('onay').checked) return mesaj('Lütfen onay kutusunu işaretleyin.', 'err');
+  if (!cizildi) return mesaj('Lütfen imzanızı atın.', 'err');
+  const p = { action:'imzaTamamla', t:T, onay:'1', imza:imzaPng(), cihaz:navigator.userAgent.slice(0,180) };
+  if (D.ben.yuzYuze){ p.pin = $('danPin').value.trim(); if (!p.pin) return mesaj('Danışman PIN\'i gerekli.', 'err'); }
+  else { p.kod = $('kod').value.trim(); if (!/^\d{6}$/.test(p.kod)) return mesaj('E-postanıza gelen 6 haneli kodu girin.', 'err'); }
+  const b = $('imzalaBtn'); b.disabled = true; mesaj('İmzalanıyor…');
+  p.konum = await konumAl();
+  try{
+    const j = await post(p);
+    if (!j.ok){ b.disabled = false; return mesaj(j.error || 'İmzalanamadı', 'err'); }
+    $('imzaKart').classList.add('gizli');
+    if (j.tumu){ bittiGoster('⏳', 'Tüm taraflar imzaladı', 'İmzalı belge hazırlanıyor, lütfen sayfayı kapatmayın…'); await yenile(); await sonPdf(); }
+    else bittiGoster('✅', 'İmzanız alındı', 'Diğer taraflar imzaladığında imzalı belge e-postanıza gönderilecek.');
+  }catch(e){ b.disabled = false; mesaj('Sunucuya ulaşılamadı, tekrar deneyin.', 'err'); }
+}
+async function yenile(){ const r = await fetch(API + '?action=imzaBelge&t=' + encodeURIComponent(T), { redirect:'follow' }); D = await r.json(); }
+
+/* ---- son PDF: belge sayfaları + İmza ve Denetim Sayfası ---- */
+function yukleScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error(src)); document.head.appendChild(s); }); }
+async function sonPdf(){
+  try{
+    if (!window.html2canvas) await yukleScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+    if (!window.jspdf) await yukleScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    const dn = $('denetim');
+    dn.innerHTML = '<h2>İmza ve Denetim Sayfası</h2>' +
+      '<div>' + esc(D.ofis) + '</div><div style="margin-top:6px"><b>Belge:</b> ' + esc(D.belge) + '<br><b>Belge no:</b> ' + esc(D.id) +
+      '<br><b>Oluşturan danışman:</b> ' + esc(D.danisman) + '<br><b>İmzaya açılış:</b> ' + esc(D.olusturma) +
+      '<br><b>Belge sayfalarının SHA-256 özeti:</b> <span style="font-family:monospace;font-size:11px">' + esc(D.ozet) + '</span></div>' +
+      '<table>' + D.imzalar.map(x => '<tr><td style="width:46%"><b>' + esc(x.ad) + '</b>' + (x.rol ? '<br>' + esc(x.rol) : '') +
+        '<br>İmza zamanı: ' + esc(x.zaman) + '<br>Yöntem: ' + esc(x.yontem) + (x.konum ? '<br>Konum: ' + esc(x.konum) : '') +
+        '<br><span style="font-size:10px;color:#666">' + esc(x.cihaz) + '</span></td><td>' + (x.imza ? '<img class="imz" src="' + x.imza + '">' : '') + '</td></tr>').join('') + '</table>' +
+      '<div style="margin-top:14px"><b>Denetim kaydı</b></div><table>' + (D.denetim || []).map(o => '<tr><td style="width:30%">' + esc(o.z) + '</td><td>' + esc(o.olay) + ' — ' + esc(o.kim || '') + (o.ayrinti ? '<br><span style="color:#555">' + esc(o.ayrinti) + '</span>' : '') + '</td></tr>').join('') + '</table>' +
+      '<p style="font-size:11px;color:#555;margin-top:16px">Bu belge taraflarca elektronik ortamda imzalanmıştır. Bu işlem 5070 sayılı Kanun\'daki nitelikli elektronik imza değildir; elektronik ortamda onay ve delil kaydıdır. Taşınmaz Ticareti Hakkında Yönetmelik uyarınca belgeler elektronik ortamda düzenlenebilir.</p>';
+    const kanvas = await html2canvas(dn, { scale:2, backgroundColor:'#ffffff', useCORS:true });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+    D.sayfalar.forEach((s, i) => { if (i > 0) pdf.addPage(); pdf.addImage(s, 'JPEG', 0, 0, 210, 297); });
+    pdf.addPage();
+    let w = 210, h = kanvas.height * 210 / kanvas.width;
+    if (h > 297){ w = 297 * kanvas.width / kanvas.height; h = 297; }
+    pdf.addImage(kanvas.toDataURL('image/jpeg', 0.92), 'JPEG', (210 - w) / 2, 0, w, h);
+    const b64 = pdf.output('datauristring').split(',')[1];
+    const j = await post({ action:'imzaPdf', t:T, pdf:b64 });
+    if (j.ok) bittiGoster('✅', 'Belge imzalandı', 'İmzalı belge tüm taraflara e-postayla gönderildi.');
+    else bittiGoster('⚠️', 'İmzanız alındı', 'İmzalı PDF hazırlanırken sorun oldu (' + (j.error || '') + '). Bu linki tekrar açtığınızda yeniden denenecek.');
+  }catch(e){
+    bittiGoster('⚠️', 'İmzanız alındı', 'İmzalı PDF hazırlanamadı. Bu linki tekrar açtığınızda yeniden denenecek.');
+  }
+}
+yukle();
+</script>
+</body>
+</html>

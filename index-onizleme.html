@@ -597,6 +597,7 @@ table.ftbl td.tall{height:9mm}
             <button class="btn btn-p" onclick="printDoc()">🖨️ Yazdır</button>
             <button class="btn btn-p uzaktanBasBtn" style="background:#B8501A;display:none" onclick="uzaktanBas(this)">📠 Uzaktan Bas</button>
             <button class="btn btn-p" style="background:#0E7A3D" onclick="kaydet(this)">💾 Kaydet</button>
+            <button class="btn btn-p" style="background:#12275C" onclick="imzayaGonder(this)">✍️ İmzaya Gönder</button>
           </div>
           <div class="note">Alanları doldurdukça sağdaki belge canlı olarak güncellenir. <b>Belgedeki herhangi bir maddeye dokunarak metnini bu evraka özel düzenleyebilirsiniz.</b> Boş bırakılan alanlar belgede noktalı boşluk olarak kalır. Taslak otomatik kaydedilir.</div>
           <div id="formFields"></div>
@@ -615,6 +616,7 @@ table.ftbl td.tall{height:9mm}
       <button onclick="printDoc()">🖨️ Yazdır</button>
       <button class="uzaktanBasBtn" style="display:none" onclick="uzaktanBas(this)">📠 Uzaktan Bas</button>
       <button onclick="kaydet(this)">💾 Kaydet</button>
+      <button onclick="imzayaGonder(this)">✍️ İmzaya Gönder</button>
       <button class="fp-close" onclick="closePreview()">✕ Kapat</button>
     </div>
   </div>
@@ -3990,6 +3992,84 @@ async function savePdf(btn){
   }finally{
     btn.disabled = false; btn.textContent = old;
   }
+}
+
+/* =================== E-İMZA (13.11.2026) ===================
+   Belge sayfaları görüntüye çevrilir, taraflar girilir, sunucu her tarafa kişisel imza linki üretir.
+   Uzaktan: taraf e-postasına gelen kodla doğrular. Yüz yüze: bu telefonda, danışman PIN'iyle. */
+const IMZA_ROLLER = ["Mal Sahibi","Alıcı","Kiracı","Kiraya Veren","Müşteri","Kefil","Diğer"];
+function imzaSatir(ad, rol){
+  return `<div class="imzaSatir" style="border:1px solid #DDE3EC;border-radius:12px;padding:10px;margin-bottom:8px">
+    <input class="iAd" placeholder="Ad Soyad" value="${(ad||"").replace(/"/g,"&quot;")}" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #C9D2E3;border-radius:8px;font-size:15px;margin-bottom:6px">
+    <div style="display:flex;gap:6px">
+      <select class="iRol" style="flex:1;padding:10px;border:1px solid #C9D2E3;border-radius:8px;font-size:14px">${IMZA_ROLLER.map(r=>`<option${r===rol?" selected":""}>${r}</option>`).join("")}</select>
+      <button onclick="this.closest('.imzaSatir').remove()" style="border:0;background:#FDECEE;color:#C8102E;border-radius:8px;padding:0 12px">Sil</button>
+    </div>
+    <input class="iEposta" type="email" placeholder="E-posta (doğrulama kodu buraya gider)" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #C9D2E3;border-radius:8px;font-size:15px;margin-top:6px">
+    <input class="iTel" type="tel" placeholder="Telefon (WhatsApp ile link göndermek için)" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #C9D2E3;border-radius:8px;font-size:15px;margin-top:6px">
+  </div>`;
+}
+async function imzayaGonder(btn){
+  if (!confirmMissing()) return;
+  let m = document.getElementById("imzaModal");
+  if (!m){ m = document.createElement("div"); m.id = "imzaModal"; document.body.appendChild(m); }
+  m.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(15,20,40,.55);display:flex;align-items:flex-end;justify-content:center;";
+  const ilkAd = (currentTpl && V[currentTpl.nameKey]) || "";
+  m.innerHTML = `<div style="background:#fff;border-radius:18px 18px 0 0;max-width:520px;width:100%;max-height:92vh;overflow:auto;padding:18px">
+    <div style="font-weight:700;font-size:18px;color:#12275C">✍️ İmzaya Gönder</div>
+    <div style="font-size:13px;color:#5B6470;margin:4px 0 12px">${currentTpl ? currentTpl.title : ""} · imzalayacak tarafları girin</div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px;margin-bottom:10px"><input type="checkbox" id="iYuz" style="width:20px;height:20px"> Yüz yüze: taraflar bu telefonda imzalayacak (kod istenmez)</label>
+    <div id="iSatirlar">${imzaSatir(ilkAd, "Mal Sahibi")}</div>
+    <button onclick="document.getElementById('iSatirlar').insertAdjacentHTML('beforeend', imzaSatir('', 'Müşteri'))" style="width:100%;padding:11px;border:1px dashed #9AA8C0;background:#F7F9FC;border-radius:10px;font-size:14px;margin-bottom:12px">+ Taraf ekle</button>
+    <div id="iMsg" style="font-size:13px;min-height:18px;color:#C8102E;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="document.getElementById('imzaModal').style.display='none'" style="flex:1;padding:13px;border:0;border-radius:10px;background:#EEF2F8;font-size:15px">Vazgeç</button>
+      <button id="iGonder" onclick="imzaBaslatGonder()" style="flex:2;padding:13px;border:0;border-radius:10px;background:#12275C;color:#fff;font-weight:600;font-size:15px">Linkleri oluştur</button>
+    </div></div>`;
+  m.style.display = "flex";
+}
+async function imzaBaslatGonder(){
+  const msg = document.getElementById("iMsg"), b = document.getElementById("iGonder");
+  const yuz = document.getElementById("iYuz").checked;
+  const taraflar = [...document.querySelectorAll("#iSatirlar .imzaSatir")].map(s => ({
+    ad: s.querySelector(".iAd").value.trim(), rol: s.querySelector(".iRol").value,
+    eposta: s.querySelector(".iEposta").value.trim(), tel: s.querySelector(".iTel").value.trim() }));
+  if (!taraflar.length) { msg.textContent = "En az bir taraf ekleyin."; return; }
+  for (const x of taraflar){
+    if (!x.ad) { msg.textContent = "Tüm tarafların adını yazın."; return; }
+    if (!yuz && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x.eposta)) { msg.textContent = x.ad + " için geçerli bir e-posta gerekli (doğrulama kodu e-postaya gider)."; return; }
+  }
+  b.disabled = true; msg.style.color = "#5B6470"; msg.textContent = "Belge hazırlanıyor…";
+  try{
+    const sayfalar = await buildPageImages();
+    msg.textContent = "Sunucuya gönderiliyor…";
+    const p = new URLSearchParams();
+    p.append("action", "imzaBaslat"); p.append("pin", me.pin);
+    p.append("data", JSON.stringify({ belge: currentTpl ? currentTpl.title : "Belge", dosyaAdi: pdfFileName(), sayfalar, taraflar, yuzYuze: yuz }));
+    const r = await fetch(DRIVE_ENDPOINT, { method:"POST", body:p, redirect:"follow" });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "Gönderilemedi");
+    imzaLinkleriGoster(j, yuz);
+  }catch(e){ msg.style.color = "#C8102E"; msg.textContent = "Olmadı: " + e.message; b.disabled = false; }
+}
+function imzaLinkleriGoster(j, yuz){
+  const m = document.getElementById("imzaModal");
+  const belge = currentTpl ? currentTpl.title : "Belge";
+  const satir = x => {
+    const metin = `Merhaba ${x.ad}, ${belge} imzanıza hazır. Belgeyi okuyup e-postanıza gelecek kodla imzalayabilirsiniz: ${x.link}`;
+    const tel = (x.tel||"").replace(/\D/g,"").replace(/^0/,"90");
+    return `<div style="border:1px solid #DDE3EC;border-radius:12px;padding:10px;margin-bottom:8px">
+      <div style="font-weight:600">${x.ad} <span style="color:#5B6470;font-weight:400">· ${x.rol}</span></div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        ${yuz ? `<a href="${x.link}" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:11px;border-radius:10px;background:#12275C;color:#fff;text-decoration:none;font-weight:600">Şimdi imzalat</a>`
+              : `<a href="https://wa.me/${tel}?text=${encodeURIComponent(metin)}" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:11px;border-radius:10px;background:#25D366;color:#fff;text-decoration:none;font-weight:600">WhatsApp</a>`}
+        <button onclick="navigator.clipboard.writeText('${x.link}').then(()=>{this.textContent='Kopyalandı'})" style="flex:1;padding:11px;border:0;border-radius:10px;background:#EEF2F8">Linki kopyala</button>
+      </div></div>`;
+  };
+  m.firstElementChild.innerHTML = `<div style="font-weight:700;font-size:18px;color:#0E7A3D">✅ İmza linkleri hazır</div>
+    <div style="font-size:13px;color:#5B6470;margin:4px 0 12px">Belge no: ${j.id}. Her taraf kendi linkini açıp imzalar. Herkes imzalayınca imzalı PDF taraflara ve ofise e-postayla gider.</div>
+    ${j.taraflar.map(satir).join("")}
+    <button onclick="document.getElementById('imzaModal').style.display='none'" style="width:100%;padding:13px;border:0;border-radius:10px;background:#EEF2F8;font-size:15px;margin-top:6px">Kapat</button>`;
 }
 </script>
 </body>
