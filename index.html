@@ -870,9 +870,10 @@ function kiraOto(V, degisen){
     if ((V[k] || "") === deger) { oto[k] = deger; return; }
     V[k] = deger; oto[k] = deger; degisti = true;
   };
-  if (!degisen || degisen === "aylik") {
+  if (!degisen || degisen === "aylik" || degisen === "muddet") {
     const ay = parseInt(String(V.aylik || "").replace(/\D/g,""), 10) || 0;
-    yaz("yillik", ay ? fmtMoney(String(ay * 12)) : "");
+    const carpan = /^\s*6\s*ay/i.test(String(V.muddet || "")) ? 6 : 12;   // 6 Ay → altı aylık kira karşılığı
+    yaz("yillik", ay ? fmtMoney(String(ay * carpan)) : "");
     yaz("aylikYazi", ay ? sayiYaziTr(ay) : "");
   }
   if (!degisen || degisen === "baslangic" || degisen === "muddet") {
@@ -1267,7 +1268,8 @@ const TEMPLATES = [
       {k:"kfEsFotoArka", l:"Eşinin Kimliği — Arka Yüz", lEn:"Spouse ID — Back", type:"photo", showIf:[{k:"kfVar",v:"Var"},{k:"kfMedeni",v:"Evli"}]},
     ]},
     {t:"Kira Koşulları", tEn:"Lease Terms", fields:[
-      {k:"yillik", l:"Bir Senelik Kira (TL)", lEn:"Annual Rent (TL)", fmt:"money"},
+      {k:"yillik", get l(){ return /^\s*6\s*ay/i.test(V.muddet||"") ? "Altı Aylık Kira (TL)" : "Bir Senelik Kira (TL)"; },
+       get lEn(){ return /^\s*6\s*ay/i.test(V.muddet||"") ? "Six-Month Rent (TL)" : "Annual Rent (TL)"; }, fmt:"money"},
       {k:"aylik", l:"Bir Aylık Kira (TL)", lEn:"Monthly Rent (TL)", req:1, fmt:"money"},
       {k:"stopaj", l:"Stopaj Var mı?", lEn:"Withholding Tax?", type:"select", opts:["Yok","Var"], optsEn:["No","Yes"], def:"Yok"},
       {k:"aylikYazi", l:"Aylık Kira (Yazıyla)", lEn:"Monthly Rent (in Words)"},
@@ -1275,7 +1277,7 @@ const TEMPLATES = [
        opts:["Aylık","6 Aylık (Peşin)","12 Aylık (Peşin)","101 Günlük (Peşin)"],
        optsEn:["Monthly","Semi-Annual (Advance)","Annual (Advance)","101 Days (Advance)"], def:"Aylık"},
       {k:"odemeGun", l:"Ödeme Şekli", lEn:"Payment Days", type:"dayrange", pre:"Her ayın", preEn:"Between the", post:"arasında", postEn:"of each month"},
-      {k:"muddet", l:"Kira Müddeti", lEn:"Lease Duration", type:"select", opts:["1 Yıl","6 Ay"], optsEn:["1 Year","6 Months"], def:"1 Yıl"},
+      {k:"muddet", l:"Kira Müddeti", lEn:"Lease Duration", type:"select", opts:["1 Yıl","6 Ay"], optsEn:["1 Year","6 Months"], def:"1 Yıl", rebuild:1},
       {k:"baslangic", l:"Kira Başlangıcı", lEn:"Lease Start Date", ph:"GG.AA.YYYY", fmt:"date"},
       {k:"bitis", l:"Kira Bitişi", lEn:"Lease End Date", ph:"GG.AA.YYYY", fmt:"date"},
       {k:"depozito", l:"Depozito Tutarı", lEn:"Deposit Amount", fmt:"money"},
@@ -1449,14 +1451,14 @@ const TEMPLATES = [
       [L("Kiralanan Şeyin Cinsi","Type of Property"), fv("cins")],
       ...kvRows,
       ...kcRows,
-      [L("Bir Senelik Kira Karşılığı","Annual Rent"), (()=>{
+      [_6ay ? L("Altı Aylık Kira Karşılığı","Six-Month Rent") : L("Bir Senelik Kira Karşılığı","Annual Rent"), (()=>{
         const yillikRaw = fvRaw("yillik");
         const aylikRaw = (fvRaw("aylik")||"").replace(/[^\d]/g,"");
         let tutar;
         if (yillikRaw && yillikRaw.replace(/[^\d]/g,"")) {
           tutar = fvu("yillik","TL","");
         } else if (aylikRaw) {
-          const hesap = (Number(aylikRaw)*12).toLocaleString("tr-TR");
+          const hesap = (Number(aylikRaw)*(_6ay?6:12)).toLocaleString("tr-TR");
           tutar = `<span class="fv">${hesap}</span> TL`;
         } else {
           tutar = fvu("yillik","TL","");
