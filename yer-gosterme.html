@@ -172,6 +172,7 @@ const L={
     mailFail:"⚠️ Kaydedildi ama müşteriye mail GİDEMEDİ. Umut Bey'e bildirin.",
     puanOk:"⭐ Danışman Takip'e işlendi: ",
     puanFail:"⚠️ Kaydedildi ama Danışman Takip'e işlenemedi. Umut Bey'e bildirin.",
+    puanSonra:"⏳ Form kaydedildi. Puanınız 15 dakika içinde Danışman Takip'e kendiliğinden işlenecek, tekrar doldurmanıza gerek yok.",
     alreadySaved:"Bu form zaten kaydedildi ve gönderildi.",
     mailYok:"Müşteri e-postası yok, mail atılmadı.",
     saving:"⏳ Kaydediliyor…",
@@ -237,6 +238,7 @@ const L={
     mailFail:"⚠️ Saved, but the e-mail to the customer FAILED. Tell Umut.",
     puanOk:"⭐ Recorded in Danışman Takip: ",
     puanFail:"⚠️ Saved, but not recorded in Danışman Takip. Tell Umut.",
+    puanSonra:"⏳ Form saved. Your points will be added to Danışman Takip automatically within 15 minutes; no need to fill it again.",
     alreadySaved:"This form has already been saved and sent.",
     mailYok:"No customer e-mail, nothing was sent.",
     saving:"⏳ Saving…",
@@ -572,7 +574,7 @@ async function kaydetDrive(otomatik){
       if(d.puan>0)notlar.push(t("puanOk")+"+"+(d.puan*5));
       if(d.mail==="gonderildi")notlar.push(t("mailSent"));else if(d.mail==="yok")notlar.push(t("mailYok"));
       const sorun=[];
-      if(d.puan===0)sorun.push(t("puanFail"));
+      if(d.puan===0)sorun.push(t(d.puanSonra?"puanSonra":"puanFail"));
       if(d.mail==="hata"||d.mail==="hatali")sorun.push(t("mailFail"));
       if(d.puan>0)puanUcur(d.puan*5,btn);
       puanBildir(notlar.join("\n"));
